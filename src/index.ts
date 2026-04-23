@@ -16,8 +16,10 @@ export {
   FacturxProfile, DocTypeCode, TaxCategoryCode, PaymentMeansCode, UnitCode,
   CurrencyCode, ComplianceType,
   FacturXInvoice, FacturXInvoiceBuilder, TaxCalculator,
+  // Entities (classes — usable with `new`)
   PostalAddressImpl, TradePartyImpl, PaymentDetailsImpl, DocumentHeaderImpl,
-  InvoiceLine as InvoiceLineImpl, AllowanceCharge as AllowanceChargeImpl,
+  InvoiceLineImpl,      // class re-exported as InvoiceLineImpl from entities.ts
+  AllowanceChargeImpl,  // class re-exported as AllowanceChargeImpl from entities.ts
   XML_NAMESPACES, GUIDELINE_URNS, PROFILE_POLICIES, PATTERNS, REGIONAL_CONFIGS,
   getGuidelineUrn, getProfilePolicy, getRegionalConfig, getRegionalConfigOrDefault,
   formatDateFacturX, formatAmount,
