@@ -1,0 +1,144 @@
+"use strict";
+/**
+ * @module i18n/locales/en
+ * @description English (US) locale for Factur-X
+ */
+Object.defineProperty(exports, "__esModule", { value: true });
+exports.en = void 0;
+exports.en = {
+    code: 'en',
+    name: 'English',
+    direction: 'ltr',
+    messages: {
+        // Common terms
+        invoice: 'Invoice',
+        quote: 'Quote',
+        order: 'Order',
+        creditNote: 'Credit Note',
+        debitNote: 'Debit Note',
+        // Parties
+        seller: 'Seller',
+        buyer: 'Buyer',
+        supplier: 'Supplier',
+        customer: 'Customer',
+        // Invoice details
+        invoiceNumber: 'Invoice Number',
+        invoiceDate: 'Invoice Date',
+        dueDate: 'Due Date',
+        issueDate: 'Issue Date',
+        deliveryDate: 'Delivery Date',
+        // Amounts and totals
+        quantity: 'Qty',
+        unitPrice: 'Unit Price',
+        lineTotal: 'Line Total',
+        subtotal: 'Subtotal',
+        taxTotal: 'Total VAT',
+        grandTotal: 'Grand Total',
+        amountDue: 'Amount Due',
+        totalWithoutTax: 'Total excl. VAT',
+        totalWithTax: 'Total incl. VAT',
+        // Tax
+        vat: 'VAT',
+        taxRate: 'Tax Rate',
+        taxAmount: 'Tax Amount',
+        taxBase: 'Tax Base',
+        taxCategory: 'Tax Category',
+        // Payment
+        payment: 'Payment',
+        paymentTerms: 'Payment Terms',
+        paymentMethod: 'Payment Method',
+        paymentReference: 'Payment Reference',
+        iban: 'IBAN',
+        bic: 'BIC/SWIFT',
+        bankAccount: 'Bank Account',
+        // Document fields
+        description: 'Description',
+        reference: 'Reference',
+        notes: 'Notes',
+        remarks: 'Remarks',
+        comments: 'Comments',
+        // Units
+        unit: 'Unit',
+        piece: 'Piece',
+        hour: 'Hour',
+        day: 'Day',
+        month: 'Month',
+        // Validation errors
+        errors: {
+            required: '{field} is required',
+            invalid: 'Invalid {field}',
+            tooShort: '{field} must be at least {min} characters',
+            tooLong: '{field} must be at most {max} characters',
+            minValue: '{field} must be at least {min}',
+            maxValue: '{field} must be at most {max}',
+            validation: {
+                missingSeller: 'Seller information is required',
+                missingBuyer: 'Buyer information is required',
+                missingInvoiceNumber: 'Invoice number is required',
+                missingInvoiceDate: 'Invoice date is required',
+                missingLines: 'At least one invoice line is required',
+                invalidAmount: 'Invalid amount: {amount}',
+                invalidTaxRate: 'Invalid tax rate: {rate}',
+                invalidCurrency: 'Unsupported currency: {currency}',
+                invalidProfile: 'Invalid profile: {profile}',
+                profileViolation: 'Profile {profile} forbids field: {field}',
+                missingMandatoryField: 'Profile {profile} requires field: {field}',
+            },
+            facturx: {
+                xmlGenerationFailed: 'Failed to generate Factur-X XML',
+                xmlValidationFailed: 'XML validation failed for profile {profile}',
+                unsupportedProfile: 'Unsupported Factur-X profile: {profile}',
+                missingVatNumber: 'VAT number is required for profile {profile}',
+            },
+        },
+        // Success messages
+        success: {
+            invoiceGenerated: 'Invoice generated successfully',
+            xmlGenerated: 'XML generated successfully',
+            pdfGenerated: 'PDF generated successfully',
+            validated: 'Validation successful',
+        },
+        // Info messages
+        info: {
+            generatingInvoice: 'Generating invoice...',
+            generatingXml: 'Generating XML...',
+            generatingPdf: 'Generating PDF...',
+            validating: 'Validating...',
+            processing: 'Processing...',
+        },
+        // Profiles
+        profiles: {
+            minimum: 'Minimum',
+            basicwl: 'Basic without lines',
+            basic: 'Basic',
+            en16931: 'EN 16931 (European standard)',
+            extended: 'Extended',
+        },
+        // Currencies
+        currency: {
+            eur: 'Euro',
+            usd: 'US Dollar',
+            gbp: 'British Pound',
+            chf: 'Swiss Franc',
+            jpy: 'Japanese Yen',
+        },
+        // Pluralization
+        items: 'You have {count} items | You have {count} item',
+        lines: '{count} lines | {count} line',
+    },
+    dateFormats: {
+        short: 'MM/DD/YYYY',
+        medium: 'MMM DD, YYYY',
+        long: 'MMMM DD, YYYY',
+        full: 'dddd, MMMM DD, YYYY',
+        time: 'h:mm A',
+        datetime: 'MM/DD/YYYY h:mm A',
+    },
+    numberFormats: {
+        decimal: '.',
+        thousands: ',',
+        currency: '{currency} {amount}',
+        percentage: '{amount}%',
+    },
+};
+//# sourceMappingURL=en.js.map
