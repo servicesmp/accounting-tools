@@ -44,10 +44,10 @@ class TaxCalculator {
             // Update tax map
             if (this.roundMode === 'line') {
                 const tax = lineHT * rate;
-                this.updateVatMap(vatMap, rate, category, lineHT, tax);
+                this.updateVatMap(vatMap, rate, category, lineHT, tax, line.taxExemptionReason, line.taxExemptionReasonCode);
             }
             else {
-                this.updateVatMap(vatMap, rate, category, lineHT);
+                this.updateVatMap(vatMap, rate, category, lineHT, undefined, line.taxExemptionReason, line.taxExemptionReasonCode);
             }
             // Process line-level allowances/charges - O(m) where m is typically small
             const lineAC = line.allowances.concat(line.charges);
@@ -117,6 +117,8 @@ class TaxCalculator {
                 category,
                 taxable: val.taxable,
                 taxAmount: tax,
+                exemptionReason: val.exemptionReason,
+                exemptionReasonCode: val.exemptionReasonCode,
             });
         }
         const grandTotal = taxBasis + totalTax;
@@ -137,7 +139,7 @@ class TaxCalculator {
      * Update VAT map - Optimized for minimal operations
      * Uses Map.get + Map.set pattern which is faster than multiple lookups
      */
-    updateVatMap(vatMap, rate, category, taxable, tax) {
+    updateVatMap(vatMap, rate, category, taxable, tax, exemptionReason, exemptionReasonCode) {
         const key = this.encodeKey(rate, category);
         const existing = vatMap.get(key);
         if (existing) {
@@ -146,10 +148,15 @@ class TaxCalculator {
             if (tax !== undefined) {
                 existing.tax = (existing.tax ?? 0) + tax;
             }
+            // Keep first exemptionReason found for this rate/category
+            if (!existing.exemptionReason && exemptionReason) {
+                existing.exemptionReason = exemptionReason;
+                existing.exemptionReasonCode = exemptionReasonCode;
+            }
         }
         else {
             // Create new (single allocation)
-            vatMap.set(key, { taxable, tax });
+            vatMap.set(key, { taxable, tax, exemptionReason, exemptionReasonCode });
         }
     }
     /**

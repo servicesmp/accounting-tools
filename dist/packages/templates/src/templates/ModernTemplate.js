@@ -131,7 +131,7 @@ class ModernTemplate extends TemplateRenderer_1.TemplateRenderer {
         this.renderContext.currentY = badgeY - badgeH - 20;
     }
     // =========================================================================
-    // 2. PARTIES — Buyer left, Seller right (Amazon style)
+    // 2. PARTIES — Seller left (entreprise), Buyer right (client)
     // =========================================================================
     renderModernParties() {
         const { margins } = this.context.options;
@@ -140,64 +140,64 @@ class ModernTemplate extends TemplateRenderer_1.TemplateRenderer {
         const startY = this.renderContext.currentY;
         const contentWidth = width - margins.left - margins.right;
         const colWidth = contentWidth / 3;
-        // ---- Column 1: Buyer address ----
+        // ---- Column 1 (LEFT): Seller / Entreprise ----
         const col1X = margins.left;
-        this.drawText(this.strings.buyer || 'Adresse de facturation', col1X, startY, {
+        this.drawText(this.strings.seller || 'Émetteur', col1X, startY, {
             size: 9,
             bold: true,
             color: COLORS.darkGray,
         });
         let y1 = startY - 16;
-        this.drawText(invoice.buyer.name, col1X, y1, { size: 9, color: COLORS.mediumGray });
+        this.drawText(invoice.seller.name, col1X, y1, { size: 9, color: COLORS.mediumGray });
         y1 -= 13;
-        if (invoice.buyer.address) {
-            const addr = invoice.buyer.address;
+        if (invoice.seller.address) {
+            const addr = invoice.seller.address;
             if (addr.street) {
                 this.drawText(addr.street, col1X, y1, { size: 9, color: COLORS.mediumGray });
-                y1 -= 13;
-            }
-            if (addr.additionalStreet) {
-                this.drawText(addr.additionalStreet, col1X, y1, { size: 9, color: COLORS.mediumGray });
                 y1 -= 13;
             }
             this.drawText(`${addr.postalCode} ${addr.city}`, col1X, y1, { size: 9, color: COLORS.mediumGray });
             y1 -= 13;
             this.drawText(addr.countryCode, col1X, y1, { size: 9, color: COLORS.mediumGray });
+            y1 -= 13;
         }
-        // ---- Column 3: Seller info ----
+        // VAT / SIREN
+        if (invoice.seller.vatId) {
+            this.drawText(`N° TVA : ${invoice.seller.vatId}`, col1X, y1, { size: 9, color: COLORS.mediumGray });
+            y1 -= 13;
+        }
+        const { sellerSiret, sellerSiren } = this.context.options;
+        if (sellerSiren) {
+            this.drawText(`SIREN : ${sellerSiren}`, col1X, y1, { size: 9, color: COLORS.mediumGray });
+        }
+        else if (sellerSiret) {
+            this.drawText(`SIRET : ${sellerSiret}`, col1X, y1, { size: 9, color: COLORS.mediumGray });
+        }
+        // ---- Column 3 (RIGHT): Buyer / Client ----
         const col3X = margins.left + colWidth * 2;
-        this.drawText(this.strings.seller || 'Vendu par', col3X, startY, {
+        this.drawText(this.strings.buyer || 'Adresse de facturation', col3X, startY, {
             size: 9,
             bold: true,
             color: COLORS.darkGray,
         });
         let y3 = startY - 16;
-        this.drawText(invoice.seller.name, col3X, y3, { size: 9, color: COLORS.mediumGray });
+        this.drawText(invoice.buyer.name, col3X, y3, { size: 9, color: COLORS.mediumGray });
         y3 -= 13;
-        if (invoice.seller.address) {
-            const addr = invoice.seller.address;
+        if (invoice.buyer.address) {
+            const addr = invoice.buyer.address;
             if (addr.street) {
                 this.drawText(addr.street, col3X, y3, { size: 9, color: COLORS.mediumGray });
+                y3 -= 13;
+            }
+            if (addr.additionalStreet) {
+                this.drawText(addr.additionalStreet, col3X, y3, { size: 9, color: COLORS.mediumGray });
                 y3 -= 13;
             }
             this.drawText(`${addr.postalCode} ${addr.city}`, col3X, y3, { size: 9, color: COLORS.mediumGray });
             y3 -= 13;
             this.drawText(addr.countryCode, col3X, y3, { size: 9, color: COLORS.mediumGray });
-            y3 -= 13;
         }
-        // VAT / SIRET
-        if (invoice.seller.vatId) {
-            this.drawText(`TVA: ${invoice.seller.vatId}`, col3X, y3, { size: 9, color: COLORS.mediumGray });
-            y3 -= 13;
-        }
-        const { sellerSiret, sellerSiren } = this.context.options;
-        if (sellerSiret) {
-            this.drawText(`SIRET: ${sellerSiret}`, col3X, y3, { size: 9, color: COLORS.mediumGray });
-        }
-        else if (sellerSiren) {
-            this.drawText(`SIREN: ${sellerSiren}`, col3X, y3, { size: 9, color: COLORS.mediumGray });
-        }
-        this.renderContext.currentY = startY - 90;
+        this.renderContext.currentY = startY - 100;
     }
     // =========================================================================
     // 3. ORDER INFO — Simple date + numéro
@@ -396,6 +396,13 @@ class ModernTemplate extends TemplateRenderer_1.TemplateRenderer {
             this.drawText(`${(0, core_1.formatAmount)(taxSum.taxable)} €`, taxTableX + col1W, y - 13, { size: 8, color: COLORS.black });
             this.drawText(`${(0, core_1.formatAmount)(taxSum.taxAmount)} €`, taxTableX + col1W + col2W, y - 13, { size: 8, color: COLORS.black });
             y -= 16;
+            // BT-120: Display exemption reason below the 0% line
+            if (taxSum.exemptionReason) {
+                this.drawText(`Mention TVA : ${taxSum.exemptionReason}`, taxTableX + 8, y - 6, {
+                    size: 7, color: COLORS.gray,
+                });
+                y -= 14;
+            }
         }
         // Total row
         this.drawLine(taxTableX, y, taxTableX + contentWidth * 0.55, y, { color: COLORS.borderGray, width: 0.5 });
@@ -425,6 +432,16 @@ class ModernTemplate extends TemplateRenderer_1.TemplateRenderer {
         for (const mention of legalMentions) {
             this.drawText(mention, margins.left, y, { size: 6.5, color: COLORS.gray });
             y -= 11;
+        }
+        // ── TVA exemption mention (BT-120 — also in footer for full compliance) ──
+        const { summary } = this.context;
+        for (const taxSum of summary.taxSummaries) {
+            if (taxSum.exemptionReason) {
+                this.drawText(taxSum.exemptionReason, margins.left, y, {
+                    size: 7, bold: true, color: COLORS.darkGray,
+                });
+                y -= 12;
+            }
         }
         y -= 4; // small spacer before identifiers
         // ── Seller legal info ─────────────────────────────────────────────────

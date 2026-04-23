@@ -391,6 +391,18 @@ export interface InvoiceLine {
   readonly taxCategoryCode: string;
   /** Unit code */
   readonly unitCode: string;
+  /**
+   * Tax exemption reason text (BT-120).
+   * REQUIRED when taxCategoryCode is not 'S' (e.g. 'E', 'Z', 'AE', 'K', 'G', 'O').
+   * Example: "TVA non applicable, art. 293 B du CGI"
+   */
+  readonly taxExemptionReason?: string;
+  /**
+   * Tax exemption reason code (BT-121).
+   * UN/CEFACT code list UNTDID 5305 subset.
+   * Example: 'VATEX-FR-FRANCHISE' for franchise en base de TVA.
+   */
+  readonly taxExemptionReasonCode?: string;
   /** Billing period start (optional) */
   readonly billingPeriodStart?: Date;
   /** Billing period end (optional) */
@@ -419,6 +431,15 @@ export interface TaxSummary {
   readonly taxable: number;
   /** Tax amount */
   readonly taxAmount: number;
+  /**
+   * Tax exemption reason text (BT-120).
+   * Present when category is not 'S'.
+   */
+  readonly exemptionReason?: string;
+  /**
+   * Tax exemption reason code (BT-121).
+   */
+  readonly exemptionReasonCode?: string;
 }
 
 /**

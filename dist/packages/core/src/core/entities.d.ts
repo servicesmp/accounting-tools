@@ -172,9 +172,17 @@ export declare class InvoiceLine implements IInvoiceLine {
     readonly deliveredQuantity?: number | undefined;
     readonly productId?: string | undefined;
     readonly ean?: string | undefined;
+    /** BT-120: Tax exemption reason text (required for non-S categories) */
+    readonly taxExemptionReason?: string | undefined;
+    /** BT-121: Tax exemption reason code */
+    readonly taxExemptionReasonCode?: string | undefined;
     readonly allowances: AllowanceCharge[];
     readonly charges: AllowanceCharge[];
-    constructor(id: string, description: string, quantity: number, unitPrice: number, vatRate: number, taxCategoryCode?: string, unitCode?: string, billingPeriodStart?: Date | undefined, billingPeriodEnd?: Date | undefined, deliveredQuantity?: number | undefined, productId?: string | undefined, ean?: string | undefined);
+    constructor(id: string, description: string, quantity: number, unitPrice: number, vatRate: number, taxCategoryCode?: string, unitCode?: string, billingPeriodStart?: Date | undefined, billingPeriodEnd?: Date | undefined, deliveredQuantity?: number | undefined, productId?: string | undefined, ean?: string | undefined, 
+    /** BT-120: Tax exemption reason text (required for non-S categories) */
+    taxExemptionReason?: string | undefined, 
+    /** BT-121: Tax exemption reason code */
+    taxExemptionReasonCode?: string | undefined);
     /** Get line total (optimized: inline calculation) */
     get lineTotal(): number;
     /** Add allowance - Optimized: direct push */

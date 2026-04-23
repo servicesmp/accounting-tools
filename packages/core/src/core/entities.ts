@@ -457,7 +457,11 @@ export class InvoiceLine implements IInvoiceLine {
     public readonly billingPeriodEnd?: Date,
     public readonly deliveredQuantity?: number,
     public readonly productId?: string,
-    public readonly ean?: string
+    public readonly ean?: string,
+    /** BT-120: Tax exemption reason text (required for non-S categories) */
+    public readonly taxExemptionReason?: string,
+    /** BT-121: Tax exemption reason code */
+    public readonly taxExemptionReasonCode?: string,
   ) {
     if (!id || !description) {
       throw new Error('ID and description are required');

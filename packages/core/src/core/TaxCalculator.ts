@@ -26,6 +26,8 @@ export type RoundMode = 'line' | 'global';
 interface TaxAccumulator {
   taxable: number;
   tax?: number; // Undefined in global mode until final calculation
+  exemptionReason?: string;
+  exemptionReasonCode?: string;
 }
 
 // ============================================================================
@@ -74,9 +76,11 @@ export class TaxCalculator {
       // Update tax map
       if (this.roundMode === 'line') {
         const tax = lineHT * rate;
-        this.updateVatMap(vatMap, rate, category, lineHT, tax);
+        this.updateVatMap(vatMap, rate, category, lineHT, tax,
+          (line as any).taxExemptionReason, (line as any).taxExemptionReasonCode);
       } else {
-        this.updateVatMap(vatMap, rate, category, lineHT);
+        this.updateVatMap(vatMap, rate, category, lineHT, undefined,
+          (line as any).taxExemptionReason, (line as any).taxExemptionReasonCode);
       }
 
       // Process line-level allowances/charges - O(m) where m is typically small
@@ -157,6 +161,8 @@ export class TaxCalculator {
         category,
         taxable: val.taxable,
         taxAmount: tax,
+        exemptionReason: val.exemptionReason,
+        exemptionReasonCode: val.exemptionReasonCode,
       });
     }
 
@@ -186,7 +192,9 @@ export class TaxCalculator {
     rate: number,
     category: string,
     taxable: number,
-    tax?: number
+    tax?: number,
+    exemptionReason?: string,
+    exemptionReasonCode?: string,
   ): void {
     const key = this.encodeKey(rate, category);
     const existing = vatMap.get(key);
@@ -197,9 +205,14 @@ export class TaxCalculator {
       if (tax !== undefined) {
         existing.tax = (existing.tax ?? 0) + tax;
       }
+      // Keep first exemptionReason found for this rate/category
+      if (!existing.exemptionReason && exemptionReason) {
+        existing.exemptionReason = exemptionReason;
+        existing.exemptionReasonCode = exemptionReasonCode;
+      }
     } else {
       // Create new (single allocation)
-      vatMap.set(key, { taxable, tax });
+      vatMap.set(key, { taxable, tax, exemptionReason, exemptionReasonCode });
     }
   }
 

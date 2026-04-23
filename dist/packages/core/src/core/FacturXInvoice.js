@@ -312,8 +312,16 @@ class FacturXInvoice {
             const tax = settlement.ele('ram:ApplicableTradeTax');
             tax.ele('ram:CalculatedAmount').txt((0, constants_1.formatAmount)(taxSummary.taxAmount));
             tax.ele('ram:TypeCode').txt('VAT');
+            // BT-120: Exemption reason text (required for non-S categories)
+            if (taxSummary.exemptionReason) {
+                tax.ele('ram:ExemptionReason').txt(taxSummary.exemptionReason);
+            }
             tax.ele('ram:BasisAmount').txt((0, constants_1.formatAmount)(taxSummary.taxable));
             tax.ele('ram:CategoryCode').txt(taxSummary.category);
+            // BT-121: Exemption reason code
+            if (taxSummary.exemptionReasonCode) {
+                tax.ele('ram:ExemptionReasonCode').txt(taxSummary.exemptionReasonCode);
+            }
             tax.ele('ram:RateApplicablePercent').txt((0, constants_1.formatAmount)(taxSummary.rate));
         }
         // 4. Document-level allowances/charges (BR-S-08, BR-CO-13 compliance)
@@ -399,6 +407,10 @@ class FacturXInvoice {
             lineTax.ele('ram:TypeCode').txt('VAT');
             lineTax.ele('ram:CategoryCode').txt(line.taxCategoryCode);
             lineTax.ele('ram:RateApplicablePercent').txt((0, constants_1.formatAmount)(line.vatRate * 100));
+            // BT-120: line-level exemption reason
+            if (line.taxExemptionReason) {
+                lineTax.ele('ram:ExemptionReason').txt(line.taxExemptionReason);
+            }
             const lineSummation = lineSettlement.ele('ram:SpecifiedTradeSettlementLineMonetarySummation');
             lineSummation.ele('ram:LineTotalAmount').txt((0, constants_1.formatAmount)(line.lineTotal));
         }

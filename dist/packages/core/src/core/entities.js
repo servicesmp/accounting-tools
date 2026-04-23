@@ -329,7 +329,11 @@ exports.AllowanceCharge = AllowanceCharge;
 // INVOICE LINE - Mutable for performance (quantity/price can change)
 // ============================================================================
 class InvoiceLine {
-    constructor(id, description, quantity, unitPrice, vatRate, taxCategoryCode = 'S', unitCode = 'C62', billingPeriodStart, billingPeriodEnd, deliveredQuantity, productId, ean) {
+    constructor(id, description, quantity, unitPrice, vatRate, taxCategoryCode = 'S', unitCode = 'C62', billingPeriodStart, billingPeriodEnd, deliveredQuantity, productId, ean, 
+    /** BT-120: Tax exemption reason text (required for non-S categories) */
+    taxExemptionReason, 
+    /** BT-121: Tax exemption reason code */
+    taxExemptionReasonCode) {
         this.id = id;
         this.description = description;
         this.quantity = quantity;
@@ -342,6 +346,8 @@ class InvoiceLine {
         this.deliveredQuantity = deliveredQuantity;
         this.productId = productId;
         this.ean = ean;
+        this.taxExemptionReason = taxExemptionReason;
+        this.taxExemptionReasonCode = taxExemptionReasonCode;
         // Optimized: Use arrays instead of readonly for internal mutations
         this.allowances = [];
         this.charges = [];
