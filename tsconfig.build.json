@@ -7,14 +7,30 @@
     "declarationMap": true,
     "sourceMap": true,
     "outDir": "./dist",
-    "rootDir": "./src",
     "strict": true,
     "esModuleInterop": true,
     "skipLibCheck": true,
     "forceConsistentCasingInFileNames": true,
     "resolveJsonModule": true,
-    "moduleResolution": "node"
+    "moduleResolution": "node",
+    "paths": {
+      "@facturx/core": ["./packages/core/src"],
+      "@facturx/core/*": ["./packages/core/src/*"],
+      "@facturx/templates": ["./packages/templates/src"],
+      "@facturx/templates/*": ["./packages/templates/src/*"]
+    }
   },
-  "include": ["src/**/*"],
-  "exclude": ["node_modules", "dist", "legacy", "**/*.test.ts", "**/*.spec.ts"]
+  "include": [
+    "src/**/*",
+    "packages/core/src/**/*",
+    "packages/templates/src/**/*"
+  ],
+  "exclude": [
+    "node_modules",
+    "dist",
+    "legacy",
+    "**/*.test.ts",
+    "**/*.spec.ts",
+    "packages/cli/**/*"
+  ]
 }

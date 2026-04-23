@@ -3,163 +3,64 @@
  * @description Unified Factur-X library — single-package entry point.
  *
  * Install: "accounting-tools": "github:servicesmp/accounting-tools"
+ * Usage:   import { FacturXInvoice, generateModernPDF } from 'accounting-tools';
  *
- * Usage:
- *   import { FacturXInvoice, generateModernPDF } from 'accounting-tools';
- *
- * This file re-exports from pre-built packages/core/dist and packages/templates/dist.
- * Build order: core → templates → root
+ * Compilation: tsc compiles all sources together, tsc-alias rewrites
+ * @facturx/core → relative paths in dist/ so it works when installed.
  */
 
 // ============================================================================
 // CORE — all types, entities, validators, XML generation
 // ============================================================================
 export {
-  // Enums
-  FacturxProfile,
-  DocTypeCode,
-  TaxCategoryCode,
-  PaymentMeansCode,
-  UnitCode,
-  CurrencyCode,
-  ComplianceType,
-
-  // Core Interfaces
-  PostalAddress,
-  TradeParty,
-  PaymentDetails,
-  DocumentHeader,
-  InvoiceLine,
-  AllowanceCharge,
-
-  // Tax & Summary
-  TaxSummary,
-  MonetarySummary,
-
-  // Validation
-  ValidationResult,
-  ProfilePolicy,
-  RegionalConfig,
-  NoteWithCode,
-
-  // Main classes
-  FacturXInvoice,
-  FacturXInvoiceBuilder,
-  TaxCalculator,
-
-  // Entities
-  PostalAddressImpl,
-  TradePartyImpl,
-  PaymentDetailsImpl,
-  DocumentHeaderImpl,
-  InvoiceLineImpl,
-  AllowanceChargeImpl,
-
-  // Constants
-  XML_NAMESPACES,
-  GUIDELINE_URNS,
-  PROFILE_POLICIES,
-  PATTERNS,
-  REGIONAL_CONFIGS,
-  getGuidelineUrn,
-  getProfilePolicy,
-  getRegionalConfig,
-  getRegionalConfigOrDefault,
-  formatDateFacturX,
-  formatAmount,
-
-  // Utils
-  escapeXml,
-  unescapeXml,
-  sanitizeString,
-  validateEmail,
-  validatePhone,
-  validateCountryCode,
-  validateAmount,
-  validateDate,
-  CurrencyFormatter,
-  isValidCurrency,
-  getCurrencyInfo,
-  formatCurrency,
-  formatAmountForXml,
-  parseCurrency,
-  convertCurrency,
-
-  // Validators
-  XsdValidator,
-  getDefaultValidator,
-  validateXml,
-  validateXmlAsync,
+  FacturxProfile, DocTypeCode, TaxCategoryCode, PaymentMeansCode, UnitCode,
+  CurrencyCode, ComplianceType,
+  FacturXInvoice, FacturXInvoiceBuilder, TaxCalculator,
+  PostalAddressImpl, TradePartyImpl, PaymentDetailsImpl, DocumentHeaderImpl,
+  InvoiceLine as InvoiceLineImpl, AllowanceCharge as AllowanceChargeImpl,
+  XML_NAMESPACES, GUIDELINE_URNS, PROFILE_POLICIES, PATTERNS, REGIONAL_CONFIGS,
+  getGuidelineUrn, getProfilePolicy, getRegionalConfig, getRegionalConfigOrDefault,
+  formatDateFacturX, formatAmount,
+  escapeXml, unescapeXml, sanitizeString,
+  validateEmail, validatePhone, validateCountryCode, validateAmount, validateDate,
+  CurrencyFormatter, isValidCurrency, getCurrencyInfo, formatCurrency,
+  formatAmountForXml, parseCurrency, convertCurrency,
+  XsdValidator, getDefaultValidator, validateXml, validateXmlAsync,
   RealXsdValidator,
-  BusinessRuleValidator,
-  getDefaultBusinessRuleValidator,
-  validateBusinessRules,
-  CodeListValidator,
-  getDefaultCodeListValidator,
-  isValidCode,
-  validateInvoiceCodes,
+  BusinessRuleValidator, getDefaultBusinessRuleValidator, validateBusinessRules,
+  CodeListValidator, getDefaultCodeListValidator, isValidCode, validateInvoiceCodes,
+  I18n, getDefaultI18n, t, createI18n, translate, DEFAULT_LOCALES,
+  getLocaleByCode, getAvailableLocaleCodes,
+} from '@facturx/core';
 
-  // i18n
-  I18n,
-  getDefaultI18n,
-  t,
-  createI18n,
-  translate,
-  DEFAULT_LOCALES,
-  getLocaleByCode,
-  getAvailableLocaleCodes,
-} from '../packages/core/dist/index';
+// Type-only exports from core
+export type {
+  PostalAddress, TradeParty, PaymentDetails, DocumentHeader, InvoiceLine,
+  AllowanceCharge, TaxSummary, MonetarySummary, ValidationResult, ProfilePolicy,
+  RegionalConfig, NoteWithCode,
+} from '@facturx/core';
 
 // ============================================================================
 // TEMPLATES — all PDF renderers and generation functions
 // ============================================================================
 export {
-  // Types
-  TemplateType,
-  TemplateTheme,
-  TemplateOptions,
-  TemplateContext,
-  PDFGenerationResult,
-  PDFAttachmentOptions,
-  RenderContext,
-  RenderedElement,
-  LocalizedStrings,
-  DEFAULT_THEME,
-  BRAND_THEME,
-  FANCY_THEME,
+  TemplateType, TemplateTheme, DEFAULT_THEME, BRAND_THEME, FANCY_THEME,
   LOCALIZED_STRINGS,
+  TemplateRenderer, ModernTemplate, FancyTemplate, BrandTemplate,
+  CorporateTemplate, MinimalTemplate,
+  generateModernPDF, generateFancyPDF, generateBrandPDF,
+  generateCorporatePDF, generateMinimalPDF, generatePDF,
+  ValidationPipeline, getDefaultPipeline,
+  validateBeforeGeneration, validateAfterGeneration, validateQuick,
+  setupPDFA3Compliance, applyPDFA3Compliance, addAFRelationshipToFile,
+  loadSRGBProfile, generatePDFA3XMP, generatePDFFileID,
+} from '@facturx/templates';
 
-  // Renderers
-  TemplateRenderer,
-  ModernTemplate,
-  FancyTemplate,
-  BrandTemplate,
-  CorporateTemplate,
-  MinimalTemplate,
-
-  // Convenience functions
-  generateModernPDF,
-  generateFancyPDF,
-  generateBrandPDF,
-  generateCorporatePDF,
-  generateMinimalPDF,
-  generatePDF,
-
-  // Validation
-  ValidationPipeline,
-  getDefaultPipeline,
-  validateBeforeGeneration,
-  validateAfterGeneration,
-  validateQuick,
-
-  // PDF/A-3
-  setupPDFA3Compliance,
-  applyPDFA3Compliance,
-  addAFRelationshipToFile,
-  loadSRGBProfile,
-  generatePDFA3XMP,
-  generatePDFFileID,
-} from '../packages/templates/dist/index';
+// Type-only exports from templates
+export type {
+  TemplateOptions, TemplateContext, PDFGenerationResult, PDFAttachmentOptions,
+  RenderContext, RenderedElement, LocalizedStrings,
+} from '@facturx/templates';
 
 // ============================================================================
 // VERSION
