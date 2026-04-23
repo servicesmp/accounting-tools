@@ -369,9 +369,16 @@ export class FacturXInvoice {
       const paymentMeans = settlement.ele('ram:SpecifiedTradeSettlementPaymentMeans');
       paymentMeans.ele('ram:TypeCode').txt(String(this.payment.meansCode));
 
+      // BR-CO-27: Either IBAN or ProprietaryID (BT-84) is required.
+      // When an IBAN is available we emit IBANID; otherwise we emit ProprietaryID
+      // (e.g. the invoice reference number used as transfer reference).
       if (this.payment.iban) {
         const account = paymentMeans.ele('ram:PayeePartyCreditorFinancialAccount');
         account.ele('ram:IBANID').txt(this.payment.iban);
+      } else if (this.payment.reference) {
+        // ProprietaryID = free-form account identifier (BT-84)
+        const account = paymentMeans.ele('ram:PayeePartyCreditorFinancialAccount');
+        account.ele('ram:ProprietaryID').txt(this.payment.reference);
       }
 
       if (this.payment.bic) {

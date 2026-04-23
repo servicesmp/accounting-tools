@@ -1,0 +1,36 @@
+{
+  "compilerOptions": {
+    "target": "ES2020",
+    "module": "CommonJS",
+    "lib": ["ES2020"],
+    "declaration": true,
+    "declarationMap": true,
+    "sourceMap": true,
+    "outDir": "./dist",
+    "rootDir": "./src",
+    "removeComments": false,
+    "strict": true,
+    "esModuleInterop": true,
+    "skipLibCheck": true,
+    "forceConsistentCasingInFileNames": true,
+    "resolveJsonModule": true,
+    "moduleResolution": "node",
+    "paths": {
+      "@facturx/core": ["./packages/core/src"],
+      "@facturx/templates": ["./packages/templates/src"]
+    }
+  },
+  "include": [
+    "src/**/*",
+    "packages/core/src/**/*",
+    "packages/templates/src/**/*"
+  ],
+  "exclude": [
+    "node_modules",
+    "dist",
+    "legacy",
+    "**/*.test.ts",
+    "**/*.spec.ts",
+    "packages/cli/**/*"
+  ]
+}
