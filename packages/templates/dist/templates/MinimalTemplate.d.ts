@@ -1,0 +1,14 @@
+import { PDFPage } from 'pdf-lib';
+import { TemplateRenderer } from '../core/TemplateRenderer';
+import { TemplateType } from '../types';
+export declare class MinimalTemplate extends TemplateRenderer {
+    protected getTemplateType(): TemplateType;
+    protected renderContent(): Promise<void>;
+    private renderMinimalHeader;
+    private renderMinimalParties;
+    private renderMinimalLineItems;
+    private renderPaymentAndTotals;
+    private renderTaxBreakdown;
+    protected drawSinglePageFooter(page: PDFPage, pageNum: number, totalPages: number): void;
+}
+//# sourceMappingURL=MinimalTemplate.d.ts.map
