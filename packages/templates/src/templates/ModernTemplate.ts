@@ -114,8 +114,19 @@ export class ModernTemplate extends TemplateRenderer {
     this.drawRect(badgeX, badgeY - badgeH, badgeW, badgeH, { fillColor: COLORS.bgGray });
     this.drawRect(badgeX, badgeY - badgeH, 3, badgeH, { fillColor: COLORS.darkGray });
 
-    // Status text
-    this.drawText('Payé', badgeX + 12, badgeY - 16, {
+    // Status text — dynamic based on paymentStatus / isDraft option
+    const isDraftOption = (this.context.options as any).isDraft === true;
+    const paymentStatus = (this.context.options as any).paymentStatus || 'PAID';
+    let statusLabel: string;
+    if (isDraftOption || paymentStatus === 'DRAFT') {
+      statusLabel = 'Brouillon';
+    } else if (paymentStatus === 'PAID' || paymentStatus === 'paid') {
+      statusLabel = 'Payé';
+    } else {
+      statusLabel = 'En attente';
+    }
+
+    this.drawText(statusLabel, badgeX + 12, badgeY - 16, {
       size: 12,
       bold: true,
       color: COLORS.darkGray,
@@ -425,24 +436,25 @@ export class ModernTemplate extends TemplateRenderer {
   private async renderModernTotals(): Promise<void> {
     const { margins } = this.context.options;
     const { width } = this.renderContext;
-    const { summary, invoice } = this.context;
+    const { summary } = this.context;
     const startY = this.renderContext.currentY;
 
     const contentWidth = width - margins.left - margins.right;
 
-    // ---- QR code on the LEFT side ----
-    const paymentLink = this.context.options.paymentLink ||
-      `https://app.services.ceo/pay/invoice/${invoice.header.id}`;
-    const qrSize = 90;
-    const qrX = margins.left;
-    const qrY = startY - qrSize - 5;
-    await this.renderQRCode(qrX, qrY, paymentLink, qrSize, undefined, COLORS.darkGray);
+    // ---- QR code on the LEFT side (only when a payment link is explicitly set) ----
+    const paymentLink = this.context.options.paymentLink;
+    if (paymentLink) {
+      const qrSize = 90;
+      const qrX = margins.left;
+      const qrY = startY - qrSize - 5;
+      await this.renderQRCode(qrX, qrY, paymentLink, qrSize, undefined, COLORS.darkGray);
 
-    // "Scanner pour payer" label below QR
-    this.drawText('Scanner pour payer', qrX + 5, qrY - 10, {
-      size: 7,
-      color: COLORS.gray,
-    });
+      // "Scanner pour payer" label below QR
+      this.drawText('Scanner pour payer', qrX + 5, qrY - 10, {
+        size: 7,
+        color: COLORS.gray,
+      });
+    }
 
     // ---- Grand total line ----
     const totalAmountText = `${formatAmount(summary.grandTotal)} €`;
@@ -515,7 +527,21 @@ export class ModernTemplate extends TemplateRenderer {
 
     let y = startY - 10;
 
-    // Seller legal info
+    // ── Mentions légales obligatoires (BR-FR-05 / art. L.441-10 C.com) ──
+    // These three mentions must appear on every French B2B invoice.
+    const legalMentions = [
+      "Pénalités de retard exigibles dès le premier jour suivant la date de règlement, au taux de 3x le taux légal (art. L.441-10 C.com).",
+      "Indemnité forfaitaire pour frais de recouvrement en cas de retard : 40 € (art. D.441-5 C.com).",
+      "Pas d'escompte accordé pour paiement anticipé.",
+    ];
+    for (const mention of legalMentions) {
+      this.drawText(mention, margins.left, y, { size: 6.5, color: COLORS.gray });
+      y -= 11;
+    }
+
+    y -= 4; // small spacer before identifiers
+
+    // ── Seller legal info ─────────────────────────────────────────────────
     const { sellerSiret, sellerSiren } = this.context.options;
     const legalParts: string[] = [];
 
@@ -537,9 +563,10 @@ export class ModernTemplate extends TemplateRenderer {
     }
 
     const legalIds: string[] = [];
-    if (sellerSiret) legalIds.push(`SIRET: ${sellerSiret}`);
-    else if (sellerSiren) legalIds.push(`SIREN: ${sellerSiren}`);
-    if (invoice.seller.vatId) legalIds.push(`TVA: ${invoice.seller.vatId}`);
+    // Prefer SIREN (9 digits) over raw SIRET for correct FR display
+    if (sellerSiren) legalIds.push(`SIREN : ${sellerSiren}`);
+    else if (sellerSiret) legalIds.push(`SIRET : ${sellerSiret}`);
+    if (invoice.seller.vatId) legalIds.push(`N° TVA : ${invoice.seller.vatId}`);
 
     if (legalIds.length > 0) {
       this.drawText(legalIds.join(' • '), margins.left, y, {
@@ -551,12 +578,12 @@ export class ModernTemplate extends TemplateRenderer {
 
     // Payment terms
     if (this.context.options.showPaymentTerms && invoice.payment) {
-      const termsLine = invoice.payment.termsDescription || 'Conditions de paiement: 30 jours net';
+      const termsLine = invoice.payment.termsDescription || 'Conditions de paiement : 30 jours net';
       this.drawText(termsLine, margins.left, y, { size: 7, color: COLORS.gray });
       y -= 12;
 
       if (invoice.payment.iban) {
-        this.drawText(`IBAN: ${invoice.payment.iban}`, margins.left, y, { size: 7, color: COLORS.gray });
+        this.drawText(`IBAN : ${invoice.payment.iban}`, margins.left, y, { size: 7, color: COLORS.gray });
         y -= 12;
       }
     }
