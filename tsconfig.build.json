@@ -8,29 +8,13 @@
     "sourceMap": true,
     "outDir": "./dist",
     "rootDir": "./src",
-    "removeComments": false,
     "strict": true,
     "esModuleInterop": true,
     "skipLibCheck": true,
     "forceConsistentCasingInFileNames": true,
     "resolveJsonModule": true,
-    "moduleResolution": "node",
-    "paths": {
-      "@facturx/core": ["./packages/core/src"],
-      "@facturx/templates": ["./packages/templates/src"]
-    }
+    "moduleResolution": "node"
   },
-  "include": [
-    "src/**/*",
-    "packages/core/src/**/*",
-    "packages/templates/src/**/*"
-  ],
-  "exclude": [
-    "node_modules",
-    "dist",
-    "legacy",
-    "**/*.test.ts",
-    "**/*.spec.ts",
-    "packages/cli/**/*"
-  ]
+  "include": ["src/**/*"],
+  "exclude": ["node_modules", "dist", "legacy", "**/*.test.ts", "**/*.spec.ts"]
 }

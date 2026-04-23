@@ -15,11 +15,10 @@
     "README.md"
   ],
   "scripts": {
-    "build": "tsc -p tsconfig.build.json",
-    "prepare": "npm run build",
-    "dev": "tsc -p tsconfig.build.json --watch",
-    "test": "jest --config packages/core/jest.config.js",
-    "build:packages": "cd packages/core && npm run build && cd ../templates && npm run build"
+    "build": "npm run build:core && npm run build:templates && tsc -p tsconfig.build.json",
+    "build:core": "cd packages/core && npm run build",
+    "build:templates": "cd packages/templates && npm run build",
+    "dev": "tsc -p tsconfig.build.json --watch"
   },
   "keywords": [
     "factur-x",
