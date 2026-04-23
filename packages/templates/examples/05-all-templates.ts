@@ -9,12 +9,14 @@ import fs from 'fs';
 import {
   FacturXInvoice,
   FacturxProfile,
-  DocumentHeader,
-  TradeParty,
-  PostalAddress,
-  PaymentDetails,
-  InvoiceLine,
-  AllowanceCharge,
+  DocTypeCode,
+  PaymentMeansCode,
+  PostalAddressImpl as PostalAddress,
+  TradePartyImpl as TradeParty,
+  DocumentHeaderImpl as DocumentHeader,
+  PaymentDetailsImpl as PaymentDetails,
+  InvoiceLineImpl as InvoiceLine,
+  AllowanceChargeImpl as AllowanceCharge,
 } from '@facturx/core';
 import {
   generatePDF,
@@ -27,38 +29,41 @@ import {
 } from '../src';
 
 async function createSampleInvoice(): Promise<FacturXInvoice> {
-  // Seller
+  // Seller — PostalAddressImpl(city, postalCode, countryCode, street?)
   const sellerAddress = new PostalAddress(
-    '123 Business Street',
     'Paris',
     '75001',
-    'FR'
+    'FR',
+    '123 Business Street'
   );
-  const seller = new TradeParty('Your Company Name', sellerAddress, 'FR12345678901');
+  // TradePartyImpl(name, address, tradingName?, vatId?)
+  const seller = new TradeParty('Your Company Name', sellerAddress, undefined, 'FR12345678901');
 
   // Buyer
   const buyerAddress = new PostalAddress(
-    '456 Client Avenue',
     'Lyon',
     '69001',
-    'FR'
+    'FR',
+    '456 Client Avenue'
   );
-  const buyer = new TradeParty('Client Company Ltd', buyerAddress, 'FR98765432100');
+  const buyer = new TradeParty('Client Company Ltd', buyerAddress, undefined, 'FR98765432100');
 
-  // Header
+  // Header — DocumentHeaderImpl(id, invoiceNumber, name, invoiceDate, typeCode, dueDate?)
   const header = new DocumentHeader(
     'DEMO-2025-001',
     'DEMO-2025-001',
     'Demo Invoice - All Templates',
     new Date(2025, 0, 15),
-    new Date(2025, 0, 15)
+    DocTypeCode.INVOICE,
+    new Date(2025, 1, 15)
   );
 
-  // Payment
+  // Payment — PaymentDetailsImpl(meansCode, iban?, bic?, reference?, dueDate?, termsDescription?)
   const payment = new PaymentDetails(
-    58,
+    PaymentMeansCode.SEPA_CREDIT_TRANSFER,
     'FR7630004000031234567890143',
     'BNPAFRPPXXX',
+    'DEMO-2025-001',
     new Date(2025, 1, 15),
     'Payment due within 30 days'
   );
@@ -72,7 +77,7 @@ async function createSampleInvoice(): Promise<FacturXInvoice> {
     payment
   );
 
-  // Add lines
+  // Add lines — InvoiceLine(id, description, quantity, unitPrice, vatRate)
   invoice.addLine(
     new InvoiceLine('1', 'Web Development - Full stack application', 80, 95.00, 0.20)
   );
