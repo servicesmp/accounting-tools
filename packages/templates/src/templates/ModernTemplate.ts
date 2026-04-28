@@ -116,7 +116,7 @@ export class ModernTemplate extends TemplateRenderer {
 
     // Status text — dynamic based on paymentStatus / isDraft option
     const isDraftOption = (this.context.options as any).isDraft === true;
-    const paymentStatus = (this.context.options as any).paymentStatus || 'PAID';
+    const paymentStatus = (this.context.options as any).paymentStatus || 'PENDING';
     let statusLabel: string;
     if (isDraftOption || paymentStatus === 'DRAFT') {
       statusLabel = 'Brouillon';
