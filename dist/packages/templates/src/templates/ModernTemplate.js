@@ -97,7 +97,7 @@ class ModernTemplate extends TemplateRenderer_1.TemplateRenderer {
         this.drawRect(badgeX, badgeY - badgeH, 3, badgeH, { fillColor: COLORS.darkGray });
         // Status text — dynamic based on paymentStatus / isDraft option
         const isDraftOption = this.context.options.isDraft === true;
-        const paymentStatus = this.context.options.paymentStatus || 'PAID';
+        const paymentStatus = this.context.options.paymentStatus || 'PENDING';
         let statusLabel;
         if (isDraftOption || paymentStatus === 'DRAFT') {
             statusLabel = 'Brouillon';

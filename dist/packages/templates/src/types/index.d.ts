@@ -53,6 +53,8 @@ export interface TemplateOptions {
     readonly sellerSiret?: string;
     readonly showDeliveryAddress?: boolean;
     readonly paymentLink?: string;
+    readonly isDraft?: boolean;
+    readonly paymentStatus?: string;
     readonly validateBeforeGeneration?: boolean;
     readonly validateAfterGeneration?: boolean;
     readonly strictValidation?: boolean;

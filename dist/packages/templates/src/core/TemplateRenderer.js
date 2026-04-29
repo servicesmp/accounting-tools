@@ -1082,6 +1082,8 @@ class TemplateRenderer {
             sellerSiret: options.sellerSiret || '',
             showDeliveryAddress: options.showDeliveryAddress ?? false,
             paymentLink: options.paymentLink || '',
+            isDraft: options.isDraft ?? false,
+            paymentStatus: options.paymentStatus || 'PENDING',
             validateBeforeGeneration: options.validateBeforeGeneration ?? true,
             validateAfterGeneration: options.validateAfterGeneration ?? true,
             strictValidation: options.strictValidation ?? false,

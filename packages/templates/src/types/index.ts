@@ -61,6 +61,8 @@ export interface TemplateOptions {
   readonly sellerSiret?: string;
   readonly showDeliveryAddress?: boolean;
   readonly paymentLink?: string; // URL for payment QR code
+  readonly isDraft?: boolean; // If true, shows 'Brouillon' status badge and watermark
+  readonly paymentStatus?: string; // 'DRAFT' | 'PAID' | 'PENDING' etc.
   // Validation options
   readonly validateBeforeGeneration?: boolean; // Default: true
   readonly validateAfterGeneration?: boolean; // Default: true
