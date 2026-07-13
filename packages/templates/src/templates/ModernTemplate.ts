@@ -261,21 +261,23 @@ export class ModernTemplate extends TemplateRenderer {
     });
 
     // Date + Number
-    const issueDateStr = this.formatInvoiceDateFull();
+    const termsLine = (invoice.payment as any)?.paymentTermsText || (invoice as any).paymentTerms || (invoice.payment as any)?.termsDescription || 'Paiement à 30 jours';
+    const curr = (invoice as any).currency || (invoice.header as any)?.currency || 'EUR';
+    
     const labelX = margins.left + 20;
     const valueX = margins.left + 180;
 
-    this.drawText(`Date d'émission`, labelX, startY - 30, {
+    this.drawText(`Modalités de paiement`, labelX, startY - 30, {
       size: 9, color: COLORS.mediumGray,
     });
-    this.drawText(issueDateStr, valueX, startY - 30, {
+    this.drawText(termsLine, valueX, startY - 30, {
       size: 9, color: COLORS.black,
     });
 
-    this.drawText('Numéro de facture', labelX, startY - 45, {
+    this.drawText('Devise', labelX, startY - 45, {
       size: 9, color: COLORS.mediumGray,
     });
-    this.drawText(invoice.header.id, valueX, startY - 45, {
+    this.drawText(curr, valueX, startY - 45, {
       size: 9, color: COLORS.black,
     });
 

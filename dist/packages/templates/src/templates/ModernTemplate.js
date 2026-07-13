@@ -216,19 +216,20 @@ class ModernTemplate extends TemplateRenderer_1.TemplateRenderer {
             color: COLORS.darkGray,
         });
         // Date + Number
-        const issueDateStr = this.formatInvoiceDateFull();
+        const termsLine = invoice.payment?.paymentTermsText || invoice.paymentTerms || invoice.payment?.termsDescription || 'Paiement à 30 jours';
+        const curr = invoice.currency || invoice.header?.currency || 'EUR';
         const labelX = margins.left + 20;
         const valueX = margins.left + 180;
-        this.drawText(`Date d'émission`, labelX, startY - 30, {
+        this.drawText(`Modalités de paiement`, labelX, startY - 30, {
             size: 9, color: COLORS.mediumGray,
         });
-        this.drawText(issueDateStr, valueX, startY - 30, {
+        this.drawText(termsLine, valueX, startY - 30, {
             size: 9, color: COLORS.black,
         });
-        this.drawText('Numéro de facture', labelX, startY - 45, {
+        this.drawText('Devise', labelX, startY - 45, {
             size: 9, color: COLORS.mediumGray,
         });
-        this.drawText(invoice.header.id, valueX, startY - 45, {
+        this.drawText(curr, valueX, startY - 45, {
             size: 9, color: COLORS.black,
         });
         this.renderContext.currentY = startY - 60;
