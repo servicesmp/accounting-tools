@@ -36,7 +36,9 @@ module.exports = {
     ],
   },
   moduleNameMapper: {
-    '^@facturx/core$': '<rootDir>/../core/dist',
+    // Sources de core (et non dist/, possiblement périmé) : les templates sont testés
+    // contre le code réellement livré par le build racine (tsconfig.build.json → src).
+    '^@facturx/core$': '<rootDir>/../core/src',
   },
   // Ignore node_modules except for specific packages if needed
   transformIgnorePatterns: [

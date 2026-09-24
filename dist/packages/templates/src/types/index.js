@@ -4,7 +4,8 @@
  * @description Type definitions for Factur-X PDF templates
  */
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.LOCALIZED_STRINGS = exports.FANCY_THEME = exports.BRAND_THEME = exports.DEFAULT_THEME = exports.TemplateType = void 0;
+exports.LOCALIZED_STRINGS = exports.DOCUMENT_TITLES = exports.FANCY_THEME = exports.BRAND_THEME = exports.DEFAULT_THEME = exports.TemplateType = void 0;
+exports.getDocumentTitle = getDocumentTitle;
 // ============================================================================
 // TEMPLATE TYPES
 // ============================================================================
@@ -50,6 +51,23 @@ exports.FANCY_THEME = Object.freeze({
     headerBackground: '#ecfdf5',
     tableHeaderBackground: '#d1fae5',
 });
+// ============================================================================
+// LOCALIZATION
+// ============================================================================
+/**
+ * Titre légal du document selon son type (UNTDID 1001). Un avoir DOIT être
+ * intitulé comme tel : le titre n'est donc jamais repris de `header.name`
+ * (qui vaut 'INVOICE' par défaut dans le builder).
+ */
+exports.DOCUMENT_TITLES = {
+    fr: { 380: 'FACTURE', 381: 'AVOIR', 383: 'NOTE DE DÉBIT', 384: 'FACTURE RECTIFICATIVE', 386: "FACTURE D'ACOMPTE", 389: 'AUTOFACTURE' },
+    en: { 380: 'INVOICE', 381: 'CREDIT NOTE', 383: 'DEBIT NOTE', 384: 'CORRECTED INVOICE', 386: 'PREPAYMENT INVOICE', 389: 'SELF-BILLED INVOICE' },
+    de: { 380: 'RECHNUNG', 381: 'GUTSCHRIFT', 383: 'BELASTUNGSANZEIGE', 384: 'KORRIGIERTE RECHNUNG', 386: 'ANZAHLUNGSRECHNUNG', 389: 'GUTSCHRIFTSVERFAHREN' },
+};
+function getDocumentTitle(typeCode, language = 'fr') {
+    const table = exports.DOCUMENT_TITLES[language] ?? exports.DOCUMENT_TITLES.fr;
+    return table[Number(typeCode)] ?? table[380];
+}
 exports.LOCALIZED_STRINGS = {
     fr: {
         invoice: 'FACTURE',

@@ -10,7 +10,7 @@
  */
 import { PDFDocument, PDFPage, PDFFont, PDFImage } from 'pdf-lib';
 import { FacturXInvoice } from '../../../core/src';
-import { TemplateOptions, TemplateContext, PDFGenerationResult, RenderContext, RenderedElement, LocalizedStrings, TemplateType } from '../types';
+import { TemplateOptions, TemplateContext, PDFGenerationResult, RenderContext, RenderedElement, LocalizedStrings, TemplateType, BrandSlots } from '../types';
 import { ValidationPipelineResult } from '../validation/ValidationPipeline';
 export declare abstract class TemplateRenderer {
     protected pdfDoc: PDFDocument;
@@ -23,6 +23,19 @@ export declare abstract class TemplateRenderer {
     private chillaxFonts?;
     private embeddedLogo?;
     private validationPipeline;
+    /** Remplacements de couleur actifs pour ce rendu (teinte d'origine → teinte de marque). */
+    private colorRemap;
+    /**
+     * Emplacements de couleur de marque du modèle. Les modèles qui ne déclarent
+     * rien ne sont pas colorisables (ex. Minimal, volontairement monochrome).
+     */
+    protected brandSlots(): BrandSlots;
+    /** Construit la table de remplacement à partir des couleurs de marque demandées. */
+    private buildColorRemap;
+    /** Symbole monétaire affichable (les montants ne sont pas toujours en euros). */
+    protected get currencyMark(): string;
+    /** Titre légal du document, dérivé du type (facture, avoir…) et de la langue. */
+    protected get documentTitle(): string;
     /** Currency symbol derived from invoice currency code */
     protected get currencySymbol(): string;
     constructor();
@@ -193,6 +206,23 @@ export declare abstract class TemplateRenderer {
      * Get page size
      */
     private getPageSize;
+    /**
+     * Mentions légales obligatoires d'une facture française, dont celles de la
+     * réforme 2026. Tous les modèles les impriment : la personnalisation ne peut
+     * jamais les faire disparaître.
+     */
+    protected getMandatoryMentions(): string[];
+    /** Motifs d'exonération de TVA (BT-120), ex. « TVA non applicable, art. 293 B du CGI ». */
+    protected getVatExemptionMentions(): string[];
+    /** Un modèle qui imprime déjà ces mentions dans sa propre mise en page renvoie true. */
+    protected rendersOwnMandatoryMentions(): boolean;
+    /** Bloc de mentions obligatoires générique, en fin de document. */
+    protected renderMandatoryMentions(): void;
+    /**
+     * Imprime la mention libre de l'organisation (`customFooter`) après le contenu.
+     * Texte brut, retour à la ligne automatique, saut de page si nécessaire.
+     */
+    protected renderCustomFooterNote(): void;
     /**
      * Merge options with defaults
      */

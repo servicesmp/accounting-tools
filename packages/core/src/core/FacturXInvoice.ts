@@ -144,6 +144,11 @@ export class FacturXInvoice {
       this.validateProfile();
     }
 
+    // Un avoir sans référence à la facture qu'il rectifie n'est pas valable.
+    if (Number(this.header.typeCode) === 381 && !this.header.precedingInvoice?.id) {
+      throw new Error("[Factur-X] Un avoir (381) doit référencer la facture d'origine (BT-25).");
+    }
+
     // Build XML - optimized with xmlbuilder2
     const xml = this.buildXmlDocument(summary);
 
@@ -185,6 +190,13 @@ export class FacturXInvoice {
    */
   private buildDocumentContext(root: XMLBuilder): void {
     const ctx = root.ele('rsm:ExchangedDocumentContext');
+
+    // BT-23 — cadre de facturation (nature de l'opération, réforme FR 2026).
+    // Ordre CII : BusinessProcessSpecifiedDocumentContextParameter AVANT Guideline.
+    if (this.header.businessProcessType) {
+      ctx.ele('ram:BusinessProcessSpecifiedDocumentContextParameter')
+        .ele('ram:ID').txt(this.header.businessProcessType);
+    }
 
     const guideline = ctx.ele('ram:GuidelineSpecifiedDocumentContextParameter');
     guideline.ele('ram:ID').txt(getGuidelineUrn(this.profile));
@@ -315,6 +327,9 @@ export class FacturXInvoice {
       if (this.buyer.address.street) {
         buyerAddr.ele('ram:LineOne').txt(this.buyer.address.street);
       }
+      if (this.buyer.address.additionalStreet) {
+        buyerAddr.ele('ram:LineTwo').txt(this.buyer.address.additionalStreet);
+      }
       if (this.buyer.address.city) {
         buyerAddr.ele('ram:CityName').txt(this.buyer.address.city);
       }
@@ -342,12 +357,27 @@ export class FacturXInvoice {
    */
   private buildHeaderTradeDelivery(tx: XMLBuilder): void {
     const delivery = tx.ele('ram:ApplicableHeaderTradeDelivery');
-    // Add an empty ActualDeliverySupplyChainEvent to avoid empty element error
-    // Per EN16931, delivery date is optional but the element must not be empty
+
+    // BT-70..80 — adresse de livraison (réforme FR 2026 : obligatoire si différente
+    // de l'adresse de l'acheteur). Absente du profil MINIMUM.
+    const shipTo = this.header.deliveryParty;
+    if (shipTo?.address && this.profile !== FacturxProfile.MINIMUM) {
+      const party = delivery.ele('ram:ShipToTradeParty');
+      if (shipTo.name) party.ele('ram:Name').txt(shipTo.name);
+      const addr = party.ele('ram:PostalTradeAddress');
+      if (shipTo.address.postalCode) addr.ele('ram:PostcodeCode').txt(shipTo.address.postalCode);
+      if (shipTo.address.street) addr.ele('ram:LineOne').txt(shipTo.address.street);
+      if (shipTo.address.additionalStreet) addr.ele('ram:LineTwo').txt(shipTo.address.additionalStreet);
+      if (shipTo.address.city) addr.ele('ram:CityName').txt(shipTo.address.city);
+      addr.ele('ram:CountryID').txt(shipTo.address.countryCode);
+    }
+
+    // BT-72 — date de livraison / d'exécution. À défaut, la date d'émission est
+    // reprise (comportement historique : PEPPOL-EN16931-R008 interdit un élément vide).
     const event = delivery.ele('ram:ActualDeliverySupplyChainEvent');
     const dateTime = event.ele('ram:OccurrenceDateTime');
     dateTime.ele('udt:DateTimeString', { format: '102' })
-      .txt(formatDateFacturX(this.header.invoiceDate));
+      .txt(formatDateFacturX(this.header.deliveryDate ?? this.header.invoiceDate));
   }
 
   /**
@@ -402,7 +432,31 @@ export class FacturXInvoice {
       if (taxSummary.exemptionReasonCode) {
         tax.ele('ram:ExemptionReasonCode').txt(taxSummary.exemptionReasonCode);
       }
+      // BT-8 — exigibilité de la TVA (option débits = '5'). Ordre CII : après
+      // ExemptionReasonCode, avant RateApplicablePercent.
+      if (this.header.vatDueDateTypeCode && this.profile !== FacturxProfile.MINIMUM) {
+        tax.ele('ram:DueDateTypeCode').txt(this.header.vatDueDateTypeCode);
+      }
       tax.ele('ram:RateApplicablePercent').txt(formatAmount(taxSummary.rate));
+    }
+
+    // BT-73/74 — période de facturation (renseignée dans l'en-tête mais jamais
+    // écrite jusqu'ici). Ordre CII : après ApplicableTradeTax.
+    if (
+      (this.header.billingPeriodStart || this.header.billingPeriodEnd) &&
+      this.profile !== FacturxProfile.MINIMUM
+    ) {
+      const period = settlement.ele('ram:BillingSpecifiedPeriod');
+      if (this.header.billingPeriodStart) {
+        period.ele('ram:StartDateTime')
+          .ele('udt:DateTimeString', { format: '102' })
+          .txt(formatDateFacturX(this.header.billingPeriodStart));
+      }
+      if (this.header.billingPeriodEnd) {
+        period.ele('ram:EndDateTime')
+          .ele('udt:DateTimeString', { format: '102' })
+          .txt(formatDateFacturX(this.header.billingPeriodEnd));
+      }
     }
 
     // 4. Document-level allowances/charges (BR-S-08, BR-CO-13 compliance)
@@ -464,6 +518,19 @@ export class FacturXInvoice {
     monetary.ele('ram:GrandTotalAmount').txt(formatAmount(summary.grandTotal));
     monetary.ele('ram:DuePayableAmount')
       .txt(formatAmount(summary.dueAmount ?? summary.grandTotal));
+
+    // 7. BT-25/26 — facture d'origine (avoir, facture rectificative).
+    // Ordre CII : après la synthèse monétaire.
+    const preceding = this.header.precedingInvoice;
+    if (preceding?.id) {
+      const ref = settlement.ele('ram:InvoiceReferencedDocument');
+      ref.ele('ram:IssuerAssignedID').txt(preceding.id);
+      if (preceding.issueDate) {
+        ref.ele('ram:FormattedIssueDateTime')
+          .ele('qdt:DateTimeString', { format: '102' })
+          .txt(formatDateFacturX(preceding.issueDate));
+      }
+    }
   }
 
   /**
@@ -499,10 +566,10 @@ export class FacturXInvoice {
       lineTax.ele('ram:TypeCode').txt('VAT');
       lineTax.ele('ram:CategoryCode').txt(line.taxCategoryCode);
       lineTax.ele('ram:RateApplicablePercent').txt(formatAmount(line.vatRate * 100));
-      // BT-120: line-level exemption reason
-      if (line.taxExemptionReason) {
-        lineTax.ele('ram:ExemptionReason').txt(line.taxExemptionReason);
-      }
+      // BT-120 (motif d'exonération) est une donnée de VENTILATION (niveau document),
+      // émise dans ApplicableHeaderTradeSettlement. L'écrire ici après
+      // RateApplicablePercent rendait le XML invalide au XSD (élément inattendu) pour
+      // toute ligne exonérée — typiquement les micro-entrepreneurs (art. 293 B du CGI).
 
       const lineSummation = lineSettlement.ele('ram:SpecifiedTradeSettlementLineMonetarySummation');
       lineSummation.ele('ram:LineTotalAmount').txt(formatAmount(line.lineTotal));

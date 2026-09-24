@@ -28,7 +28,10 @@ import {
   LOCALIZED_STRINGS,
   DEFAULT_THEME,
   TemplateType,
+  getDocumentTitle,
+  BrandSlots,
 } from '../types';
+import { tint, normalizeHex } from '../document/color';
 import {
   ValidationPipeline,
   ValidationPipelineResult,
@@ -67,6 +70,45 @@ export abstract class TemplateRenderer {
 
   // Validation pipeline
   private validationPipeline: ValidationPipeline;
+
+  /** Remplacements de couleur actifs pour ce rendu (teinte d'origine → teinte de marque). */
+  private colorRemap: Map<string, string> = new Map();
+
+  /**
+   * Emplacements de couleur de marque du modèle. Les modèles qui ne déclarent
+   * rien ne sont pas colorisables (ex. Minimal, volontairement monochrome).
+   */
+  protected brandSlots(): BrandSlots {
+    return {};
+  }
+
+  /** Construit la table de remplacement à partir des couleurs de marque demandées. */
+  private buildColorRemap(brand?: { primary: string; accent: string }): Map<string, string> {
+    const map = new Map<string, string>();
+    const primary = normalizeHex(brand?.primary);
+    const accent = normalizeHex(brand?.accent) ?? primary;
+    if (!primary || !accent) return map;
+    const slots = this.brandSlots();
+    const set = (hexes: readonly string[] | undefined, value: string) =>
+      hexes?.forEach((h) => { const k = normalizeHex(h); if (k) map.set(k, value); });
+    set(slots.primary, primary);
+    set(slots.accent, accent);
+    set(slots.primaryTint, tint(primary, 0.9));
+    set(slots.accentTint, tint(accent, 0.9));
+    return map;
+  }
+
+  /** Symbole monétaire affichable (les montants ne sont pas toujours en euros). */
+  protected get currencyMark(): string {
+    const code = String(this.context?.invoice?.currency || 'EUR').toUpperCase();
+    const symbols: Record<string, string> = { EUR: '€', USD: '$', GBP: '£', JPY: '¥', CHF: 'CHF', CAD: 'CA$', XOF: 'FCFA', XAF: 'FCFA' };
+    return symbols[code] ?? code;
+  }
+
+  /** Titre légal du document, dérivé du type (facture, avoir…) et de la langue. */
+  protected get documentTitle(): string {
+    return getDocumentTitle(this.context?.invoice?.header?.typeCode, this.context?.options?.language);
+  }
 
   /** Currency symbol derived from invoice currency code */
   protected get currencySymbol(): string {
@@ -120,6 +162,7 @@ export abstract class TemplateRenderer {
     };
 
     this.strings = LOCALIZED_STRINGS[fullOptions.language] ?? LOCALIZED_STRINGS['en'];
+    this.colorRemap = this.buildColorRemap(options.brandColors);
 
     // STEP 3: Create PDF document
     this.pdfDoc = await PDFDocument.create();
@@ -156,6 +199,14 @@ export abstract class TemplateRenderer {
 
     // Render content (implemented by subclasses)
     await this.renderContent();
+
+    // Mentions obligatoires : identiques quel que soit le modèle choisi
+    if (!this.rendersOwnMandatoryMentions()) {
+      this.renderMandatoryMentions();
+    }
+
+    // Mention libre de l'organisation (personnalisation), en fin de document
+    this.renderCustomFooterNote();
 
     // Draw footer on ALL pages with correct total page count
     this.drawAllPageFooters();
@@ -282,16 +333,8 @@ export abstract class TemplateRenderer {
       color: this.parseColor(theme.textColor),
     });
 
-    // Powered by (right-aligned)
-    const creditText = '@facturx/templates';
-    const creditX = pageWidth - margins.right - 120;
-    page.drawText(creditText, {
-      x: creditX,
-      y: footerTop - 28,
-      size: 8,
-      font,
-      color: this.parseColor(theme.secondaryColor),
-    });
+    // Pas de mention « Powered by » : le document appartient à l'organisation émettrice.
+    void pageWidth;
   }
 
   // ==========================================================================
@@ -928,7 +971,7 @@ export abstract class TemplateRenderer {
     }
 
     // Document title (FACTURE, AVOIR, DEVIS)
-    const docTitle = invoice.header.name || this.strings.invoice;
+    const docTitle = this.documentTitle;
     this.drawText(docTitle, margins.left + 10 + textOffsetX, headerTop - 30, {
       size: 24,
       bold: true,
@@ -1298,8 +1341,11 @@ export abstract class TemplateRenderer {
    * Parse color string to RGB
    */
   protected parseColor(color: string): any {
+    // Couleur de marque : la teinte d'origine du modèle est remplacée si besoin.
+    const key = normalizeHex(color);
+    const mapped = (key && this.colorRemap.get(key)) || color;
     // Simple hex color parser
-    const hex = color.replace('#', '');
+    const hex = mapped.replace('#', '');
     const r = parseInt(hex.substring(0, 2), 16) / 255;
     const g = parseInt(hex.substring(2, 4), 16) / 255;
     const b = parseInt(hex.substring(4, 6), 16) / 255;
@@ -1320,6 +1366,91 @@ export abstract class TemplateRenderer {
       default:
         return [595.28, 841.89];
     }
+  }
+
+  // ==========================================================================
+  // MENTIONS OBLIGATOIRES (indépendantes du modèle)
+  // ==========================================================================
+
+  /**
+   * Mentions légales obligatoires d'une facture française, dont celles de la
+   * réforme 2026. Tous les modèles les impriment : la personnalisation ne peut
+   * jamais les faire disparaître.
+   */
+  protected getMandatoryMentions(): string[] {
+    const header: any = this.context.invoice.header;
+    const mentions = [
+      'Pénalités de retard exigibles dès le premier jour suivant la date de règlement, au taux de 3 fois le taux d’intérêt légal (art. L.441-10 C.com).',
+      'Indemnité forfaitaire pour frais de recouvrement en cas de retard : 40 € (art. D.441-5 C.com).',
+      'Pas d’escompte accordé pour paiement anticipé.',
+    ];
+    const nature: Record<string, string> = {
+      B: 'Livraison de biens',
+      S: 'Prestation de services',
+      M: 'Opération mixte (livraison de biens et prestation de services)',
+    };
+    const bt23 = String(header.businessProcessType || '');
+    if (nature[bt23.charAt(0)]) mentions.push(`Nature de l’opération : ${nature[bt23.charAt(0)]}.`);
+    if (String(header.vatDueDateTypeCode || '') === '5') {
+      mentions.push('Option pour le paiement de la taxe d’après les débits.');
+    }
+    const ship = header.deliveryParty;
+    if (ship?.address) {
+      const a = ship.address;
+      const line = [ship.name, a.street, a.additionalStreet, `${a.postalCode} ${a.city}`, a.countryCode].filter(Boolean).join(', ');
+      mentions.push(`Adresse de livraison : ${line}.`);
+    }
+    return mentions;
+  }
+
+  /** Motifs d'exonération de TVA (BT-120), ex. « TVA non applicable, art. 293 B du CGI ». */
+  protected getVatExemptionMentions(): string[] {
+    const reasons = this.context.summary.taxSummaries
+      .map((t: any) => t.exemptionReason)
+      .filter((r: unknown): r is string => typeof r === 'string' && r.trim().length > 0);
+    return Array.from(new Set(reasons));
+  }
+
+  /** Un modèle qui imprime déjà ces mentions dans sa propre mise en page renvoie true. */
+  protected rendersOwnMandatoryMentions(): boolean {
+    return false;
+  }
+
+  /** Bloc de mentions obligatoires générique, en fin de document. */
+  protected renderMandatoryMentions(): void {
+    const { margins } = this.context.options;
+    const maxWidth = this.renderContext.width - margins.left - margins.right;
+    const exemptions = this.getVatExemptionMentions();
+    const lines = [
+      ...exemptions.flatMap((m) => this.wrapText(m, maxWidth, 7).map((t) => ({ t, bold: true }))),
+      ...this.getMandatoryMentions().flatMap((m) => this.wrapText(m, maxWidth, 6.5).map((t) => ({ t, bold: false }))),
+    ];
+    this.checkPageBreak(lines.length * 10 + 20);
+    let y = this.renderContext.currentY - 20;
+    for (const { t, bold } of lines) {
+      this.drawText(t, margins.left, y, { size: bold ? 7 : 6.5, bold, color: '#666666' });
+      y -= 10;
+    }
+    this.renderContext.currentY = y;
+  }
+
+  /**
+   * Imprime la mention libre de l'organisation (`customFooter`) après le contenu.
+   * Texte brut, retour à la ligne automatique, saut de page si nécessaire.
+   */
+  protected renderCustomFooterNote(): void {
+    const note = (this.context.options.customFooter || '').trim();
+    if (!note) return;
+    const { margins } = this.context.options;
+    const maxWidth = this.renderContext.width - margins.left - margins.right;
+    const lines = this.wrapText(note, maxWidth, 8);
+    this.checkPageBreak(lines.length * 11 + 16);
+    let y = this.renderContext.currentY - 16;
+    for (const line of lines) {
+      this.drawText(line, margins.left, y, { size: 8, color: '#555555' });
+      y -= 11;
+    }
+    this.renderContext.currentY = y;
   }
 
   /**
@@ -1344,6 +1475,7 @@ export abstract class TemplateRenderer {
       showTaxBreakdown: options.showTaxBreakdown ?? true,
       showPaymentTerms: options.showPaymentTerms ?? true,
       customFooter: options.customFooter || '',
+      brandColors: options.brandColors as any,
       sellerSiren: options.sellerSiren || '',
       sellerSiret: options.sellerSiret || '',
       showDeliveryAddress: options.showDeliveryAddress ?? false,

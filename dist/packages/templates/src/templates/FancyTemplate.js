@@ -28,6 +28,10 @@ class FancyTemplate extends TemplateRenderer_1.TemplateRenderer {
     getTemplateType() {
         return types_1.TemplateType.FANCY;
     }
+    /** Teintes d'origine remplacées par les couleurs de marque de l'organisation. */
+    brandSlots() {
+        return { primary: ['#3b82f6'], accent: ['#db2777'], primaryTint: ['#eff6ff'], accentTint: ['#fce7f3'] };
+    }
     async renderContent() {
         await this.renderFancyHeader();
         this.renderContext.currentY -= 25;
@@ -74,7 +78,7 @@ class FancyTemplate extends TemplateRenderer_1.TemplateRenderer {
             }
         }
         // Title (FACTURE / AVOIR / DEVIS)
-        const docTitle = invoice.header.name || this.strings.invoice;
+        const docTitle = this.documentTitle;
         this.drawText(docTitle, margins.left + 20 + textOffsetX, headerTop - 30, {
             size: 32, bold: true, color: '#ffffff',
         });
@@ -389,11 +393,7 @@ class FancyTemplate extends TemplateRenderer_1.TemplateRenderer {
             x: margins.left + 10, y: margins.bottom + 8,
             size: 8, font, color: white,
         });
-        // Powered by (right, white on blue)
-        page.drawText('@facturx/templates', {
-            x: pageWidth - margins.right - 120, y: margins.bottom + 8,
-            size: 8, font, color: white,
-        });
+        // Pas de mention « Powered by » : le document appartient à l'organisation émettrice.
     }
 }
 exports.FancyTemplate = FancyTemplate;

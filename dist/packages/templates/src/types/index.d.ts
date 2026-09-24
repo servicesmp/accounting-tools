@@ -49,6 +49,15 @@ export interface TemplateOptions {
     readonly showTaxBreakdown?: boolean;
     readonly showPaymentTerms?: boolean;
     readonly customFooter?: string;
+    /**
+     * Couleurs de marque de l'organisation (voir branding/DocumentBranding).
+     * Chaque modèle déclare ses « emplacements » de couleur (brandSlots) : leurs
+     * teintes d'origine sont remplacées par celles-ci au rendu.
+     */
+    readonly brandColors?: {
+        readonly primary: string;
+        readonly accent: string;
+    };
     readonly sellerSiren?: string;
     readonly sellerSiret?: string;
     readonly showDeliveryAddress?: boolean;
@@ -58,6 +67,15 @@ export interface TemplateOptions {
     readonly validateBeforeGeneration?: boolean;
     readonly validateAfterGeneration?: boolean;
     readonly strictValidation?: boolean;
+}
+/** Teintes d'origine d'un modèle qui portent la marque (hex en minuscules). */
+export interface BrandSlots {
+    readonly primary?: readonly string[];
+    readonly accent?: readonly string[];
+    /** Aplats clairs dérivés de la couleur principale. */
+    readonly primaryTint?: readonly string[];
+    /** Aplats clairs dérivés de la couleur d'accent. */
+    readonly accentTint?: readonly string[];
 }
 export interface TemplateContext {
     readonly invoice: FacturXInvoice;
@@ -98,6 +116,13 @@ export interface RenderedElement {
 export declare const DEFAULT_THEME: TemplateTheme;
 export declare const BRAND_THEME: TemplateTheme;
 export declare const FANCY_THEME: TemplateTheme;
+/**
+ * Titre légal du document selon son type (UNTDID 1001). Un avoir DOIT être
+ * intitulé comme tel : le titre n'est donc jamais repris de `header.name`
+ * (qui vaut 'INVOICE' par défaut dans le builder).
+ */
+export declare const DOCUMENT_TITLES: Record<'fr' | 'en' | 'de', Record<number, string>>;
+export declare function getDocumentTitle(typeCode: number | string | undefined, language?: string): string;
 export interface LocalizedStrings {
     readonly invoice: string;
     readonly invoiceNumber: string;

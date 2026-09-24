@@ -14,9 +14,11 @@
  */
 import { PDFPage } from 'pdf-lib';
 import { TemplateRenderer } from '../core/TemplateRenderer';
-import { TemplateType } from '../types';
+import { TemplateType, BrandSlots } from '../types';
 export declare class FancyTemplate extends TemplateRenderer {
     protected getTemplateType(): TemplateType;
+    /** Teintes d'origine remplacées par les couleurs de marque de l'organisation. */
+    protected brandSlots(): BrandSlots;
     protected renderContent(): Promise<void>;
     private renderFancyHeader;
     private renderFancyParties;

@@ -5,7 +5,8 @@
  * Optimized for performance and type safety
  */
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.ComplianceType = exports.CurrencyCode = exports.UnitCode = exports.PaymentMeansCode = exports.TaxCategoryCode = exports.DocTypeCode = exports.FacturxProfile = void 0;
+exports.FR_BUSINESS_PROCESS_PATTERN = exports.OperationNature = exports.VatDueDateTypeCode = exports.ComplianceType = exports.CurrencyCode = exports.UnitCode = exports.PaymentMeansCode = exports.TaxCategoryCode = exports.DocTypeCode = exports.FacturxProfile = void 0;
+exports.buildBusinessProcessType = buildBusinessProcessType;
 // ============================================================================
 // ENUMERATIONS
 // ============================================================================
@@ -38,7 +39,13 @@ var DocTypeCode;
     DocTypeCode[DocTypeCode["CREDIT_NOTE"] = 381] = "CREDIT_NOTE";
     /** Debit note */
     DocTypeCode[DocTypeCode["DEBIT_NOTE"] = 383] = "DEBIT_NOTE";
-    /** Pro forma invoice / Quote */
+    /** Corrected invoice — facture rectificative (UNTDID 1001 : 384). */
+    DocTypeCode[DocTypeCode["CORRECTED_INVOICE"] = 384] = "CORRECTED_INVOICE";
+    /**
+     * @deprecated Nom historique erroné : 384 est une facture RECTIFICATIVE, pas une
+     * pro forma ni un devis (un devis n'est pas une facture et n'a pas de code EN 16931).
+     * Utiliser CORRECTED_INVOICE.
+     */
     DocTypeCode[DocTypeCode["PRO_FORMAT"] = 384] = "PRO_FORMAT";
     /** Prepayment invoice */
     DocTypeCode[DocTypeCode["PREPAYMENT"] = 386] = "PREPAYMENT";
@@ -214,4 +221,31 @@ var ComplianceType;
     /** Custom/Other regional standard */
     ComplianceType["OTHER"] = "OTHER";
 })(ComplianceType || (exports.ComplianceType = ComplianceType = {}));
+/** BT-8 — UNTDID 2005 (sous-ensemble autorisé par EN 16931). */
+var VatDueDateTypeCode;
+(function (VatDueDateTypeCode) {
+    /** Date d'émission de la facture — option TVA sur les débits */
+    VatDueDateTypeCode["INVOICE_DATE"] = "5";
+    /** Date de livraison effective */
+    VatDueDateTypeCode["DELIVERY_DATE"] = "29";
+    /** Date de paiement — TVA sur les encaissements */
+    VatDueDateTypeCode["PAYMENT_DATE"] = "72";
+})(VatDueDateTypeCode || (exports.VatDueDateTypeCode = VatDueDateTypeCode = {}));
+/** Nature de l'opération (réforme 2026) → lettre du cadre de facturation BT-23. */
+var OperationNature;
+(function (OperationNature) {
+    OperationNature["GOODS"] = "B";
+    OperationNature["SERVICES"] = "S";
+    OperationNature["MIXED"] = "M";
+})(OperationNature || (exports.OperationNature = OperationNature = {}));
+/** Cadres de facturation français BT-23 actuellement admis (8 et 9 retirés). */
+exports.FR_BUSINESS_PROCESS_PATTERN = /^[BSM][1-7]$/;
+/** Construit le code BT-23 à partir de la nature de l'opération et du cadre (1 = dépôt standard). */
+function buildBusinessProcessType(nature, framework = 1) {
+    const code = `${nature}${framework}`;
+    if (!exports.FR_BUSINESS_PROCESS_PATTERN.test(code)) {
+        throw new Error(`[Factur-X] Cadre de facturation BT-23 invalide : ${code}`);
+    }
+    return code;
+}
 //# sourceMappingURL=index.js.map

@@ -30,6 +30,10 @@ const COLORS = {
     borderGray: '#dddddd',
     bgGray: '#f5f5f5',
     white: '#ffffff',
+    // Emplacements de marque (voir brandSlots) : quasi-noir / gris très clair par défaut,
+    // remplacés par les couleurs de l'organisation quand elle personnalise ses documents.
+    brand: '#222223',
+    brandTint: '#f5f5f6',
     // Only colors: green for "Paid", amber for "Pending"
     greenBorder: '#067d62',
     greenBg: '#f0faf6',
@@ -41,6 +45,13 @@ const COLORS = {
 class ModernTemplate extends TemplateRenderer_1.TemplateRenderer {
     getTemplateType() {
         return types_1.TemplateType.MODERN;
+    }
+    brandSlots() {
+        return { primary: [COLORS.brand], primaryTint: [COLORS.brandTint] };
+    }
+    /** Ce modèle imprime les mentions obligatoires dans son pied légal (renderLegalInfo). */
+    rendersOwnMandatoryMentions() {
+        return true;
     }
     async renderContent() {
         // 1. Header: Logo + "Facture" + Status badge
@@ -81,11 +92,11 @@ class ModernTemplate extends TemplateRenderer_1.TemplateRenderer {
             });
         }
         // ---- "Facture" title (top-right) ----
-        const titleText = this.strings.invoice || 'Facture';
+        const titleText = this.documentTitle;
         const titleWidth = this.measureTextWidth(titleText, 22, false);
         this.drawText(titleText, width - margins.right - titleWidth, startY - 18, {
             size: 22,
-            color: COLORS.darkGray,
+            color: COLORS.brand,
         });
         // ---- Status badge (below Facture, right-aligned) ----
         const badgeW = 260;
@@ -94,7 +105,7 @@ class ModernTemplate extends TemplateRenderer_1.TemplateRenderer {
         const badgeY = startY - 35;
         // Neutral badge — light gray, no color
         this.drawRect(badgeX, badgeY - badgeH, badgeW, badgeH, { fillColor: COLORS.bgGray });
-        this.drawRect(badgeX, badgeY - badgeH, 3, badgeH, { fillColor: COLORS.darkGray });
+        this.drawRect(badgeX, badgeY - badgeH, 3, badgeH, { fillColor: COLORS.brand });
         // Status text — dynamic based on paymentStatus / isDraft option
         const isDraftOption = this.context.options.isDraft === true;
         const paymentStatus = this.context.options.paymentStatus || 'PENDING';
@@ -272,17 +283,17 @@ class ModernTemplate extends TemplateRenderer_1.TemplateRenderer {
         this.drawLine(margins.left, y, width - margins.right, y, { color: COLORS.borderGray, width: 0.5 });
         let hx = margins.left + 5;
         const headerY = y - 12;
-        this.drawText(this.strings.description, hx, headerY, { size: 8, bold: true, color: COLORS.darkGray });
+        this.drawText(this.strings.description, hx, headerY, { size: 8, bold: true, color: COLORS.brand });
         hx += cols.description;
-        this.drawText(this.strings.quantity || 'Qté', hx, headerY, { size: 8, bold: true, color: COLORS.darkGray });
+        this.drawText(this.strings.quantity || 'Qté', hx, headerY, { size: 8, bold: true, color: COLORS.brand });
         hx += cols.qty;
-        this.drawText('Prix Unitaire', hx, headerY, { size: 8, bold: true, color: COLORS.darkGray });
+        this.drawText('Prix Unitaire', hx, headerY, { size: 8, bold: true, color: COLORS.brand });
         hx += cols.unitPriceHT;
-        this.drawText('Taux TVA', hx, headerY, { size: 8, bold: true, color: COLORS.darkGray });
+        this.drawText('Taux TVA', hx, headerY, { size: 8, bold: true, color: COLORS.brand });
         hx += cols.vatRate;
-        this.drawText('Prix TTC', hx, headerY, { size: 8, bold: true, color: COLORS.darkGray });
+        this.drawText('Prix TTC', hx, headerY, { size: 8, bold: true, color: COLORS.brand });
         hx += cols.unitPriceTTC;
-        this.drawText('Total TTC', hx, headerY, { size: 8, bold: true, color: COLORS.darkGray });
+        this.drawText('Total TTC', hx, headerY, { size: 8, bold: true, color: COLORS.brand });
         // Sub-header labels (HT / TTC)
         hx = margins.left + 5 + cols.description + cols.qty;
         this.drawText('HT', hx, headerY - 12, { size: 7, color: COLORS.gray });
@@ -310,17 +321,17 @@ class ModernTemplate extends TemplateRenderer_1.TemplateRenderer {
                 y = this.renderContext.currentY;
                 this.drawLine(margins.left, y, width - margins.right, y, { color: COLORS.borderGray, width: 0.5 });
                 let rhx = margins.left + 5;
-                this.drawText(this.strings.description, rhx, y - 12, { size: 8, bold: true, color: COLORS.darkGray });
+                this.drawText(this.strings.description, rhx, y - 12, { size: 8, bold: true, color: COLORS.brand });
                 rhx += cols.description;
-                this.drawText('Qté', rhx, y - 12, { size: 8, bold: true, color: COLORS.darkGray });
+                this.drawText('Qté', rhx, y - 12, { size: 8, bold: true, color: COLORS.brand });
                 rhx += cols.qty;
-                this.drawText('Prix Unitaire HT', rhx, y - 12, { size: 8, bold: true, color: COLORS.darkGray });
+                this.drawText('Prix Unitaire HT', rhx, y - 12, { size: 8, bold: true, color: COLORS.brand });
                 rhx += cols.unitPriceHT;
-                this.drawText('Taux TVA', rhx, y - 12, { size: 8, bold: true, color: COLORS.darkGray });
+                this.drawText('Taux TVA', rhx, y - 12, { size: 8, bold: true, color: COLORS.brand });
                 rhx += cols.vatRate;
-                this.drawText('Prix TTC', rhx, y - 12, { size: 8, bold: true, color: COLORS.darkGray });
+                this.drawText('Prix TTC', rhx, y - 12, { size: 8, bold: true, color: COLORS.brand });
                 rhx += cols.unitPriceTTC;
-                this.drawText('Total TTC', rhx, y - 12, { size: 8, bold: true, color: COLORS.darkGray });
+                this.drawText('Total TTC', rhx, y - 12, { size: 8, bold: true, color: COLORS.brand });
                 y -= headerH;
                 this.drawLine(margins.left, y, width - margins.right, y, { color: COLORS.borderGray, width: 0.5 });
             }
@@ -339,13 +350,13 @@ class ModernTemplate extends TemplateRenderer_1.TemplateRenderer {
             let cx = margins.left + 5 + cols.description;
             this.drawText(String(line.quantity), cx, colY, { size: 8, color: COLORS.black });
             cx += cols.qty;
-            this.drawText(`${(0, core_1.formatAmount)(line.unitPrice)} €`, cx, colY, { size: 8, color: COLORS.black });
+            this.drawText(`${(0, core_1.formatAmount)(line.unitPrice)} ${this.currencyMark}`, cx, colY, { size: 8, color: COLORS.black });
             cx += cols.unitPriceHT;
             this.drawText(`${(0, core_1.formatAmount)(line.vatRate * 100)} %`, cx, colY, { size: 8, color: COLORS.black });
             cx += cols.vatRate;
-            this.drawText(`${(0, core_1.formatAmount)(unitPriceTTC)} €`, cx, colY, { size: 8, color: COLORS.black });
+            this.drawText(`${(0, core_1.formatAmount)(unitPriceTTC)} ${this.currencyMark}`, cx, colY, { size: 8, color: COLORS.black });
             cx += cols.unitPriceTTC;
-            this.drawText(`${(0, core_1.formatAmount)(totalTTC)} €`, cx, colY, { size: 8, color: COLORS.black });
+            this.drawText(`${(0, core_1.formatAmount)(totalTTC)} ${this.currencyMark}`, cx, colY, { size: 8, color: COLORS.black });
             y -= rowHeight;
             // Row separator
             this.drawLine(margins.left, y, width - margins.right, y, { color: COLORS.borderGray, width: 0.3 });
@@ -367,7 +378,7 @@ class ModernTemplate extends TemplateRenderer_1.TemplateRenderer {
             const qrSize = 90;
             const qrX = margins.left;
             const qrY = startY - qrSize - 5;
-            await this.renderQRCode(qrX, qrY, paymentLink, qrSize, undefined, COLORS.darkGray);
+            await this.renderQRCode(qrX, qrY, paymentLink, qrSize, undefined, COLORS.brand);
             // "Scanner pour payer" label below QR
             this.drawText('Scanner pour payer', qrX + 5, qrY - 10, {
                 size: 7,
@@ -375,7 +386,7 @@ class ModernTemplate extends TemplateRenderer_1.TemplateRenderer {
             });
         }
         // ---- Grand total line ----
-        const totalAmountText = `${(0, core_1.formatAmount)(summary.grandTotal)} €`;
+        const totalAmountText = `${(0, core_1.formatAmount)(summary.grandTotal)} ${this.currencyMark}`;
         const totalAmountWidth = this.measureTextWidth(totalAmountText, 14, true);
         this.drawText('Facture Total', margins.left + contentWidth * 0.45, startY - 5, {
             size: 14,
@@ -393,16 +404,16 @@ class ModernTemplate extends TemplateRenderer_1.TemplateRenderer {
         const taxTableX = margins.left + contentWidth * 0.45;
         const col1W = 80;
         const col2W = 100;
-        this.drawRect(taxTableX, y - 18, contentWidth * 0.55, 18, { fillColor: COLORS.bgGray });
-        this.drawText('Taux TVA', taxTableX + 8, y - 13, { size: 8, bold: true, color: COLORS.darkGray });
-        this.drawText('Total HT', taxTableX + col1W, y - 13, { size: 8, bold: true, color: COLORS.darkGray });
-        this.drawText('TVA', taxTableX + col1W + col2W, y - 13, { size: 8, bold: true, color: COLORS.darkGray });
+        this.drawRect(taxTableX, y - 18, contentWidth * 0.55, 18, { fillColor: COLORS.brandTint });
+        this.drawText('Taux TVA', taxTableX + 8, y - 13, { size: 8, bold: true, color: COLORS.brand });
+        this.drawText('Total HT', taxTableX + col1W, y - 13, { size: 8, bold: true, color: COLORS.brand });
+        this.drawText('TVA', taxTableX + col1W + col2W, y - 13, { size: 8, bold: true, color: COLORS.brand });
         y -= 18;
         // Tax rows
         for (const taxSum of summary.taxSummaries) {
             this.drawText(`${taxSum.rate} %`, taxTableX + 8, y - 13, { size: 8, color: COLORS.black });
-            this.drawText(`${(0, core_1.formatAmount)(taxSum.taxable)} €`, taxTableX + col1W, y - 13, { size: 8, color: COLORS.black });
-            this.drawText(`${(0, core_1.formatAmount)(taxSum.taxAmount)} €`, taxTableX + col1W + col2W, y - 13, { size: 8, color: COLORS.black });
+            this.drawText(`${(0, core_1.formatAmount)(taxSum.taxable)} ${this.currencyMark}`, taxTableX + col1W, y - 13, { size: 8, color: COLORS.black });
+            this.drawText(`${(0, core_1.formatAmount)(taxSum.taxAmount)} ${this.currencyMark}`, taxTableX + col1W + col2W, y - 13, { size: 8, color: COLORS.black });
             y -= 16;
             // BT-120: Display exemption reason below the 0% line
             if (taxSum.exemptionReason) {
@@ -415,8 +426,8 @@ class ModernTemplate extends TemplateRenderer_1.TemplateRenderer {
         // Total row
         this.drawLine(taxTableX, y, taxTableX + contentWidth * 0.55, y, { color: COLORS.borderGray, width: 0.5 });
         this.drawText('Total', taxTableX + 8, y - 13, { size: 8, bold: true, color: COLORS.darkGray });
-        this.drawText(`${(0, core_1.formatAmount)(summary.lineTotal)} €`, taxTableX + col1W, y - 13, { size: 8, bold: true, color: COLORS.black });
-        this.drawText(`${(0, core_1.formatAmount)(summary.taxTotal)} €`, taxTableX + col1W + col2W, y - 13, { size: 8, bold: true, color: COLORS.black });
+        this.drawText(`${(0, core_1.formatAmount)(summary.lineTotal)} ${this.currencyMark}`, taxTableX + col1W, y - 13, { size: 8, bold: true, color: COLORS.black });
+        this.drawText(`${(0, core_1.formatAmount)(summary.taxTotal)} ${this.currencyMark}`, taxTableX + col1W + col2W, y - 13, { size: 8, bold: true, color: COLORS.black });
         this.renderContext.currentY = y - 25;
     }
     // =========================================================================
@@ -432,14 +443,13 @@ class ModernTemplate extends TemplateRenderer_1.TemplateRenderer {
         let y = startY - 10;
         // ── Mentions légales obligatoires (BR-FR-05 / art. L.441-10 C.com) ──
         // These three mentions must appear on every French B2B invoice.
-        const legalMentions = [
-            "Pénalités de retard exigibles dès le premier jour suivant la date de règlement, au taux de 3x le taux légal (art. L.441-10 C.com).",
-            "Indemnité forfaitaire pour frais de recouvrement en cas de retard : 40 € (art. D.441-5 C.com).",
-            "Pas d'escompte accordé pour paiement anticipé.",
-        ];
-        for (const mention of legalMentions) {
-            this.drawText(mention, margins.left, y, { size: 6.5, color: COLORS.gray });
-            y -= 11;
+        // Liste commune à tous les modèles (dont les mentions de la réforme 2026).
+        const maxW = width - margins.left - margins.right;
+        for (const mention of this.getMandatoryMentions()) {
+            for (const part of this.wrapText(mention, maxW, 6.5)) {
+                this.drawText(part, margins.left, y, { size: 6.5, color: COLORS.gray });
+                y -= 11;
+            }
         }
         // ── TVA exemption mention (BT-120 — also in footer for full compliance) ──
         const { summary } = this.context;

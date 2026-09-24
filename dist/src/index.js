@@ -9,9 +9,24 @@
  * Compilation: tsc compiles all sources together, tsc-alias rewrites
  * @facturx/core → relative paths in dist/ so it works when installed.
  */
+var __createBinding = (this && this.__createBinding) || (Object.create ? (function(o, m, k, k2) {
+    if (k2 === undefined) k2 = k;
+    var desc = Object.getOwnPropertyDescriptor(m, k);
+    if (!desc || ("get" in desc ? !m.__esModule : desc.writable || desc.configurable)) {
+      desc = { enumerable: true, get: function() { return m[k]; } };
+    }
+    Object.defineProperty(o, k2, desc);
+}) : (function(o, m, k, k2) {
+    if (k2 === undefined) k2 = k;
+    o[k2] = m[k];
+}));
+var __exportStar = (this && this.__exportStar) || function(m, exports) {
+    for (var p in m) if (p !== "default" && !Object.prototype.hasOwnProperty.call(exports, p)) __createBinding(exports, m, p);
+};
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.validateBusinessRules = exports.getDefaultBusinessRuleValidator = exports.BusinessRuleValidator = exports.RealXsdValidator = exports.validateXmlAsync = exports.validateXml = exports.getDefaultValidator = exports.XsdValidator = exports.convertCurrency = exports.parseCurrency = exports.formatAmountForXml = exports.formatCurrency = exports.getCurrencyInfo = exports.isValidCurrency = exports.CurrencyFormatter = exports.validateDate = exports.validateAmount = exports.validateCountryCode = exports.validatePhone = exports.validateEmail = exports.sanitizeString = exports.unescapeXml = exports.escapeXml = exports.formatAmount = exports.formatDateFacturX = exports.getRegionalConfigOrDefault = exports.getRegionalConfig = exports.getProfilePolicy = exports.getGuidelineUrn = exports.REGIONAL_CONFIGS = exports.PATTERNS = exports.PROFILE_POLICIES = exports.GUIDELINE_URNS = exports.XML_NAMESPACES = exports.AllowanceChargeImpl = exports.InvoiceLineImpl = exports.DocumentHeaderImpl = exports.PaymentDetailsImpl = exports.TradePartyImpl = exports.PostalAddressImpl = exports.TaxCalculator = exports.FacturXInvoiceBuilder = exports.FacturXInvoice = exports.ComplianceType = exports.CurrencyCode = exports.UnitCode = exports.PaymentMeansCode = exports.TaxCategoryCode = exports.DocTypeCode = exports.FacturxProfile = void 0;
-exports.LIBRARY_INFO = exports.EN16931_VERSION = exports.FACTURX_VERSION = exports.VERSION = exports.generatePDFFileID = exports.generatePDFA3XMP = exports.loadSRGBProfile = exports.addAFRelationshipToFile = exports.applyPDFA3Compliance = exports.setupPDFA3Compliance = exports.validateQuick = exports.validateAfterGeneration = exports.validateBeforeGeneration = exports.getDefaultPipeline = exports.ValidationPipeline = exports.generatePDF = exports.generateMinimalPDF = exports.generateCorporatePDF = exports.generateBrandPDF = exports.generateFancyPDF = exports.generateModernPDF = exports.MinimalTemplate = exports.CorporateTemplate = exports.BrandTemplate = exports.FancyTemplate = exports.ModernTemplate = exports.TemplateRenderer = exports.LOCALIZED_STRINGS = exports.FANCY_THEME = exports.BRAND_THEME = exports.DEFAULT_THEME = exports.TemplateType = exports.getAvailableLocaleCodes = exports.getLocaleByCode = exports.DEFAULT_LOCALES = exports.translate = exports.createI18n = exports.t = exports.getDefaultI18n = exports.I18n = exports.validateInvoiceCodes = exports.isValidCode = exports.getDefaultCodeListValidator = exports.CodeListValidator = void 0;
+exports.buildFacturXInvoice = exports.DocumentPdfRenderer = exports.renderDocumentPdf = exports.generateDocumentPdf = exports.getDocumentTitle = exports.DOCUMENT_TITLES = exports.generatePDFFileID = exports.generatePDFA3XMP = exports.loadSRGBProfile = exports.addAFRelationshipToFile = exports.applyPDFA3Compliance = exports.setupPDFA3Compliance = exports.validateQuick = exports.validateAfterGeneration = exports.validateBeforeGeneration = exports.getDefaultPipeline = exports.ValidationPipeline = exports.generatePDF = exports.generateMinimalPDF = exports.generateCorporatePDF = exports.generateBrandPDF = exports.generateFancyPDF = exports.generateModernPDF = exports.MinimalTemplate = exports.CorporateTemplate = exports.BrandTemplate = exports.FancyTemplate = exports.ModernTemplate = exports.TemplateRenderer = exports.LOCALIZED_STRINGS = exports.FANCY_THEME = exports.BRAND_THEME = exports.DEFAULT_THEME = exports.TemplateType = exports.buildBusinessProcessType = exports.FR_BUSINESS_PROCESS_PATTERN = exports.OperationNature = exports.VatDueDateTypeCode = exports.getAvailableLocaleCodes = exports.getLocaleByCode = exports.DEFAULT_LOCALES = exports.translate = exports.createI18n = exports.t = exports.getDefaultI18n = exports.I18n = exports.validateInvoiceCodes = exports.isValidCode = exports.getDefaultCodeListValidator = exports.CodeListValidator = void 0;
+exports.LIBRARY_INFO = exports.EN16931_VERSION = exports.FACTURX_VERSION = exports.VERSION = exports.FR_FRANCHISE_MENTION = exports.FR_MANDATORY_NOTES = void 0;
 // ============================================================================
 // CORE — all types, entities, validators, XML generation
 // ============================================================================
@@ -79,6 +94,11 @@ Object.defineProperty(exports, "translate", { enumerable: true, get: function ()
 Object.defineProperty(exports, "DEFAULT_LOCALES", { enumerable: true, get: function () { return core_1.DEFAULT_LOCALES; } });
 Object.defineProperty(exports, "getLocaleByCode", { enumerable: true, get: function () { return core_1.getLocaleByCode; } });
 Object.defineProperty(exports, "getAvailableLocaleCodes", { enumerable: true, get: function () { return core_1.getAvailableLocaleCodes; } });
+// Réforme FR 2026
+Object.defineProperty(exports, "VatDueDateTypeCode", { enumerable: true, get: function () { return core_1.VatDueDateTypeCode; } });
+Object.defineProperty(exports, "OperationNature", { enumerable: true, get: function () { return core_1.OperationNature; } });
+Object.defineProperty(exports, "FR_BUSINESS_PROCESS_PATTERN", { enumerable: true, get: function () { return core_1.FR_BUSINESS_PROCESS_PATTERN; } });
+Object.defineProperty(exports, "buildBusinessProcessType", { enumerable: true, get: function () { return core_1.buildBusinessProcessType; } });
 // ============================================================================
 // TEMPLATES — all PDF renderers and generation functions
 // ============================================================================
@@ -111,10 +131,24 @@ Object.defineProperty(exports, "addAFRelationshipToFile", { enumerable: true, ge
 Object.defineProperty(exports, "loadSRGBProfile", { enumerable: true, get: function () { return templates_1.loadSRGBProfile; } });
 Object.defineProperty(exports, "generatePDFA3XMP", { enumerable: true, get: function () { return templates_1.generatePDFA3XMP; } });
 Object.defineProperty(exports, "generatePDFFileID", { enumerable: true, get: function () { return templates_1.generatePDFFileID; } });
+Object.defineProperty(exports, "DOCUMENT_TITLES", { enumerable: true, get: function () { return templates_1.DOCUMENT_TITLES; } });
+Object.defineProperty(exports, "getDocumentTitle", { enumerable: true, get: function () { return templates_1.getDocumentTitle; } });
+// ============================================================================
+// DOCUMENTS PAR BLOCS — facture, avoir, devis, bon de commande
+// (la partie navigateur-compatible est aussi publiée seule : 'accounting-tools/document')
+// ============================================================================
+__exportStar(require("../packages/templates/src/document"), exports);
+var document_pdf_1 = require("../packages/templates/src/document-pdf");
+Object.defineProperty(exports, "generateDocumentPdf", { enumerable: true, get: function () { return document_pdf_1.generateDocumentPdf; } });
+Object.defineProperty(exports, "renderDocumentPdf", { enumerable: true, get: function () { return document_pdf_1.renderDocumentPdf; } });
+Object.defineProperty(exports, "DocumentPdfRenderer", { enumerable: true, get: function () { return document_pdf_1.DocumentPdfRenderer; } });
+Object.defineProperty(exports, "buildFacturXInvoice", { enumerable: true, get: function () { return document_pdf_1.buildFacturXInvoice; } });
+Object.defineProperty(exports, "FR_MANDATORY_NOTES", { enumerable: true, get: function () { return document_pdf_1.FR_MANDATORY_NOTES; } });
+Object.defineProperty(exports, "FR_FRANCHISE_MENTION", { enumerable: true, get: function () { return document_pdf_1.FR_FRANCHISE_MENTION; } });
 // ============================================================================
 // VERSION
 // ============================================================================
-exports.VERSION = '1.1.0';
+exports.VERSION = '1.2.0';
 exports.FACTURX_VERSION = '1.07.2';
 exports.EN16931_VERSION = '2017';
 exports.LIBRARY_INFO = Object.freeze({

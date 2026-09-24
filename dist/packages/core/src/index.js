@@ -12,7 +12,7 @@
  */
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.validateBusinessRules = exports.getDefaultBusinessRuleValidator = exports.BusinessRuleValidator = exports.RealXsdValidator = exports.validateXmlAsync = exports.validateXml = exports.getDefaultValidator = exports.XsdValidator = exports.convertCurrency = exports.parseCurrency = exports.formatAmountForXml = exports.formatCurrency = exports.getCurrencyInfo = exports.isValidCurrency = exports.CurrencyFormatter = exports.validateDate = exports.validateAmount = exports.validateCountryCode = exports.validatePhone = exports.validateEmail = exports.sanitizeString = exports.unescapeXml = exports.escapeXml = exports.formatAmount = exports.formatDateFacturX = exports.getRegionalConfigOrDefault = exports.getRegionalConfig = exports.getProfilePolicy = exports.getGuidelineUrn = exports.REGIONAL_CONFIGS = exports.PATTERNS = exports.PROFILE_POLICIES = exports.GUIDELINE_URNS = exports.XML_NAMESPACES = exports.AllowanceChargeImpl = exports.InvoiceLineImpl = exports.DocumentHeaderImpl = exports.PaymentDetailsImpl = exports.TradePartyImpl = exports.PostalAddressImpl = exports.TaxCalculator = exports.FacturXInvoiceBuilder = exports.FacturXInvoice = exports.ComplianceType = exports.CurrencyCode = exports.UnitCode = exports.PaymentMeansCode = exports.TaxCategoryCode = exports.DocTypeCode = exports.FacturxProfile = void 0;
-exports.getAvailableLocaleCodes = exports.getLocaleByCode = exports.DEFAULT_LOCALES = exports.de = exports.fr = exports.en = exports.translate = exports.createI18n = exports.t = exports.getDefaultI18n = exports.I18n = exports.LIBRARY_INFO = exports.EN16931_VERSION = exports.FACTURX_VERSION = exports.VERSION = exports.validateInvoiceCodes = exports.isValidCode = exports.getDefaultCodeListValidator = exports.CodeListValidator = void 0;
+exports.getAvailableLocaleCodes = exports.getLocaleByCode = exports.DEFAULT_LOCALES = exports.de = exports.fr = exports.en = exports.translate = exports.createI18n = exports.t = exports.getDefaultI18n = exports.I18n = exports.LIBRARY_INFO = exports.EN16931_VERSION = exports.FACTURX_VERSION = exports.VERSION = exports.buildBusinessProcessType = exports.FR_BUSINESS_PROCESS_PATTERN = exports.OperationNature = exports.VatDueDateTypeCode = exports.validateInvoiceCodes = exports.isValidCode = exports.getDefaultCodeListValidator = exports.CodeListValidator = void 0;
 // ============================================================================
 // TYPE SYSTEM
 // ============================================================================
@@ -98,6 +98,11 @@ Object.defineProperty(exports, "CodeListValidator", { enumerable: true, get: fun
 Object.defineProperty(exports, "getDefaultCodeListValidator", { enumerable: true, get: function () { return CodeListValidator_1.getDefaultCodeListValidator; } });
 Object.defineProperty(exports, "isValidCode", { enumerable: true, get: function () { return CodeListValidator_1.isValidCode; } });
 Object.defineProperty(exports, "validateInvoiceCodes", { enumerable: true, get: function () { return CodeListValidator_1.validateInvoiceCodes; } });
+var types_2 = require("./types");
+Object.defineProperty(exports, "VatDueDateTypeCode", { enumerable: true, get: function () { return types_2.VatDueDateTypeCode; } });
+Object.defineProperty(exports, "OperationNature", { enumerable: true, get: function () { return types_2.OperationNature; } });
+Object.defineProperty(exports, "FR_BUSINESS_PROCESS_PATTERN", { enumerable: true, get: function () { return types_2.FR_BUSINESS_PROCESS_PATTERN; } });
+Object.defineProperty(exports, "buildBusinessProcessType", { enumerable: true, get: function () { return types_2.buildBusinessProcessType; } });
 // ============================================================================
 // VERSION INFO
 // ============================================================================

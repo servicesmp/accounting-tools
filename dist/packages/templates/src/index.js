@@ -9,8 +9,22 @@
  * @version 1.0.0
  * @license MIT
  */
+var __createBinding = (this && this.__createBinding) || (Object.create ? (function(o, m, k, k2) {
+    if (k2 === undefined) k2 = k;
+    var desc = Object.getOwnPropertyDescriptor(m, k);
+    if (!desc || ("get" in desc ? !m.__esModule : desc.writable || desc.configurable)) {
+      desc = { enumerable: true, get: function() { return m[k]; } };
+    }
+    Object.defineProperty(o, k2, desc);
+}) : (function(o, m, k, k2) {
+    if (k2 === undefined) k2 = k;
+    o[k2] = m[k];
+}));
+var __exportStar = (this && this.__exportStar) || function(m, exports) {
+    for (var p in m) if (p !== "default" && !Object.prototype.hasOwnProperty.call(exports, p)) __createBinding(exports, m, p);
+};
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.LIBRARY_INFO = exports.VERSION = exports.generatePDFFileID = exports.generatePDFA3XMP = exports.loadSRGBProfile = exports.loadChillaxFonts = exports.addAFRelationshipToFile = exports.applyPDFA3Compliance = exports.setupPDFA3Compliance = exports.extractXMLWithExternalTools = exports.validateWithExternalTools = exports.getDefaultExternalValidator = exports.findMustangproject = exports.findVeraPDF = exports.checkExternalValidators = exports.MustangprojectValidator = exports.VeraPDFValidator = exports.ExternalValidator = exports.validateQuick = exports.validateAfterGeneration = exports.validateBeforeGeneration = exports.getDefaultPipeline = exports.ValidationPipeline = exports.MinimalTemplate = exports.CorporateTemplate = exports.BrandTemplate = exports.FancyTemplate = exports.ModernTemplate = exports.TemplateRenderer = exports.LOCALIZED_STRINGS = exports.FANCY_THEME = exports.BRAND_THEME = exports.DEFAULT_THEME = exports.TemplateType = void 0;
+exports.LIBRARY_INFO = exports.VERSION = exports.generatePDFFileID = exports.generatePDFA3XMP = exports.loadSRGBProfile = exports.loadChillaxFonts = exports.addAFRelationshipToFile = exports.applyPDFA3Compliance = exports.setupPDFA3Compliance = exports.extractXMLWithExternalTools = exports.validateWithExternalTools = exports.getDefaultExternalValidator = exports.findMustangproject = exports.findVeraPDF = exports.checkExternalValidators = exports.MustangprojectValidator = exports.VeraPDFValidator = exports.ExternalValidator = exports.validateQuick = exports.validateAfterGeneration = exports.validateBeforeGeneration = exports.getDefaultPipeline = exports.ValidationPipeline = exports.MinimalTemplate = exports.CorporateTemplate = exports.BrandTemplate = exports.FancyTemplate = exports.ModernTemplate = exports.TemplateRenderer = exports.getDocumentTitle = exports.DOCUMENT_TITLES = exports.LOCALIZED_STRINGS = exports.FANCY_THEME = exports.BRAND_THEME = exports.DEFAULT_THEME = exports.TemplateType = void 0;
 exports.generateModernPDF = generateModernPDF;
 exports.generateFancyPDF = generateFancyPDF;
 exports.generateBrandPDF = generateBrandPDF;
@@ -26,6 +40,14 @@ Object.defineProperty(exports, "DEFAULT_THEME", { enumerable: true, get: functio
 Object.defineProperty(exports, "BRAND_THEME", { enumerable: true, get: function () { return types_1.BRAND_THEME; } });
 Object.defineProperty(exports, "FANCY_THEME", { enumerable: true, get: function () { return types_1.FANCY_THEME; } });
 Object.defineProperty(exports, "LOCALIZED_STRINGS", { enumerable: true, get: function () { return types_1.LOCALIZED_STRINGS; } });
+var types_2 = require("./types");
+Object.defineProperty(exports, "DOCUMENT_TITLES", { enumerable: true, get: function () { return types_2.DOCUMENT_TITLES; } });
+Object.defineProperty(exports, "getDocumentTitle", { enumerable: true, get: function () { return types_2.getDocumentTitle; } });
+// ============================================================================
+// DOCUMENTS PAR BLOCS (facture, avoir, devis, bon de commande)
+// ============================================================================
+__exportStar(require("./document"), exports);
+__exportStar(require("./document-pdf"), exports);
 // ============================================================================
 // TEMPLATE RENDERERS
 // ============================================================================
@@ -77,7 +99,7 @@ const FancyTemplate_2 = require("./templates/FancyTemplate");
 const BrandTemplate_2 = require("./templates/BrandTemplate");
 const CorporateTemplate_2 = require("./templates/CorporateTemplate");
 const MinimalTemplate_2 = require("./templates/MinimalTemplate");
-const types_2 = require("./types");
+const types_3 = require("./types");
 /**
  * Generate PDF with modern template - Convenience function
  */
@@ -116,22 +138,22 @@ async function generateMinimalPDF(invoice, options = {}) {
 /**
  * Generate PDF with specified template type
  */
-async function generatePDF(invoice, templateType = types_2.TemplateType.MODERN, options = {}) {
+async function generatePDF(invoice, templateType = types_3.TemplateType.MODERN, options = {}) {
     let template;
     switch (templateType) {
-        case types_2.TemplateType.MODERN:
+        case types_3.TemplateType.MODERN:
             template = new ModernTemplate_2.ModernTemplate();
             break;
-        case types_2.TemplateType.BRAND:
+        case types_3.TemplateType.BRAND:
             template = new BrandTemplate_2.BrandTemplate();
             break;
-        case types_2.TemplateType.FANCY:
+        case types_3.TemplateType.FANCY:
             template = new FancyTemplate_2.FancyTemplate();
             break;
-        case types_2.TemplateType.CORPORATE:
+        case types_3.TemplateType.CORPORATE:
             template = new CorporateTemplate_2.CorporateTemplate();
             break;
-        case types_2.TemplateType.MINIMAL:
+        case types_3.TemplateType.MINIMAL:
             template = new MinimalTemplate_2.MinimalTemplate();
             break;
         default:
@@ -150,18 +172,18 @@ exports.LIBRARY_INFO = Object.freeze({
     license: 'MIT',
     repository: 'https://github.com/facturx/facturx-ts',
     templates: [
-        types_2.TemplateType.MODERN,
-        types_2.TemplateType.FANCY,
-        types_2.TemplateType.BRAND,
-        types_2.TemplateType.CORPORATE,
-        types_2.TemplateType.MINIMAL,
+        types_3.TemplateType.MODERN,
+        types_3.TemplateType.FANCY,
+        types_3.TemplateType.BRAND,
+        types_3.TemplateType.CORPORATE,
+        types_3.TemplateType.MINIMAL,
     ],
     templateDescriptions: {
-        [types_2.TemplateType.MODERN]: 'Clean, professional design with blue color scheme',
-        [types_2.TemplateType.FANCY]: 'Colorful template with pink and blue gradient design',
-        [types_2.TemplateType.BRAND]: 'Professional corporate template with navy and orange colors',
-        [types_2.TemplateType.CORPORATE]: 'Elegant corporate design with gray, blue and gold accents',
-        [types_2.TemplateType.MINIMAL]: 'Ultra-clean minimalist design with monochrome palette',
+        [types_3.TemplateType.MODERN]: 'Clean, professional design with blue color scheme',
+        [types_3.TemplateType.FANCY]: 'Colorful template with pink and blue gradient design',
+        [types_3.TemplateType.BRAND]: 'Professional corporate template with navy and orange colors',
+        [types_3.TemplateType.CORPORATE]: 'Elegant corporate design with gray, blue and gold accents',
+        [types_3.TemplateType.MINIMAL]: 'Ultra-clean minimalist design with monochrome palette',
     },
 });
 //# sourceMappingURL=index.js.map

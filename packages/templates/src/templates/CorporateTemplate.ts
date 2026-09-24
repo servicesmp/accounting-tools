@@ -12,11 +12,16 @@
 import { PDFPage } from 'pdf-lib';
 import { formatAmount } from '@facturx/core';
 import { TemplateRenderer } from '../core/TemplateRenderer';
-import { TemplateType } from '../types';
+import { TemplateType, BrandSlots } from '../types';
 
 export class CorporateTemplate extends TemplateRenderer {
   protected getTemplateType(): TemplateType {
     return TemplateType.CORPORATE;
+  }
+
+  /** Teintes d'origine remplacées par les couleurs de marque de l'organisation. */
+  protected brandSlots(): BrandSlots {
+    return { primary: ['#293a73'], accent: ['#b8a643'], primaryTint: ['#d9e5f2'] };
   }
 
   protected async renderContent(): Promise<void> {
@@ -88,7 +93,7 @@ export class CorporateTemplate extends TemplateRenderer {
     }
 
     // Document title on right (FACTURE / AVOIR / DEVIS)
-    const docTitle = invoice.header.name || this.strings.invoice;
+    const docTitle = this.documentTitle;
     const rightX = width - margins.right - 200;
 
     this.drawText(docTitle, rightX, startY - 22, {
@@ -390,7 +395,6 @@ export class CorporateTemplate extends TemplateRenderer {
     const lightGray = this.parseColor('#f7f7f7');
     const gold = this.parseColor('#b8a643');
     const darkText = this.parseColor('#404040');
-    const mutedText = this.parseColor('#999999');
 
     // Light gray background
     page.drawRectangle({
@@ -417,11 +421,6 @@ export class CorporateTemplate extends TemplateRenderer {
       x: margins.left + 15, y: footerTop - 30,
       size: 8, font, color: darkText,
     });
-
-    // Powered by
-    page.drawText('@facturx/templates', {
-      x: pageWidth - margins.right - 130, y: footerTop - 30,
-      size: 8, font, color: mutedText,
-    });
+    // Pas de mention « Powered by » : le document appartient à l'organisation émettrice.
   }
 }

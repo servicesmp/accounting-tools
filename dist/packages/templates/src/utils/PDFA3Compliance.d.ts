@@ -22,6 +22,12 @@ export interface PDFA3MetadataOptions {
     instanceId?: string;
     /** Factur-X conformance level for XMP metadata. Must match FNFE-MPE values exactly. */
     conformanceLevel?: string;
+    /**
+     * Déclare le schéma d'extension Factur-X (défaut : true). À désactiver pour un
+     * document qui n'embarque PAS de facture XML (devis, bon de commande) : sinon
+     * le PDF se présente comme une facture électronique qu'il n'est pas.
+     */
+    facturX?: boolean;
 }
 export declare function generatePDFA3XMP(options: PDFA3MetadataOptions): string;
 /**
@@ -77,6 +83,8 @@ export interface PDFA3SetupOptions {
     keywords?: string[];
     /** Factur-X conformance level for fx:ConformanceLevel XMP property */
     conformanceLevel?: string;
+    /** Déclarer l'extension Factur-X (false pour un devis / bon de commande). */
+    facturX?: boolean;
 }
 /**
  * Apply all PDF/A-3 compliance measures to a PDF document

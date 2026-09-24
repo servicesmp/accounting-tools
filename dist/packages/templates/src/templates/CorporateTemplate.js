@@ -18,6 +18,10 @@ class CorporateTemplate extends TemplateRenderer_1.TemplateRenderer {
     getTemplateType() {
         return types_1.TemplateType.CORPORATE;
     }
+    /** Teintes d'origine remplacées par les couleurs de marque de l'organisation. */
+    brandSlots() {
+        return { primary: ['#293a73'], accent: ['#b8a643'], primaryTint: ['#d9e5f2'] };
+    }
     async renderContent() {
         await this.renderCorporateHeader();
         this.renderContext.currentY -= 25;
@@ -73,7 +77,7 @@ class CorporateTemplate extends TemplateRenderer_1.TemplateRenderer {
             });
         }
         // Document title on right (FACTURE / AVOIR / DEVIS)
-        const docTitle = invoice.header.name || this.strings.invoice;
+        const docTitle = this.documentTitle;
         const rightX = width - margins.right - 200;
         this.drawText(docTitle, rightX, startY - 22, {
             size: 20, bold: true, color: '#293a73',
@@ -329,7 +333,6 @@ class CorporateTemplate extends TemplateRenderer_1.TemplateRenderer {
         const lightGray = this.parseColor('#f7f7f7');
         const gold = this.parseColor('#b8a643');
         const darkText = this.parseColor('#404040');
-        const mutedText = this.parseColor('#999999');
         // Light gray background
         page.drawRectangle({
             x: margins.left, y: margins.bottom,
@@ -352,11 +355,7 @@ class CorporateTemplate extends TemplateRenderer_1.TemplateRenderer {
             x: margins.left + 15, y: footerTop - 30,
             size: 8, font, color: darkText,
         });
-        // Powered by
-        page.drawText('@facturx/templates', {
-            x: pageWidth - margins.right - 130, y: footerTop - 30,
-            size: 8, font, color: mutedText,
-        });
+        // Pas de mention « Powered by » : le document appartient à l'organisation émettrice.
     }
 }
 exports.CorporateTemplate = CorporateTemplate;

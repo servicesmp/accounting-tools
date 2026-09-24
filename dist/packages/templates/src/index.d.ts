@@ -9,6 +9,10 @@
  * @license MIT
  */
 export { TemplateType, TemplateTheme, TemplateOptions, TemplateContext, PDFGenerationResult, PDFAttachmentOptions, RenderContext, RenderedElement, LocalizedStrings, DEFAULT_THEME, BRAND_THEME, FANCY_THEME, LOCALIZED_STRINGS, } from './types';
+export { DOCUMENT_TITLES, getDocumentTitle } from './types';
+export type { BrandSlots } from './types';
+export * from './document';
+export * from './document-pdf';
 export { TemplateRenderer } from './core/TemplateRenderer';
 export { ModernTemplate } from './templates/ModernTemplate';
 export { FancyTemplate } from './templates/FancyTemplate';

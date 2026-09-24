@@ -14,6 +14,12 @@ import {
   NoteWithCode,
   DocTypeCode,
   PaymentMeansCode,
+  VatDueDateTypeCode,
+  DeliveryParty,
+  PrecedingInvoiceReference,
+  OperationNature,
+  FR_BUSINESS_PROCESS_PATTERN,
+  buildBusinessProcessType,
 } from '../types';
 
 // ============================================================================
@@ -297,10 +303,22 @@ export class DocumentHeaderImpl implements DocumentHeader {
     public readonly purchaseOrderReference?: string,
     public readonly salesOrderReference?: string,
     public readonly contractReference?: string,
-    public readonly notes?: (string | NoteWithCode)[]
+    public readonly notes?: (string | NoteWithCode)[],
+    public readonly businessProcessType?: string,
+    public readonly vatDueDateTypeCode?: VatDueDateTypeCode,
+    public readonly deliveryParty?: DeliveryParty,
+    public readonly deliveryDate?: Date,
+    public readonly precedingInvoice?: PrecedingInvoiceReference
   ) {
     if (!id || !invoiceNumber || !invoiceDate) {
       throw new Error('ID, invoice number, and date are required');
+    }
+    if (businessProcessType !== undefined && !FR_BUSINESS_PROCESS_PATTERN.test(businessProcessType)) {
+      throw new Error(`[Factur-X] Cadre de facturation BT-23 invalide : ${businessProcessType}`);
+    }
+    if (billingPeriodStart && billingPeriodEnd && billingPeriodEnd.getTime() < billingPeriodStart.getTime()) {
+      // BR-29 : la fin de période ne peut précéder son début.
+      throw new Error('[Factur-X] BR-29 : la fin de la période de facturation précède son début');
     }
     if (notes) {
       Object.freeze(notes);
@@ -326,6 +344,11 @@ class DocumentHeaderBuilder {
   private _salesOrderReference?: string;
   private _contractReference?: string;
   private _notes?: (string | NoteWithCode)[];
+  private _businessProcessType?: string;
+  private _vatDueDateTypeCode?: VatDueDateTypeCode;
+  private _deliveryParty?: DeliveryParty;
+  private _deliveryDate?: Date;
+  private _precedingInvoice?: PrecedingInvoiceReference;
 
   id(value: string): this {
     this._id = value;
@@ -382,6 +405,36 @@ class DocumentHeaderBuilder {
     this._notes.push({ content, subjectCode });
     return this;
   }
+  /** BT-23 — cadre de facturation (ex. 'S1'). */
+  businessProcessType(value: string): this {
+    this._businessProcessType = value;
+    return this;
+  }
+  /** BT-23 à partir de la nature de l'opération (biens / services / mixte). */
+  operationNature(nature: OperationNature, framework: number = 1): this {
+    this._businessProcessType = buildBusinessProcessType(nature, framework);
+    return this;
+  }
+  /** BT-8 — exigibilité de la TVA (débits / encaissements). */
+  vatDueDateTypeCode(value: VatDueDateTypeCode): this {
+    this._vatDueDateTypeCode = value;
+    return this;
+  }
+  /** BT-70..80 — adresse de livraison si différente de celle de l'acheteur. */
+  deliveryParty(value: DeliveryParty): this {
+    this._deliveryParty = value;
+    return this;
+  }
+  /** BT-72 — date de livraison / d'exécution. */
+  deliveryDate(value: Date): this {
+    this._deliveryDate = value;
+    return this;
+  }
+  /** BT-25/26 — facture d'origine (obligatoire pour un avoir). */
+  precedingInvoice(id: string, issueDate?: Date): this {
+    this._precedingInvoice = { id, issueDate };
+    return this;
+  }
 
   build(): DocumentHeaderImpl {
     if (!this._id || !this._invoiceNumber || !this._invoiceDate) {
@@ -399,7 +452,12 @@ class DocumentHeaderBuilder {
       this._purchaseOrderReference,
       this._salesOrderReference,
       this._contractReference,
-      this._notes ? [...this._notes] : undefined
+      this._notes ? [...this._notes] : undefined,
+      this._businessProcessType,
+      this._vatDueDateTypeCode,
+      this._deliveryParty,
+      this._deliveryDate,
+      this._precedingInvoice
     );
   }
 }

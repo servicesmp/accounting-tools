@@ -24,6 +24,10 @@ module.exports = {
       statements: 80,
     },
   },
+  // src/ contient aussi des .js compilés (commités pour les installs GitHub) :
+  // avec l'ordre par défaut (js avant ts), Jest chargeait ces artefacts
+  // potentiellement périmés au lieu des sources TypeScript testées.
+  moduleFileExtensions: ['ts', 'tsx', 'js', 'json', 'node'],
   moduleNameMapper: {
     '^@/(.*)$': '<rootDir>/src/$1',
   },

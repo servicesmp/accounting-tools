@@ -29,6 +29,16 @@ export {
   LOCALIZED_STRINGS,
 } from './types';
 
+export { DOCUMENT_TITLES, getDocumentTitle } from './types';
+export type { BrandSlots } from './types';
+
+// ============================================================================
+// DOCUMENTS PAR BLOCS (facture, avoir, devis, bon de commande)
+// ============================================================================
+
+export * from './document';
+export * from './document-pdf';
+
 // ============================================================================
 // TEMPLATE RENDERERS
 // ============================================================================

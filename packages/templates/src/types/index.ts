@@ -57,6 +57,12 @@ export interface TemplateOptions {
   readonly showTaxBreakdown?: boolean;
   readonly showPaymentTerms?: boolean;
   readonly customFooter?: string;
+  /**
+   * Couleurs de marque de l'organisation (voir branding/DocumentBranding).
+   * Chaque modèle déclare ses « emplacements » de couleur (brandSlots) : leurs
+   * teintes d'origine sont remplacées par celles-ci au rendu.
+   */
+  readonly brandColors?: { readonly primary: string; readonly accent: string };
   readonly sellerSiren?: string;
   readonly sellerSiret?: string;
   readonly showDeliveryAddress?: boolean;
@@ -67,6 +73,16 @@ export interface TemplateOptions {
   readonly validateBeforeGeneration?: boolean; // Default: true
   readonly validateAfterGeneration?: boolean; // Default: true
   readonly strictValidation?: boolean; // Default: false - if true, throws on validation errors
+}
+
+/** Teintes d'origine d'un modèle qui portent la marque (hex en minuscules). */
+export interface BrandSlots {
+  readonly primary?: readonly string[];
+  readonly accent?: readonly string[];
+  /** Aplats clairs dérivés de la couleur principale. */
+  readonly primaryTint?: readonly string[];
+  /** Aplats clairs dérivés de la couleur d'accent. */
+  readonly accentTint?: readonly string[];
 }
 
 export interface TemplateContext {
@@ -159,6 +175,22 @@ export const FANCY_THEME: TemplateTheme = Object.freeze({
 // ============================================================================
 // LOCALIZATION
 // ============================================================================
+
+/**
+ * Titre légal du document selon son type (UNTDID 1001). Un avoir DOIT être
+ * intitulé comme tel : le titre n'est donc jamais repris de `header.name`
+ * (qui vaut 'INVOICE' par défaut dans le builder).
+ */
+export const DOCUMENT_TITLES: Record<'fr' | 'en' | 'de', Record<number, string>> = {
+  fr: { 380: 'FACTURE', 381: 'AVOIR', 383: 'NOTE DE DÉBIT', 384: 'FACTURE RECTIFICATIVE', 386: "FACTURE D'ACOMPTE", 389: 'AUTOFACTURE' },
+  en: { 380: 'INVOICE', 381: 'CREDIT NOTE', 383: 'DEBIT NOTE', 384: 'CORRECTED INVOICE', 386: 'PREPAYMENT INVOICE', 389: 'SELF-BILLED INVOICE' },
+  de: { 380: 'RECHNUNG', 381: 'GUTSCHRIFT', 383: 'BELASTUNGSANZEIGE', 384: 'KORRIGIERTE RECHNUNG', 386: 'ANZAHLUNGSRECHNUNG', 389: 'GUTSCHRIFTSVERFAHREN' },
+};
+
+export function getDocumentTitle(typeCode: number | string | undefined, language: string = 'fr'): string {
+  const table = DOCUMENT_TITLES[(language as 'fr') ] ?? DOCUMENT_TITLES.fr;
+  return table[Number(typeCode)] ?? table[380];
+}
 
 export interface LocalizedStrings {
   readonly invoice: string;

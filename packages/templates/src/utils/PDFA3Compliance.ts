@@ -31,6 +31,12 @@ export interface PDFA3MetadataOptions {
   instanceId?: string;
   /** Factur-X conformance level for XMP metadata. Must match FNFE-MPE values exactly. */
   conformanceLevel?: string;
+  /**
+   * Déclare le schéma d'extension Factur-X (défaut : true). À désactiver pour un
+   * document qui n'embarque PAS de facture XML (devis, bon de commande) : sinon
+   * le PDF se présente comme une facture électronique qu'il n'est pas.
+   */
+  facturX?: boolean;
 }
 
 function escapeXML(text: string): string {
@@ -62,6 +68,7 @@ export function generatePDFA3XMP(options: PDFA3MetadataOptions): string {
     createDate = new Date(),
     modifyDate = new Date(),
     conformanceLevel = 'EN 16931',
+    facturX = true,
   } = options;
 
   const formatDate = (date: Date): string => date.toISOString();
@@ -119,7 +126,7 @@ export function generatePDFA3XMP(options: PDFA3MetadataOptions): string {
       <pdfaid:part>3</pdfaid:part>
       <pdfaid:conformance>B</pdfaid:conformance>
 
-      <!-- Factur-X Extension -->
+${facturX ? `      <!-- Factur-X Extension -->
       <pdfaExtension:schemas>
         <rdf:Bag>
           <rdf:li rdf:parseType="Resource">
@@ -163,7 +170,7 @@ export function generatePDFA3XMP(options: PDFA3MetadataOptions): string {
       <fx:DocumentType>INVOICE</fx:DocumentType>
       <fx:Version>1.0</fx:Version>
       <fx:ConformanceLevel>${escapeXML(conformanceLevel)}</fx:ConformanceLevel>
-    </rdf:Description>
+` : ''}    </rdf:Description>
   </rdf:RDF>
 </x:xmpmeta>
 <?xpacket end="w"?>`;
@@ -426,6 +433,8 @@ export interface PDFA3SetupOptions {
   keywords?: string[];
   /** Factur-X conformance level for fx:ConformanceLevel XMP property */
   conformanceLevel?: string;
+  /** Déclarer l'extension Factur-X (false pour un devis / bon de commande). */
+  facturX?: boolean;
 }
 
 /**

@@ -1,0 +1,72 @@
+/**
+ * Formatage des montants et des dates, identique à la maquette :
+ * montants « 3 200,00 » dans le tableau, « 6 336,00 € » dans les totaux,
+ * dates « 12/11/2026 ». La devise est celle du document (jamais d'« € » implicite).
+ * Espaces fines d'Intl remplacées par des espaces insécables standard (même
+ * chasse qu'une espace ordinaire, présentes dans toutes les polices embarquées).
+ */
+
+const nbsp = (s: string) => s.replace(/[  ]/g, ' ');
+
+/** Nombre de décimales d'une devise (JPY, XOF, XAF : 0 ; EUR, USD : 2…). */
+export function currencyDecimals(currency: string): number {
+  try {
+    return new Intl.NumberFormat('en', { style: 'currency', currency }).resolvedOptions().maximumFractionDigits ?? 2;
+  } catch {
+    return 2;
+  }
+}
+
+function major(minor: number, currency: string): { value: number; decimals: number } {
+  const decimals = currencyDecimals((currency || 'EUR').toUpperCase());
+  return { value: (Number(minor) || 0) / Math.pow(10, decimals), decimals };
+}
+
+/** Montant avec devise : « 6 336,00 € », « 12 000 FCFA », « $1,250.00 ». */
+export function formatMoney(minor: number, currency: string, locale: string): string {
+  const code = (currency || 'EUR').toUpperCase();
+  const { value, decimals } = major(minor, code);
+  try {
+    return nbsp(new Intl.NumberFormat(locale, { style: 'currency', currency: code, minimumFractionDigits: decimals, maximumFractionDigits: decimals }).format(value));
+  } catch {
+    return `${value.toFixed(decimals)} ${code}`;
+  }
+}
+
+/** Montant sans devise (cellules du tableau) : « 3 200,00 ». */
+export function formatAmount(minor: number, currency: string, locale: string): string {
+  const { value, decimals } = major(minor, currency);
+  return nbsp(new Intl.NumberFormat(locale, { minimumFractionDigits: decimals, maximumFractionDigits: decimals }).format(value));
+}
+
+export function formatPercent(rate: number, locale: string): string {
+  const n = Number(rate) || 0;
+  const v = nbsp(new Intl.NumberFormat(locale, { maximumFractionDigits: 2 }).format(n));
+  return locale.startsWith('en') ? `${v}%` : `${v} %`;
+}
+
+export function formatQuantity(q: number, locale: string): string {
+  return nbsp(new Intl.NumberFormat(locale, { maximumFractionDigits: 3 }).format(Number(q) || 0));
+}
+
+/** Accepte Date, ISO, ou timestamp (nombre ou chaîne numérique). */
+export function toDate(value: string | number | Date | undefined | null): Date | null {
+  if (value === undefined || value === null || value === '') return null;
+  if (value instanceof Date) return isNaN(value.getTime()) ? null : value;
+  const d = typeof value === 'number' || /^\d+$/.test(String(value)) ? new Date(Number(value)) : new Date(value);
+  return isNaN(d.getTime()) ? null : d;
+}
+
+/** Date numérique : « 12/11/2026 » (fr, en), « 12.11.2026 » (de). */
+export function formatDate(value: string | number | Date | undefined | null, locale: string): string {
+  const d = toDate(value);
+  return d ? d.toLocaleDateString(locale, { day: '2-digit', month: '2-digit', year: 'numeric', timeZone: 'UTC' }) : '';
+}
+
+/** Nombre de jours entiers entre deux dates (validité d'un devis). */
+export function daysBetween(from: string | number | Date | undefined | null, to: string | number | Date | undefined | null): number | null {
+  const a = toDate(from); const b = toDate(to);
+  if (!a || !b) return null;
+  const days = Math.round((b.getTime() - a.getTime()) / 86400000);
+  return days > 0 ? days : null;
+}

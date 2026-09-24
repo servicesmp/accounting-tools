@@ -33,13 +33,15 @@ export {
   CodeListValidator, getDefaultCodeListValidator, isValidCode, validateInvoiceCodes,
   I18n, getDefaultI18n, t, createI18n, translate, DEFAULT_LOCALES,
   getLocaleByCode, getAvailableLocaleCodes,
+  // Réforme FR 2026
+  VatDueDateTypeCode, OperationNature, FR_BUSINESS_PROCESS_PATTERN, buildBusinessProcessType,
 } from '@facturx/core';
 
 // Type-only exports from core
 export type {
   PostalAddress, TradeParty, PaymentDetails, DocumentHeader, InvoiceLine,
   AllowanceCharge, TaxSummary, MonetarySummary, ValidationResult, ProfilePolicy,
-  RegionalConfig, NoteWithCode,
+  RegionalConfig, NoteWithCode, DeliveryParty, PrecedingInvoiceReference,
 } from '@facturx/core';
 
 // ============================================================================
@@ -56,18 +58,33 @@ export {
   validateBeforeGeneration, validateAfterGeneration, validateQuick,
   setupPDFA3Compliance, applyPDFA3Compliance, addAFRelationshipToFile,
   loadSRGBProfile, generatePDFA3XMP, generatePDFFileID,
+  DOCUMENT_TITLES, getDocumentTitle,
 } from '@facturx/templates';
+
+// ============================================================================
+// DOCUMENTS PAR BLOCS — facture, avoir, devis, bon de commande
+// (la partie navigateur-compatible est aussi publiée seule : 'accounting-tools/document')
+// ============================================================================
+export * from '@facturx/templates/document';
+export {
+  generateDocumentPdf, renderDocumentPdf, DocumentPdfRenderer, buildFacturXInvoice,
+  FR_MANDATORY_NOTES, FR_FRANCHISE_MENTION,
+} from '@facturx/templates/document-pdf';
+export type {
+  GenerateDocumentPdfInput, GeneratedDocumentPdf, RenderDocumentPdfOptions, RenderedDocumentPdf, FacturXBuildResult,
+} from '@facturx/templates/document-pdf';
 
 // Type-only exports from templates
 export type {
   TemplateOptions, TemplateContext, PDFGenerationResult, PDFAttachmentOptions,
   RenderContext, RenderedElement, LocalizedStrings,
+  BrandSlots,
 } from '@facturx/templates';
 
 // ============================================================================
 // VERSION
 // ============================================================================
-export const VERSION = '1.1.0';
+export const VERSION = '1.2.0';
 export const FACTURX_VERSION = '1.07.2';
 export const EN16931_VERSION = '2017';
 

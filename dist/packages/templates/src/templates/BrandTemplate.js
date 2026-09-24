@@ -18,6 +18,10 @@ class BrandTemplate extends TemplateRenderer_1.TemplateRenderer {
     getTemplateType() {
         return types_1.TemplateType.BRAND;
     }
+    /** Teintes d'origine remplacées par les couleurs de marque de l'organisation. */
+    brandSlots() {
+        return { primary: ['#0d2f5e'], accent: ['#ff6600'] };
+    }
     async renderContent() {
         await this.renderBrandHeader();
         this.renderContext.currentY -= 25;
@@ -69,7 +73,7 @@ class BrandTemplate extends TemplateRenderer_1.TemplateRenderer {
         // Orange underline
         this.drawLine(margins.left + 20 + textOffsetX, headerTop - 42, margins.left + 220 + textOffsetX, headerTop - 42, { color: '#ff6600', width: 2 });
         // Document title on right side (FACTURE / AVOIR / DEVIS)
-        const docTitle = invoice.header.name || this.strings.invoice;
+        const docTitle = this.documentTitle;
         const rightX = width - margins.right - 200;
         this.drawText(docTitle, rightX, headerTop - 25, {
             size: 22, bold: true, color: '#ff6600',
@@ -359,11 +363,7 @@ class BrandTemplate extends TemplateRenderer_1.TemplateRenderer {
             x: margins.left + 15, y: margins.bottom + 10,
             size: 8, font, color: white,
         });
-        // Powered by (orange on navy)
-        page.drawText('@facturx/templates', {
-            x: pageWidth - margins.right - 130, y: margins.bottom + 10,
-            size: 8, font, color: orange,
-        });
+        // Pas de mention « Powered by » : le document appartient à l'organisation émettrice.
     }
 }
 exports.BrandTemplate = BrandTemplate;

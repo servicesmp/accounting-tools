@@ -204,7 +204,7 @@ class PaymentDetailsBuilder {
 // DOCUMENT HEADER - Immutable
 // ============================================================================
 class DocumentHeaderImpl {
-    constructor(id, invoiceNumber, name, invoiceDate, typeCode, dueDate, billingPeriodStart, billingPeriodEnd, purchaseOrderReference, salesOrderReference, contractReference, notes) {
+    constructor(id, invoiceNumber, name, invoiceDate, typeCode, dueDate, billingPeriodStart, billingPeriodEnd, purchaseOrderReference, salesOrderReference, contractReference, notes, businessProcessType, vatDueDateTypeCode, deliveryParty, deliveryDate, precedingInvoice) {
         this.id = id;
         this.invoiceNumber = invoiceNumber;
         this.name = name;
@@ -217,8 +217,20 @@ class DocumentHeaderImpl {
         this.salesOrderReference = salesOrderReference;
         this.contractReference = contractReference;
         this.notes = notes;
+        this.businessProcessType = businessProcessType;
+        this.vatDueDateTypeCode = vatDueDateTypeCode;
+        this.deliveryParty = deliveryParty;
+        this.deliveryDate = deliveryDate;
+        this.precedingInvoice = precedingInvoice;
         if (!id || !invoiceNumber || !invoiceDate) {
             throw new Error('ID, invoice number, and date are required');
+        }
+        if (businessProcessType !== undefined && !types_1.FR_BUSINESS_PROCESS_PATTERN.test(businessProcessType)) {
+            throw new Error(`[Factur-X] Cadre de facturation BT-23 invalide : ${businessProcessType}`);
+        }
+        if (billingPeriodStart && billingPeriodEnd && billingPeriodEnd.getTime() < billingPeriodStart.getTime()) {
+            // BR-29 : la fin de période ne peut précéder son début.
+            throw new Error('[Factur-X] BR-29 : la fin de la période de facturation précède son début');
         }
         if (notes) {
             Object.freeze(notes);
@@ -290,11 +302,41 @@ class DocumentHeaderBuilder {
         this._notes.push({ content, subjectCode });
         return this;
     }
+    /** BT-23 — cadre de facturation (ex. 'S1'). */
+    businessProcessType(value) {
+        this._businessProcessType = value;
+        return this;
+    }
+    /** BT-23 à partir de la nature de l'opération (biens / services / mixte). */
+    operationNature(nature, framework = 1) {
+        this._businessProcessType = (0, types_1.buildBusinessProcessType)(nature, framework);
+        return this;
+    }
+    /** BT-8 — exigibilité de la TVA (débits / encaissements). */
+    vatDueDateTypeCode(value) {
+        this._vatDueDateTypeCode = value;
+        return this;
+    }
+    /** BT-70..80 — adresse de livraison si différente de celle de l'acheteur. */
+    deliveryParty(value) {
+        this._deliveryParty = value;
+        return this;
+    }
+    /** BT-72 — date de livraison / d'exécution. */
+    deliveryDate(value) {
+        this._deliveryDate = value;
+        return this;
+    }
+    /** BT-25/26 — facture d'origine (obligatoire pour un avoir). */
+    precedingInvoice(id, issueDate) {
+        this._precedingInvoice = { id, issueDate };
+        return this;
+    }
     build() {
         if (!this._id || !this._invoiceNumber || !this._invoiceDate) {
             throw new Error('ID, invoice number, and date are required');
         }
-        return new DocumentHeaderImpl(this._id, this._invoiceNumber, this._name, this._invoiceDate, this._typeCode, this._dueDate, this._billingPeriodStart, this._billingPeriodEnd, this._purchaseOrderReference, this._salesOrderReference, this._contractReference, this._notes ? [...this._notes] : undefined);
+        return new DocumentHeaderImpl(this._id, this._invoiceNumber, this._name, this._invoiceDate, this._typeCode, this._dueDate, this._billingPeriodStart, this._billingPeriodEnd, this._purchaseOrderReference, this._salesOrderReference, this._contractReference, this._notes ? [...this._notes] : undefined, this._businessProcessType, this._vatDueDateTypeCode, this._deliveryParty, this._deliveryDate, this._precedingInvoice);
     }
 }
 // ============================================================================

@@ -152,6 +152,13 @@ export {
 export {
   // NoteWithCode type for FR compliance
   type NoteWithCode,
+  // Réforme FR 2026 : nature de l'opération (BT-23), TVA sur les débits (BT-8), livraison
+  type DeliveryParty,
+  type PrecedingInvoiceReference,
+  VatDueDateTypeCode,
+  OperationNature,
+  FR_BUSINESS_PROCESS_PATTERN,
+  buildBusinessProcessType,
 } from './types';
 
 // ============================================================================

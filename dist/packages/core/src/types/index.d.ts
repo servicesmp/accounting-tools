@@ -30,7 +30,13 @@ export declare enum DocTypeCode {
     CREDIT_NOTE = 381,
     /** Debit note */
     DEBIT_NOTE = 383,
-    /** Pro forma invoice / Quote */
+    /** Corrected invoice — facture rectificative (UNTDID 1001 : 384). */
+    CORRECTED_INVOICE = 384,
+    /**
+     * @deprecated Nom historique erroné : 384 est une facture RECTIFICATIVE, pas une
+     * pro forma ni un devis (un devis n'est pas une facture et n'a pas de code EN 16931).
+     * Utiliser CORRECTED_INVOICE.
+     */
     PRO_FORMAT = 384,
     /** Prepayment invoice */
     PREPAYMENT = 386,
@@ -326,6 +332,59 @@ export interface DocumentHeader {
     readonly contractReference?: string;
     /** Notes (string for simple notes, NoteWithCode for FR compliance with SubjectCode) */
     readonly notes?: (string | NoteWithCode)[];
+    /**
+     * BT-23 — Type de processus métier. En France (réforme 2026), porte le « cadre de
+     * facturation » qui exprime la nature de l'opération : B = livraison de biens,
+     * S = prestation de services, M = opération mixte, suivi du chiffre du cadre (1 à 7).
+     * Ex. 'S1' = facture de prestation de services, dépôt standard.
+     */
+    readonly businessProcessType?: string;
+    /**
+     * BT-8 — Code de la date d'exigibilité de la TVA (UNTDID 2005).
+     * En France, '5' (date d'émission) matérialise l'option pour le paiement de la TVA
+     * d'après les débits ; '72' (date de paiement) le régime des encaissements.
+     */
+    readonly vatDueDateTypeCode?: VatDueDateTypeCode;
+    /** BT-70..80 — Adresse de livraison, obligatoire (réforme 2026) si différente de l'adresse de l'acheteur. */
+    readonly deliveryParty?: DeliveryParty;
+    /** BT-72 — Date effective de livraison / d'exécution de la prestation. */
+    readonly deliveryDate?: Date;
+    /**
+     * BT-25 / BT-26 — Facture d'origine. OBLIGATOIRE pour un avoir (381) : un avoir
+     * doit mentionner la facture qu'il rectifie (art. 242 nonies A, annexe II CGI).
+     */
+    readonly precedingInvoice?: PrecedingInvoiceReference;
+}
+/** Référence à une facture antérieure (BG-3). */
+export interface PrecedingInvoiceReference {
+    /** BT-25 — numéro de la facture d'origine */
+    readonly id: string;
+    /** BT-26 — date d'émission de la facture d'origine */
+    readonly issueDate?: Date;
+}
+/** BT-8 — UNTDID 2005 (sous-ensemble autorisé par EN 16931). */
+export declare enum VatDueDateTypeCode {
+    /** Date d'émission de la facture — option TVA sur les débits */
+    INVOICE_DATE = "5",
+    /** Date de livraison effective */
+    DELIVERY_DATE = "29",
+    /** Date de paiement — TVA sur les encaissements */
+    PAYMENT_DATE = "72"
+}
+/** Nature de l'opération (réforme 2026) → lettre du cadre de facturation BT-23. */
+export declare enum OperationNature {
+    GOODS = "B",
+    SERVICES = "S",
+    MIXED = "M"
+}
+/** Cadres de facturation français BT-23 actuellement admis (8 et 9 retirés). */
+export declare const FR_BUSINESS_PROCESS_PATTERN: RegExp;
+/** Construit le code BT-23 à partir de la nature de l'opération et du cadre (1 = dépôt standard). */
+export declare function buildBusinessProcessType(nature: OperationNature, framework?: number): string;
+/** Partie destinataire de la livraison (ShipToTradeParty). */
+export interface DeliveryParty {
+    readonly name?: string;
+    readonly address: PostalAddress;
 }
 /**
  * Allowance or charge at line or document level

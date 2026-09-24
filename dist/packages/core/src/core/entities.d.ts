@@ -3,7 +3,7 @@
  * @description Core domain entities with optimized implementations
  * Immutable by default with efficient builder patterns
  */
-import { PostalAddress, TradeParty, PaymentDetails, DocumentHeader, AllowanceCharge as IAllowanceCharge, InvoiceLine as IInvoiceLine, NoteWithCode, DocTypeCode, PaymentMeansCode } from '../types';
+import { PostalAddress, TradeParty, PaymentDetails, DocumentHeader, AllowanceCharge as IAllowanceCharge, InvoiceLine as IInvoiceLine, NoteWithCode, DocTypeCode, PaymentMeansCode, VatDueDateTypeCode, DeliveryParty, PrecedingInvoiceReference, OperationNature } from '../types';
 export declare class PostalAddressImpl implements PostalAddress {
     readonly city: string;
     readonly postalCode: string;
@@ -114,7 +114,12 @@ export declare class DocumentHeaderImpl implements DocumentHeader {
     readonly salesOrderReference?: string | undefined;
     readonly contractReference?: string | undefined;
     readonly notes?: (string | NoteWithCode)[] | undefined;
-    constructor(id: string, invoiceNumber: string, name: string, invoiceDate: Date, typeCode: DocTypeCode, dueDate?: Date | undefined, billingPeriodStart?: Date | undefined, billingPeriodEnd?: Date | undefined, purchaseOrderReference?: string | undefined, salesOrderReference?: string | undefined, contractReference?: string | undefined, notes?: (string | NoteWithCode)[] | undefined);
+    readonly businessProcessType?: string | undefined;
+    readonly vatDueDateTypeCode?: VatDueDateTypeCode | undefined;
+    readonly deliveryParty?: DeliveryParty | undefined;
+    readonly deliveryDate?: Date | undefined;
+    readonly precedingInvoice?: PrecedingInvoiceReference | undefined;
+    constructor(id: string, invoiceNumber: string, name: string, invoiceDate: Date, typeCode: DocTypeCode, dueDate?: Date | undefined, billingPeriodStart?: Date | undefined, billingPeriodEnd?: Date | undefined, purchaseOrderReference?: string | undefined, salesOrderReference?: string | undefined, contractReference?: string | undefined, notes?: (string | NoteWithCode)[] | undefined, businessProcessType?: string | undefined, vatDueDateTypeCode?: VatDueDateTypeCode | undefined, deliveryParty?: DeliveryParty | undefined, deliveryDate?: Date | undefined, precedingInvoice?: PrecedingInvoiceReference | undefined);
     static builder(): DocumentHeaderBuilder;
 }
 declare class DocumentHeaderBuilder {
@@ -130,6 +135,11 @@ declare class DocumentHeaderBuilder {
     private _salesOrderReference?;
     private _contractReference?;
     private _notes?;
+    private _businessProcessType?;
+    private _vatDueDateTypeCode?;
+    private _deliveryParty?;
+    private _deliveryDate?;
+    private _precedingInvoice?;
     id(value: string): this;
     invoiceNumber(value: string): this;
     name(value: string): this;
@@ -142,6 +152,18 @@ declare class DocumentHeaderBuilder {
     contractReference(value: string): this;
     addNote(note: string): this;
     addNoteWithCode(content: string, subjectCode: string): this;
+    /** BT-23 — cadre de facturation (ex. 'S1'). */
+    businessProcessType(value: string): this;
+    /** BT-23 à partir de la nature de l'opération (biens / services / mixte). */
+    operationNature(nature: OperationNature, framework?: number): this;
+    /** BT-8 — exigibilité de la TVA (débits / encaissements). */
+    vatDueDateTypeCode(value: VatDueDateTypeCode): this;
+    /** BT-70..80 — adresse de livraison si différente de celle de l'acheteur. */
+    deliveryParty(value: DeliveryParty): this;
+    /** BT-72 — date de livraison / d'exécution. */
+    deliveryDate(value: Date): this;
+    /** BT-25/26 — facture d'origine (obligatoire pour un avoir). */
+    precedingInvoice(id: string, issueDate?: Date): this;
     build(): DocumentHeaderImpl;
 }
 export declare class AllowanceCharge implements IAllowanceCharge {

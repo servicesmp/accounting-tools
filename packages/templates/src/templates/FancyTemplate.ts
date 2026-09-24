@@ -17,7 +17,7 @@ import { PDFPage } from 'pdf-lib';
 import QRCode from 'qrcode';
 import { formatAmount } from '@facturx/core';
 import { TemplateRenderer } from '../core/TemplateRenderer';
-import { TemplateType } from '../types';
+import { TemplateType, BrandSlots } from '../types';
 
 /** Height needed for the summary block (payment + totals + tax + QR) */
 const SUMMARY_BLOCK_HEIGHT = 260;
@@ -25,6 +25,11 @@ const SUMMARY_BLOCK_HEIGHT = 260;
 export class FancyTemplate extends TemplateRenderer {
   protected getTemplateType(): TemplateType {
     return TemplateType.FANCY;
+  }
+
+  /** Teintes d'origine remplacées par les couleurs de marque de l'organisation. */
+  protected brandSlots(): BrandSlots {
+    return { primary: ['#3b82f6'], accent: ['#db2777'], primaryTint: ['#eff6ff'], accentTint: ['#fce7f3'] };
   }
 
   protected async renderContent(): Promise<void> {
@@ -100,7 +105,7 @@ export class FancyTemplate extends TemplateRenderer {
     }
 
     // Title (FACTURE / AVOIR / DEVIS)
-    const docTitle = invoice.header.name || this.strings.invoice;
+    const docTitle = this.documentTitle;
     this.drawText(docTitle, margins.left + 20 + textOffsetX, headerTop - 30, {
       size: 32, bold: true, color: '#ffffff',
     });
@@ -480,11 +485,6 @@ export class FancyTemplate extends TemplateRenderer {
       x: margins.left + 10, y: margins.bottom + 8,
       size: 8, font, color: white,
     });
-
-    // Powered by (right, white on blue)
-    page.drawText('@facturx/templates', {
-      x: pageWidth - margins.right - 120, y: margins.bottom + 8,
-      size: 8, font, color: white,
-    });
+    // Pas de mention « Powered by » : le document appartient à l'organisation émettrice.
   }
 }

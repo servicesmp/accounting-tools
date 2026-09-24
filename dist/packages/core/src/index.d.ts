@@ -20,7 +20,7 @@ export { XsdValidator, getDefaultValidator, validateXml, validateXmlAsync, type 
 export { RealXsdValidator, type RealXsdValidationResult, } from './validation/RealXsdValidator';
 export { BusinessRuleValidator, getDefaultBusinessRuleValidator, validateBusinessRules, type BusinessRule, type BusinessRuleResult, type BusinessRuleValidationResult, } from './validation/BusinessRuleValidator';
 export { CodeListValidator, getDefaultCodeListValidator, isValidCode, validateInvoiceCodes, type CodeListName, type CodeListValidationResult, } from './validation/CodeListValidator';
-export { type NoteWithCode, } from './types';
+export { type NoteWithCode, type DeliveryParty, type PrecedingInvoiceReference, VatDueDateTypeCode, OperationNature, FR_BUSINESS_PROCESS_PATTERN, buildBusinessProcessType, } from './types';
 export declare const VERSION = "1.0.0";
 export declare const FACTURX_VERSION = "1.07.2";
 export declare const EN16931_VERSION = "2017";

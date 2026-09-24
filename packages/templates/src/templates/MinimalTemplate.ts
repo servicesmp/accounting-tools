@@ -70,7 +70,7 @@ export class MinimalTemplate extends TemplateRenderer {
       if (logoH > 0) textOffsetX = 80;
     }
 
-    const docTitle = invoice.header.name || this.strings.invoice;
+    const docTitle = this.documentTitle;
     this.drawText(docTitle, margins.left + textOffsetX, startY - 35, { size: 36, bold: true, color: '#000000' });
 
     const rightX = width - margins.right - 170;
@@ -362,8 +362,6 @@ export class MinimalTemplate extends TemplateRenderer {
     page.drawText(`${pageNum} / ${totalPages}`, {
       x: margins.left, y: margins.bottom + 5, size: 8, font, color: muted,
     });
-    page.drawText('@facturx/templates', {
-      x: pageWidth - margins.right - 100, y: margins.bottom + 5, size: 7, font, color: veryLight,
-    });
+    // Pas de mention « Powered by » : le document appartient à l'organisation émettrice.
   }
 }

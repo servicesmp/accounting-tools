@@ -74,7 +74,7 @@ function escapeXML(text) {
 //   });
 // }
 function generatePDFA3XMP(options) {
-    const { title, author = 'Factur-X Generator', subject = 'Electronic Invoice', creator = 'factur-x-ts', producer = 'pdf-lib + factur-x-ts', keywords = ['Invoice', 'Factur-X', 'EN16931'], createDate = new Date(), modifyDate = new Date(), conformanceLevel = 'EN 16931', } = options;
+    const { title, author = 'Factur-X Generator', subject = 'Electronic Invoice', creator = 'factur-x-ts', producer = 'pdf-lib + factur-x-ts', keywords = ['Invoice', 'Factur-X', 'EN16931'], createDate = new Date(), modifyDate = new Date(), conformanceLevel = 'EN 16931', facturX = true, } = options;
     const formatDate = (date) => date.toISOString();
     const keywordsXML = keywords.length > 0
         ? `<dc:subject>
@@ -128,7 +128,7 @@ function generatePDFA3XMP(options) {
       <pdfaid:part>3</pdfaid:part>
       <pdfaid:conformance>B</pdfaid:conformance>
 
-      <!-- Factur-X Extension -->
+${facturX ? `      <!-- Factur-X Extension -->
       <pdfaExtension:schemas>
         <rdf:Bag>
           <rdf:li rdf:parseType="Resource">
@@ -172,7 +172,7 @@ function generatePDFA3XMP(options) {
       <fx:DocumentType>INVOICE</fx:DocumentType>
       <fx:Version>1.0</fx:Version>
       <fx:ConformanceLevel>${escapeXML(conformanceLevel)}</fx:ConformanceLevel>
-    </rdf:Description>
+` : ''}    </rdf:Description>
   </rdf:RDF>
 </x:xmpmeta>
 <?xpacket end="w"?>`;

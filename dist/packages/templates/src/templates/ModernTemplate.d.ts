@@ -14,9 +14,12 @@
  */
 import { PDFPage } from 'pdf-lib';
 import { TemplateRenderer } from '../core/TemplateRenderer';
-import { TemplateType } from '../types';
+import { TemplateType, BrandSlots } from '../types';
 export declare class ModernTemplate extends TemplateRenderer {
     protected getTemplateType(): TemplateType;
+    protected brandSlots(): BrandSlots;
+    /** Ce modèle imprime les mentions obligatoires dans son pied légal (renderLegalInfo). */
+    protected rendersOwnMandatoryMentions(): boolean;
     protected renderContent(): Promise<void>;
     private renderModernHeader;
     private renderModernParties;

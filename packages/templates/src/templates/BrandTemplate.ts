@@ -12,11 +12,16 @@
 import { PDFPage } from 'pdf-lib';
 import { formatAmount } from '@facturx/core';
 import { TemplateRenderer } from '../core/TemplateRenderer';
-import { TemplateType } from '../types';
+import { TemplateType, BrandSlots } from '../types';
 
 export class BrandTemplate extends TemplateRenderer {
   protected getTemplateType(): TemplateType {
     return TemplateType.BRAND;
+  }
+
+  /** Teintes d'origine remplacées par les couleurs de marque de l'organisation. */
+  protected brandSlots(): BrandSlots {
+    return { primary: ['#0d2f5e'], accent: ['#ff6600'] };
   }
 
   protected async renderContent(): Promise<void> {
@@ -96,7 +101,7 @@ export class BrandTemplate extends TemplateRenderer {
     );
 
     // Document title on right side (FACTURE / AVOIR / DEVIS)
-    const docTitle = invoice.header.name || this.strings.invoice;
+    const docTitle = this.documentTitle;
     const rightX = width - margins.right - 200;
 
     this.drawText(docTitle, rightX, headerTop - 25, {
@@ -443,11 +448,6 @@ export class BrandTemplate extends TemplateRenderer {
       x: margins.left + 15, y: margins.bottom + 10,
       size: 8, font, color: white,
     });
-
-    // Powered by (orange on navy)
-    page.drawText('@facturx/templates', {
-      x: pageWidth - margins.right - 130, y: margins.bottom + 10,
-      size: 8, font, color: orange,
-    });
+    // Pas de mention « Powered by » : le document appartient à l'organisation émettrice.
   }
 }
