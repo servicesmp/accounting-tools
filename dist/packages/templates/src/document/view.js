@@ -4,6 +4,7 @@ exports.COLUMN_SPEC = void 0;
 exports.computeLineTotal = computeLineTotal;
 exports.computeDocumentTotals = computeDocumentTotals;
 exports.isFacturXDocument = isFacturXDocument;
+exports.watermarkFontSize = watermarkFontSize;
 exports.buildDocumentView = buildDocumentView;
 const i18n_1 = require("./i18n");
 const format_1 = require("./format");
@@ -73,6 +74,15 @@ const HAS_FACTURX = { invoice: true, credit: true, quote: false, order: false };
 /** Le document embarque-t-il un XML Factur-X ? (facture et avoir uniquement) */
 function isFacturXDocument(kind) {
     return HAS_FACTURX[kind];
+}
+/**
+ * Corps du filigrane : 110 px (maquette) pour les mots courts, réduit pour que les
+ * mots longs (« REMBOURSÉE », « ÜBERFÄLLIG ») tiennent dans la diagonale de la page.
+ * Même valeur pour le HTML et le PDF : les deux rendus restent identiques.
+ */
+function watermarkFontSize(text) {
+    const len = Math.max(1, [...text].length);
+    return Math.max(56, Math.min(110, Math.floor(700 / (len * 0.66))));
 }
 function buildDocumentView(data, options = {}) {
     const settings = options.settings ?? settings_1.DEFAULT_DOCUMENT_SETTINGS;
@@ -176,6 +186,7 @@ function buildDocumentView(data, options = {}) {
         ? { iban: data.payment.iban, bic: data.payment.bic, terms: data.payment.terms, qrData: data.payment.link || undefined }
         : undefined;
     const status = data.status;
+    const watermark = settings.statusWatermark && status ? L.watermark(kind, status) : undefined;
     const primary = settings.colors.primary;
     const accent = settings.colors.accent;
     return {
@@ -214,7 +225,8 @@ function buildDocumentView(data, options = {}) {
         notes: data.notes?.trim() || undefined,
         badge: isFacturXDocument(kind) ? 'Factur-X · EN 16931' : undefined,
         poweredBy: settings.showPoweredBy,
-        watermark: settings.statusWatermark && status ? L.watermark[status] : undefined,
+        watermark,
+        watermarkSize: watermark ? watermarkFontSize(watermark) : undefined,
         statusLabel: status ? L.status[status] : undefined,
         totalsRaw: { ...totals, amountDue },
     };

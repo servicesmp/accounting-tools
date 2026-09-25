@@ -3,7 +3,10 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.FR_FRANCHISE_MENTION = void 0;
 exports.normalizeVatId = normalizeVatId;
 exports.billingPartyToDocumentParty = billingPartyToDocumentParty;
+exports.isBillingInvoicePaid = isBillingInvoicePaid;
+exports.billingInvoiceStatus = billingInvoiceStatus;
 exports.billingInvoiceToDocumentData = billingInvoiceToDocumentData;
+exports.estimateDocumentStatus = estimateDocumentStatus;
 exports.estimateToDocumentData = estimateToDocumentData;
 const view_1 = require("./view");
 exports.FR_FRANCHISE_MENTION = 'TVA non applicable, art. 293 B du CGI';
@@ -106,6 +109,55 @@ function paymentMeans(payment) {
         return 'card';
     return undefined;
 }
+const up = (v) => String(v ?? '').trim().toUpperCase();
+/** Vrai si la facture est payée (paymentStatus PAID / COMPLETED, casse indifférente). */
+function isBillingInvoicePaid(record) {
+    return ['PAID', 'COMPLETED'].includes(up(record?.paymentStatus));
+}
+/**
+ * Vrai si la facture a déjà été transmise au client : état SENT, ou au moins une
+ * invitation de consultation / de paiement envoyée.
+ */
+function isInvoiceSent(inv) {
+    if (up(inv?.state) === 'SENT')
+        return true;
+    const tx = json(inv?.transactionData) ?? {};
+    const sent = (list) => Array.isArray(list) && list.length > 0;
+    return sent(tx.viewInvitations) || sent(tx.paymentInvitations);
+}
+/**
+ * État d'une facture mu-billing, seule règle partagée par l'écran, le PDF et le filigrane.
+ *
+ * - payée (PAID / COMPLETED) → `paid` ; remboursée → `refunded` ;
+ *   annulée (CANCELLED / CANCELED / VOID) → `cancelled` ;
+ * - facture saisie dans le tableau de bord (`transactionData.metadata.source`) et
+ *   jamais transmise au client → `draft` : brouillon modifiable, filigrane BROUILLON ;
+ * - sinon émise : échéance dépassée → `overdue`, sinon `pending` (pas de filigrane).
+ *
+ * Avant, toute facture non payée était traitée en brouillon : une facture envoyée
+ * au client (ou une facture de frais émise par la plateforme) partait avec le
+ * filigrane « Document provisoire ».
+ */
+function billingInvoiceStatus(record, asOf = new Date()) {
+    const inv = record ?? {};
+    const pay = up(inv.paymentStatus);
+    const state = up(inv.state);
+    const CANCELLED = ['CANCELLED', 'CANCELED', 'VOID', 'VOIDED'];
+    if (['PAID', 'COMPLETED'].includes(pay))
+        return 'paid';
+    if (['REFUNDED', 'PARTIALLY_REFUNDED'].includes(pay))
+        return 'refunded';
+    if (CANCELLED.includes(pay) || CANCELLED.includes(state))
+        return 'cancelled';
+    const manual = !!(json(inv.transactionData) ?? {})?.metadata?.source;
+    if (pay === 'DRAFT' || state === 'DRAFT' || (manual && !isInvoiceSent(inv)))
+        return 'draft';
+    const payment = json(inv.payment) ?? {};
+    const due = parseDate(payment.dueDate ?? inv.dueDate);
+    if (due && due.getTime() < asOf.getTime())
+        return 'overdue';
+    return 'pending';
+}
 /** Facture mu-billing → DocumentData (facture, ou avoir 381 si la facture d'origine est connue). */
 function billingInvoiceToDocumentData(record, options = {}) {
     const inv = record ?? {};
@@ -129,8 +181,9 @@ function billingInvoiceToDocumentData(record, options = {}) {
             ...(Number.isFinite(discount) && discount > 0 ? { discountPercent: discount } : {}),
         };
     });
-    const paid = ['PAID', 'COMPLETED'].includes(String(inv.paymentStatus ?? '').toUpperCase());
-    const status = options.isDraft ? 'draft' : paid ? 'paid' : 'pending';
+    const status = options.isDraft ? 'draft' : billingInvoiceStatus(inv, options.asOf);
+    // Lien de paiement (QR) : seulement pour une facture émise qu'il reste à payer.
+    const payable = status === 'pending' || status === 'overdue';
     const seller = json(inv.seller) ?? {};
     const exempt = seller.isVatExempt === true || seller.legalInfo?.isVatExempt === true || lines.some((l) => l.vatRate === 0);
     const customNotes = (Array.isArray(header.notes) ? header.notes : [])
@@ -154,7 +207,7 @@ function billingInvoiceToDocumentData(record, options = {}) {
             terms: str(payment.paymentTermsText ?? inv.paymentTerms),
             iban: str(payment.iban),
             bic: str(payment.bic),
-            link: !paid && !options.isDraft ? options.paymentLink : undefined,
+            link: payable ? options.paymentLink : undefined,
             means: paymentMeans(payment),
         },
         ...(isCredit ? { precedingInvoice: { number: precedingNumber, issueDate: parseDate(preceding.issueDate) } } : {}),
@@ -187,8 +240,21 @@ function estimateParty(raw, currency) {
 }
 const ESTIMATE_STATUS = {
     DRAFT: 'draft', ACCEPTED: 'accepted', APPROVED: 'accepted', CLIENT_VALIDATED: 'accepted',
-    REJECTED: 'rejected', CLOSED: 'cancelled',
+    REJECTED: 'rejected', DECLINED: 'rejected', CLOSED: 'cancelled', CANCELLED: 'cancelled', CANCELED: 'cancelled',
+    EXPIRED: 'expired',
 };
+/**
+ * État d'un devis. Un devis encore sans réponse (envoyé, en négociation…) dont la
+ * date de validité est passée est `expired` : filigrane EXPIRÉ.
+ */
+function estimateDocumentStatus(rawStatus, validUntil, asOf = new Date()) {
+    const mapped = ESTIMATE_STATUS[up(rawStatus)];
+    if (mapped)
+        return mapped;
+    if (validUntil && validUntil.getTime() < asOf.getTime())
+        return 'expired';
+    return 'pending';
+}
 /** Devis mu-contract → DocumentData (kind 'quote'). */
 function estimateToDocumentData(estimate, options = {}) {
     const det = json(estimate?.details) ?? {};
@@ -235,15 +301,16 @@ function estimateToDocumentData(estimate, options = {}) {
     else if (!lines.length) {
         totals = { subtotal: 0, taxTotal: 0, total: 0, taxBreakdown: [] };
     }
-    const rawStatus = String(options.status ?? estimate?.status ?? '').toUpperCase();
+    const rawStatus = options.status ?? estimate?.status;
+    const validUntil = parseDate(det.validUntil);
     const id = str(estimate?.estimateId) ?? '';
     return {
         kind: 'quote',
         number: str(options.number) ?? str(det.estimateNumber) ?? id,
         issueDate: parseDate(det.issueDate ?? estimate?.createdAt) ?? new Date(),
-        validUntil: parseDate(det.validUntil),
+        validUntil,
         currency,
-        status: ESTIMATE_STATUS[rawStatus] ?? 'pending',
+        status: estimateDocumentStatus(rawStatus, validUntil, options.asOf),
         seller: estimateParty(det.from, currency),
         buyer: estimateParty(det.to, currency),
         lines: lines.map((l) => ({ ...l, lineTotal: (0, view_1.computeLineTotal)(l) })),

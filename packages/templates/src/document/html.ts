@@ -312,7 +312,7 @@ ${pay}
   }
 
   const watermark = () => (v.watermark
-    ? `<div aria-hidden="true" style="position:absolute;left:58%;top:${Math.round(PAGE_H * 0.54)}px;transform:translate(-50%,-50%) rotate(-32deg);${F(700, 110)};letter-spacing:.06em;color:${primary};opacity:.07;white-space:nowrap;pointer-events:none">${e(v.watermark)}</div>`
+    ? `<div aria-hidden="true" style="position:absolute;left:58%;top:${Math.round(PAGE_H * 0.54)}px;transform:translate(-50%,-50%) rotate(-32deg);${F(700, v.watermarkSize ?? 110)};letter-spacing:.06em;color:${primary};opacity:.07;white-space:nowrap;pointer-events:none">${e(v.watermark)}</div>`
     : '');
 
   // ── Assemblage ────────────────────────────────────────────────────────────

@@ -21,7 +21,17 @@ export const DOCUMENT_KINDS: readonly DocumentKind[] = ['invoice', 'credit', 'qu
 export type DocumentLanguage = 'fr' | 'en' | 'de';
 export const DOCUMENT_LANGUAGES: readonly DocumentLanguage[] = ['fr', 'en', 'de'];
 
-export type DocumentStatus = 'draft' | 'pending' | 'paid' | 'accepted' | 'rejected' | 'cancelled';
+/**
+ * État métier du document, qui pilote le filigrane et le libellé d'état.
+ * - facture / avoir : draft (jamais émise), pending (émise, à payer), overdue
+ *   (échéance dépassée), paid, refunded, cancelled ;
+ * - devis : draft, pending (envoyé), accepted, rejected, expired (validité
+ *   dépassée sans réponse), cancelled ;
+ * - bon de commande : draft, pending, cancelled.
+ */
+export type DocumentStatus =
+  | 'draft' | 'pending' | 'paid' | 'accepted' | 'rejected' | 'cancelled'
+  | 'expired' | 'overdue' | 'refunded';
 
 // ─── Réglages de mise en page (blocs indépendants) ──────────────────────────
 
@@ -297,6 +307,8 @@ export interface DocumentView {
   readonly badge?: string;
   readonly poweredBy: boolean;
   readonly watermark?: string;
+  /** Corps du filigrane en px (réduit pour les mots longs : il tient dans la page). */
+  readonly watermarkSize?: number;
   readonly statusLabel?: string;
   readonly totalsRaw: DocumentTotals & { readonly amountDue: number };
 }

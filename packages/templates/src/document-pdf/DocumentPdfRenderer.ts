@@ -369,10 +369,11 @@ export class DocumentPdfRenderer {
 
   private watermark() {
     // left:58%; top:54%; translate(-50%,-50%) rotate(-32deg); 700 110px; ls .06em; opacity .07
-    const s: TextStyle = { size: 110, bold: true, ls: 0.06 };
+    const size = this.v.watermarkSize ?? 110;
+    const s: TextStyle = { size, bold: true, ls: 0.06 };
     const txt = this.v.watermark!;
     const w = this.width(txt, s);
-    const h = normalLH(110);
+    const h = normalLH(size);
     const cx = PAGE_W * 0.58; const cy = PAGE_H * 0.54;
     const a = (32 * Math.PI) / 180;
     // point bas-gauche de la ligne de base, avant rotation, relatif au centre (repère y vers le bas)

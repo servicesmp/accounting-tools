@@ -25,5 +25,11 @@ export interface BuildDocumentViewOptions {
     /** Réglage déjà normalisé (normalizeDocumentSettings). */
     readonly settings?: DocumentTemplateSettings;
 }
+/**
+ * Corps du filigrane : 110 px (maquette) pour les mots courts, réduit pour que les
+ * mots longs (« REMBOURSÉE », « ÜBERFÄLLIG ») tiennent dans la diagonale de la page.
+ * Même valeur pour le HTML et le PDF : les deux rendus restent identiques.
+ */
+export declare function watermarkFontSize(text: string): number;
 export declare function buildDocumentView(data: DocumentData, options?: BuildDocumentViewOptions): DocumentView;
 //# sourceMappingURL=view.d.ts.map

@@ -31,7 +31,8 @@ export interface DocumentLabels {
   readonly poweredBy: string;
   readonly page: string;
   readonly of: string;
-  readonly watermark: Partial<Record<DocumentStatus, string>>;
+  /** Filigrane selon le type de document (accord en genre) et son état ; aucun pour « pending ». */
+  readonly watermark: (kind: DocumentKind, status: DocumentStatus) => string | undefined;
   readonly status: Record<DocumentStatus, string>;
   readonly amount: Record<DocumentKind, string>;
   readonly creditRef: (invoice: string, date?: string, reason?: string) => string;
@@ -60,8 +61,22 @@ const fr: DocumentLabels = {
   taxBreakdown: 'Détail de la TVA', taxBase: 'Base', taxAmount: 'TVA',
   paymentTerms: 'Paiement', iban: 'IBAN', bic: 'BIC', scanToPay: 'Scannez pour payer',
   poweredBy: 'Document émis avec', page: 'Page', of: 'sur',
-  watermark: { draft: 'BROUILLON', paid: 'PAYÉ', cancelled: 'ANNULÉ' },
-  status: { draft: 'Brouillon', pending: 'En attente', paid: 'Payée', accepted: 'Accepté', rejected: 'Refusé', cancelled: 'Annulé' },
+  watermark: (kind, status) => {
+    // Facture : féminin ; avoir, devis, bon de commande : masculin.
+    const f = kind === 'invoice';
+    const w: Partial<Record<DocumentStatus, string>> = {
+      draft: 'BROUILLON',
+      paid: f ? 'PAYÉE' : 'PAYÉ',
+      cancelled: f ? 'ANNULÉE' : 'ANNULÉ',
+      refunded: f ? 'REMBOURSÉE' : 'REMBOURSÉ',
+      overdue: 'EN RETARD',
+      accepted: 'ACCEPTÉ',
+      rejected: 'REFUSÉ',
+      expired: 'EXPIRÉ',
+    };
+    return w[status];
+  },
+  status: { draft: 'Brouillon', pending: 'En attente', paid: 'Payée', accepted: 'Accepté', rejected: 'Refusé', cancelled: 'Annulé', expired: 'Expiré', overdue: 'En retard', refunded: 'Remboursée' },
   amount: { invoice: 'Montant à payer', credit: 'Montant crédité', quote: 'Montant du devis', order: 'Montant de la commande' },
   creditRef: (n, d, r) => `Avoir sur la facture ${n}${d ? ` du ${d}` : ''}.${r ? ` Motif : ${r}.` : ''}`,
   quoteRef: (days, until) => `${days ? `Devis valable ${days} jours. ` : until ? `Devis valable jusqu'au ${until}. ` : ''}Bon pour accord : date, signature et cachet du client.`,
@@ -89,8 +104,11 @@ const en: DocumentLabels = {
   taxBreakdown: 'Tax breakdown', taxBase: 'Base', taxAmount: 'VAT',
   paymentTerms: 'Payment', iban: 'IBAN', bic: 'BIC', scanToPay: 'Scan to pay',
   poweredBy: 'Issued with', page: 'Page', of: 'of',
-  watermark: { draft: 'DRAFT', paid: 'PAID', cancelled: 'CANCELLED' },
-  status: { draft: 'Draft', pending: 'Pending', paid: 'Paid', accepted: 'Accepted', rejected: 'Rejected', cancelled: 'Cancelled' },
+  watermark: (_kind, status) => ({
+    draft: 'DRAFT', paid: 'PAID', cancelled: 'CANCELLED', refunded: 'REFUNDED', overdue: 'OVERDUE',
+    accepted: 'ACCEPTED', rejected: 'DECLINED', expired: 'EXPIRED',
+  } as Partial<Record<DocumentStatus, string>>)[status],
+  status: { draft: 'Draft', pending: 'Pending', paid: 'Paid', accepted: 'Accepted', rejected: 'Rejected', cancelled: 'Cancelled', expired: 'Expired', overdue: 'Overdue', refunded: 'Refunded' },
   amount: { invoice: 'Amount due', credit: 'Amount credited', quote: 'Quote amount', order: 'Order amount' },
   creditRef: (n, d, r) => `Credit note for invoice ${n}${d ? ` dated ${d}` : ''}.${r ? ` Reason: ${r}.` : ''}`,
   quoteRef: (days, until) => `${days ? `Quote valid for ${days} days. ` : until ? `Quote valid until ${until}. ` : ''}Approval: date, signature and stamp.`,
@@ -118,8 +136,11 @@ const de: DocumentLabels = {
   taxBreakdown: 'Steueraufschlüsselung', taxBase: 'Basis', taxAmount: 'MwSt',
   paymentTerms: 'Zahlung', iban: 'IBAN', bic: 'BIC', scanToPay: 'Scannen zum Bezahlen',
   poweredBy: 'Erstellt mit', page: 'Seite', of: 'von',
-  watermark: { draft: 'ENTWURF', paid: 'BEZAHLT', cancelled: 'STORNIERT' },
-  status: { draft: 'Entwurf', pending: 'Offen', paid: 'Bezahlt', accepted: 'Angenommen', rejected: 'Abgelehnt', cancelled: 'Storniert' },
+  watermark: (_kind, status) => ({
+    draft: 'ENTWURF', paid: 'BEZAHLT', cancelled: 'STORNIERT', refunded: 'ERSTATTET', overdue: 'ÜBERFÄLLIG',
+    accepted: 'ANGENOMMEN', rejected: 'ABGELEHNT', expired: 'ABGELAUFEN',
+  } as Partial<Record<DocumentStatus, string>>)[status],
+  status: { draft: 'Entwurf', pending: 'Offen', paid: 'Bezahlt', accepted: 'Angenommen', rejected: 'Abgelehnt', cancelled: 'Storniert', expired: 'Abgelaufen', overdue: 'Überfällig', refunded: 'Erstattet' },
   amount: { invoice: 'Zu zahlender Betrag', credit: 'Gutgeschriebener Betrag', quote: 'Angebotsbetrag', order: 'Bestellbetrag' },
   creditRef: (n, d, r) => `Gutschrift zur Rechnung ${n}${d ? ` vom ${d}` : ''}.${r ? ` Grund: ${r}.` : ''}`,
   quoteRef: (days, until) => `${days ? `Angebot ${days} Tage gültig. ` : until ? `Angebot gültig bis ${until}. ` : ''}Auftragsbestätigung: Datum, Unterschrift, Stempel.`,

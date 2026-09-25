@@ -30,7 +30,8 @@ export interface DocumentLabels {
     readonly poweredBy: string;
     readonly page: string;
     readonly of: string;
-    readonly watermark: Partial<Record<DocumentStatus, string>>;
+    /** Filigrane selon le type de document (accord en genre) et son état ; aucun pour « pending ». */
+    readonly watermark: (kind: DocumentKind, status: DocumentStatus) => string | undefined;
     readonly status: Record<DocumentStatus, string>;
     readonly amount: Record<DocumentKind, string>;
     readonly creditRef: (invoice: string, date?: string, reason?: string) => string;

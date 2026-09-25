@@ -92,6 +92,16 @@ export interface BuildDocumentViewOptions {
   readonly settings?: DocumentTemplateSettings;
 }
 
+/**
+ * Corps du filigrane : 110 px (maquette) pour les mots courts, réduit pour que les
+ * mots longs (« REMBOURSÉE », « ÜBERFÄLLIG ») tiennent dans la diagonale de la page.
+ * Même valeur pour le HTML et le PDF : les deux rendus restent identiques.
+ */
+export function watermarkFontSize(text: string): number {
+  const len = Math.max(1, [...text].length);
+  return Math.max(56, Math.min(110, Math.floor(700 / (len * 0.66))));
+}
+
 export function buildDocumentView(data: DocumentData, options: BuildDocumentViewOptions = {}): DocumentView {
   const settings = options.settings ?? DEFAULT_DOCUMENT_SETTINGS;
   const language = settings.language;
@@ -188,6 +198,7 @@ export function buildDocumentView(data: DocumentData, options: BuildDocumentView
     : undefined;
 
   const status = data.status;
+  const watermark = settings.statusWatermark && status ? L.watermark(kind, status) : undefined;
   const primary = settings.colors.primary;
   const accent = settings.colors.accent;
 
@@ -227,7 +238,8 @@ export function buildDocumentView(data: DocumentData, options: BuildDocumentView
     notes: data.notes?.trim() || undefined,
     badge: isFacturXDocument(kind) ? 'Factur-X · EN 16931' : undefined,
     poweredBy: settings.showPoweredBy,
-    watermark: settings.statusWatermark && status ? L.watermark[status] : undefined,
+    watermark,
+    watermarkSize: watermark ? watermarkFontSize(watermark) : undefined,
     statusLabel: status ? L.status[status] : undefined,
     totalsRaw: { ...totals, amountDue },
   };
