@@ -38,9 +38,9 @@
     "node": ">=18.0.0"
   },
   "dependencies": {
-    "@xmldom/xmldom": "^0.8.10",
+    "@xmldom/xmldom": "^0.8.15",
     "big.js": "^6.2.1",
-    "fast-xml-parser": "^4.3.2",
+    "fast-xml-parser": "^5.7.0",
     "xmlbuilder2": "^4.0.3"
   },
   "devDependencies": {
@@ -60,5 +60,10 @@
     "compliance",
     "README.md",
     "LICENSE"
-  ]
+  ],
+  "overrides": {
+    "brace-expansion@1": "^1.1.21",
+    "js-yaml@3": "^3.15.2",
+    "minimatch@9": "^9.0.7"
+  }
 }

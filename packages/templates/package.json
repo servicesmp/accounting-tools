@@ -58,5 +58,10 @@
     "dist",
     "README.md",
     "LICENSE"
-  ]
+  ],
+  "overrides": {
+    "brace-expansion@1": "^1.1.21",
+    "js-yaml@3": "^3.15.2",
+    "minimatch@9": "^9.0.7"
+  }
 }

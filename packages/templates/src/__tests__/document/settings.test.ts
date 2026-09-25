@@ -1,16 +1,25 @@
 import {
   normalizeDocumentSettings, presetSettings, DEFAULT_DOCUMENT_SETTINGS, DOCUMENT_PRESETS,
-  FULL_DOCUMENT_ENTITLEMENTS, NO_DOCUMENT_ENTITLEMENTS, isModifiedFromPreset, PRIMARY_MIN_CONTRAST,
+  FULL_DOCUMENT_ENTITLEMENTS, NO_DOCUMENT_ENTITLEMENTS, BASIC_DOCUMENT_SETTINGS, isModifiedFromPreset, PRIMARY_MIN_CONTRAST,
 } from '../../document/settings';
 import { contrastRatio } from '../../document/color';
 
 const STARTER = { canCustomize: true, canRemovePoweredBy: false };
 
 describe('normalizeDocumentSettings', () => {
-  it('sans droit : modèle par défaut et mention « Émis avec Services » imposés', () => {
-    const { settings, warnings } = normalizeDocumentSettings({ preset: 'brand', showPoweredBy: false }, NO_DOCUMENT_ENTITLEMENTS);
-    expect(settings).toEqual(DEFAULT_DOCUMENT_SETTINGS);
+  it('sans droit : modèle par défaut SANS logo et mention « Émis avec Services » imposés', () => {
+    const { settings, warnings } = normalizeDocumentSettings({ preset: 'brand', logo: 'left', showPoweredBy: false }, NO_DOCUMENT_ENTITLEMENTS);
+    expect(settings).toEqual(BASIC_DOCUMENT_SETTINGS);
+    expect(settings.logo).toBe('none');
+    expect(settings.preset).toBe('modern');
+    expect(settings.showPoweredBy).toBe(true);
     expect(warnings[0]).toMatch(/pas incluse dans votre plan/);
+  });
+
+  it('avec droit, le modèle par défaut garde le logo (le modèle sans logo est réservé aux plans sans personnalisation)', () => {
+    expect(DEFAULT_DOCUMENT_SETTINGS.logo).toBe('left');
+    expect(normalizeDocumentSettings(undefined, FULL_DOCUMENT_ENTITLEMENTS).settings).toEqual(DEFAULT_DOCUMENT_SETTINGS);
+    expect(BASIC_DOCUMENT_SETTINGS).toEqual({ ...DEFAULT_DOCUMENT_SETTINGS, logo: 'none' });
   });
 
   it('sans droit mais sans demande : aucune alerte', () => {

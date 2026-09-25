@@ -170,7 +170,8 @@ function buildDocumentView(data, options = {}) {
         const d = partyView({ name: data.delivery.name ?? '', address: data.delivery.address }, L.vat, L);
         tail.push(L.mentions.deliveryAddress([data.delivery.name, d.oneLine].filter(Boolean).join(', ')));
     }
-    const legal = [head.join(' · '), tail.join(' ')].filter(Boolean).join(' ');
+    // Mention libre de l'organisation (réglage « footerNote ») en fin de pied légal.
+    const legal = [head.join(' · '), tail.join(' '), settings.footerNote?.trim()].filter(Boolean).join(' ');
     const payment = kind !== 'order' && settings.showPaymentBlock && data.payment && (data.payment.iban || data.payment.bic || data.payment.link)
         ? { iban: data.payment.iban, bic: data.payment.bic, terms: data.payment.terms, qrData: data.payment.link || undefined }
         : undefined;

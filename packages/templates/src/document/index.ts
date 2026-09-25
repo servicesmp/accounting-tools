@@ -12,8 +12,11 @@
 export * from './types';
 export * from './settings';
 export * from './view';
+export * from './records';
 export * from './format';
 export * from './country';
 export { DOCUMENT_LABELS, DOCUMENT_LOCALES, getDocumentLabels } from './i18n';
 export type { DocumentLabels } from './i18n';
+export { renderDocumentHtml, escapeHtml, safeImageUrl } from './html';
+export type { RenderDocumentHtmlOptions } from './html';
 export { normalizeHex, contrastRatio, ensureContrastOnWhite, tint, shade, relativeLuminance, mix, blend } from './color';

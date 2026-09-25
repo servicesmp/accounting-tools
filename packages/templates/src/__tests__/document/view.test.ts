@@ -60,6 +60,14 @@ describe('vue', () => {
     expect(v.amountLabel).toBe('Montant du devis');
   });
 
+  it('devis sans date de validité : jamais « undefined » dans le bandeau', () => {
+    for (const language of ['fr', 'en', 'de'] as const) {
+      const v = buildDocumentView(sampleData('quote', { validUntil: undefined }), { settings: settings({ language }) });
+      expect(v.refLine).not.toMatch(/undefined/);
+    }
+    expect(buildDocumentView(sampleData('quote', { validUntil: undefined }), { settings: settings() }).refLine).toBe('Bon pour accord : date, signature et cachet du client.');
+  });
+
   it('bon de commande : jamais de bloc de paiement, livraison prévue, référence acheteur', () => {
     const v = buildDocumentView(sampleData('order', { deliveryDate: '2026-12-12', buyerReference: 'PO-4471' }), { settings: settings({ showPaymentBlock: true }) });
     expect(v.title).toBe('BON DE COMMANDE');
@@ -106,6 +114,12 @@ describe('vue', () => {
     const audit = v.rows.find((r) => r.cells.description === 'Audit RAG')!;
     expect(audit.cells.discount).toBe('—');
     expect(audit.details).toBe('Analyse de la chaîne de récupération');
+  });
+
+  it('mention libre de l’organisation imprimée en fin de pied légal', () => {
+    const v = buildDocumentView(sampleData('invoice'), { settings: settings({ footerNote: 'Merci pour votre confiance.' }) });
+    expect(v.legal.endsWith('Merci pour votre confiance.')).toBe(true);
+    expect(buildDocumentView(sampleData('invoice'), { settings: settings() }).legal).not.toMatch(/\s$/);
   });
 
   it('ventilation de TVA masquable', () => {

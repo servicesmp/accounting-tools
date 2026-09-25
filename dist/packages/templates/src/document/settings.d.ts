@@ -29,6 +29,11 @@ export declare const DEFAULT_COLUMNS: readonly ColumnKey[];
 /** Réglage d'une organisation sans personnalisation (et de tout plan qui ne l'autorise pas). */
 export declare function presetSettings(id?: PresetId, language?: DocumentLanguage): DocumentTemplateSettings;
 export declare const DEFAULT_DOCUMENT_SETTINGS: DocumentTemplateSettings;
+/**
+ * Modèle imposé aux plans sans personnalisation (Standard) : Modern, sans logo,
+ * mention « Émis avec Services ». Seule la langue reste au choix.
+ */
+export declare const BASIC_DOCUMENT_SETTINGS: DocumentTemplateSettings;
 /** Aucun droit : modèle par défaut, mention « Émis avec Services » imposée. */
 export declare const NO_DOCUMENT_ENTITLEMENTS: DocumentEntitlements;
 export declare const FULL_DOCUMENT_ENTITLEMENTS: DocumentEntitlements;

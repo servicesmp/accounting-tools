@@ -1,6 +1,6 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.FULL_DOCUMENT_ENTITLEMENTS = exports.NO_DOCUMENT_ENTITLEMENTS = exports.DEFAULT_DOCUMENT_SETTINGS = exports.DEFAULT_COLUMNS = exports.DOCUMENT_PRESETS = exports.ACCENT_MIN_CONTRAST = exports.PRIMARY_MIN_CONTRAST = exports.FOOTER_NOTE_MAX_LENGTH = exports.DOCUMENT_SETTINGS_VERSION = void 0;
+exports.FULL_DOCUMENT_ENTITLEMENTS = exports.NO_DOCUMENT_ENTITLEMENTS = exports.BASIC_DOCUMENT_SETTINGS = exports.DEFAULT_DOCUMENT_SETTINGS = exports.DEFAULT_COLUMNS = exports.DOCUMENT_PRESETS = exports.ACCENT_MIN_CONTRAST = exports.PRIMARY_MIN_CONTRAST = exports.FOOTER_NOTE_MAX_LENGTH = exports.DOCUMENT_SETTINGS_VERSION = void 0;
 exports.getDocumentPreset = getDocumentPreset;
 exports.presetSettings = presetSettings;
 exports.normalizeDocumentSettings = normalizeDocumentSettings;
@@ -78,6 +78,11 @@ function presetSettings(id = 'modern', language = 'fr') {
     };
 }
 exports.DEFAULT_DOCUMENT_SETTINGS = Object.freeze(presetSettings());
+/**
+ * Modèle imposé aux plans sans personnalisation (Standard) : Modern, sans logo,
+ * mention « Émis avec Services ». Seule la langue reste au choix.
+ */
+exports.BASIC_DOCUMENT_SETTINGS = Object.freeze({ ...presetSettings(), logo: 'none' });
 /** Aucun droit : modèle par défaut, mention « Émis avec Services » imposée. */
 exports.NO_DOCUMENT_ENTITLEMENTS = Object.freeze({ canCustomize: false, canRemovePoweredBy: false });
 exports.FULL_DOCUMENT_ENTITLEMENTS = Object.freeze({ canCustomize: true, canRemovePoweredBy: true });
@@ -105,7 +110,8 @@ function normalizeDocumentSettings(input, entitlements = exports.NO_DOCUMENT_ENT
     const raw = input && typeof input === 'object' ? input : {};
     const language = pick(raw.language, types_1.DOCUMENT_LANGUAGES, 'fr');
     if (!entitlements.canCustomize) {
-        const base = presetSettings('modern', language);
+        // Modèle par défaut SANS logo : le logo fait partie de la personnalisation (Starter+).
+        const base = { ...exports.BASIC_DOCUMENT_SETTINGS, columns: [...exports.BASIC_DOCUMENT_SETTINGS.columns], colors: { ...exports.BASIC_DOCUMENT_SETTINGS.colors }, layout: { ...exports.BASIC_DOCUMENT_SETTINGS.layout }, language };
         const customized = input !== undefined && input !== null && Object.keys(raw).some((k) => !['version', 'language'].includes(k));
         if (customized)
             warnings.push('La personnalisation des documents n’est pas incluse dans votre plan : modèle par défaut appliqué.');

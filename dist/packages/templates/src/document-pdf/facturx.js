@@ -20,7 +20,8 @@ exports.FR_MANDATORY_NOTES = [
     { subjectCode: 'PMT', content: 'Indemnité forfaitaire pour frais de recouvrement en cas de retard de paiement : 40 € (art. D.441-5 C.com).' },
     { subjectCode: 'AAB', content: "Pas d'escompte accordé pour paiement anticipé." },
 ];
-exports.FR_FRANCHISE_MENTION = 'TVA non applicable, art. 293 B du CGI';
+const records_1 = require("../document/records");
+Object.defineProperty(exports, "FR_FRANCHISE_MENTION", { enumerable: true, get: function () { return records_1.FR_FRANCHISE_MENTION; } });
 function siren(p) {
     const digits = (p.siren || p.siret || '').replace(/\D/g, '');
     return digits.length >= 9 ? digits.slice(0, 9) : undefined;
@@ -121,7 +122,7 @@ function buildFacturXInvoice(data, options = {}) {
         // Prix net unitaire (BT-146) : remise incluse, pour que qté × prix = total HT.
         const net = toMajor(ht) / qty;
         const exempt = rate === 0;
-        invoice.addLine(new core_1.InvoiceLineImpl(String(i + 1), [line.description, line.details].filter(Boolean).join(' — ').slice(0, 500) || `Article ${i + 1}`, qty, Math.round(net * 1e6) / 1e6, rate / 100, exempt ? 'E' : 'S', 'C62', undefined, undefined, undefined, line.ref, undefined, exempt ? (data.vatExemptionReason || exports.FR_FRANCHISE_MENTION) : undefined, exempt ? 'VATEX-FR-FRANCHISE' : undefined));
+        invoice.addLine(new core_1.InvoiceLineImpl(String(i + 1), [line.description, line.details].filter(Boolean).join(' — ').slice(0, 500) || `Article ${i + 1}`, qty, Math.round(net * 1e6) / 1e6, rate / 100, exempt ? 'E' : 'S', 'C62', undefined, undefined, undefined, line.ref, undefined, exempt ? (data.vatExemptionReason || records_1.FR_FRANCHISE_MENTION) : undefined, exempt ? 'VATEX-FR-FRANCHISE' : undefined));
     });
     const s = invoice.finalizeTotals();
     const totals = {

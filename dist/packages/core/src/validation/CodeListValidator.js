@@ -751,14 +751,6 @@ class CodeListValidator {
                 trimValues: true,
                 processEntities: false,
                 allowBooleanAttributes: true,
-                isArray: (_tagName, _jPath, isLeafNode, isAttribute) => {
-                    // Force arrays for elements that can repeat
-                    if (isAttribute)
-                        return false;
-                    if (!isLeafNode)
-                        return false;
-                    return false;
-                },
             });
             parsed = parser.parse(xmlContent);
         }

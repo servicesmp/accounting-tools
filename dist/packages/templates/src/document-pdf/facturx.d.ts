@@ -13,7 +13,8 @@ export declare const FR_MANDATORY_NOTES: ReadonlyArray<{
     subjectCode: string;
     content: string;
 }>;
-export declare const FR_FRANCHISE_MENTION = "TVA non applicable, art. 293 B du CGI";
+import { FR_FRANCHISE_MENTION } from '../document/records';
+export { FR_FRANCHISE_MENTION };
 export interface FacturXBuildResult {
     readonly invoice: FacturXInvoice;
     /** Totaux du XML, en unités mineures : à réutiliser tels quels pour l'affichage. */

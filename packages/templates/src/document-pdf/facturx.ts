@@ -23,7 +23,9 @@ export const FR_MANDATORY_NOTES: ReadonlyArray<{ subjectCode: string; content: s
   { subjectCode: 'AAB', content: "Pas d'escompte accordé pour paiement anticipé." },
 ];
 
-export const FR_FRANCHISE_MENTION = 'TVA non applicable, art. 293 B du CGI';
+import { FR_FRANCHISE_MENTION } from '../document/records';
+
+export { FR_FRANCHISE_MENTION };
 
 export interface FacturXBuildResult {
   readonly invoice: FacturXInvoice;

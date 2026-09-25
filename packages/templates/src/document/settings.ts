@@ -94,6 +94,12 @@ export function presetSettings(id: PresetId = 'modern', language: DocumentLangua
 
 export const DEFAULT_DOCUMENT_SETTINGS: DocumentTemplateSettings = Object.freeze(presetSettings());
 
+/**
+ * Modèle imposé aux plans sans personnalisation (Standard) : Modern, sans logo,
+ * mention « Émis avec Services ». Seule la langue reste au choix.
+ */
+export const BASIC_DOCUMENT_SETTINGS: DocumentTemplateSettings = Object.freeze({ ...presetSettings(), logo: 'none' as const });
+
 /** Aucun droit : modèle par défaut, mention « Émis avec Services » imposée. */
 export const NO_DOCUMENT_ENTITLEMENTS: DocumentEntitlements = Object.freeze({ canCustomize: false, canRemovePoweredBy: false });
 export const FULL_DOCUMENT_ENTITLEMENTS: DocumentEntitlements = Object.freeze({ canCustomize: true, canRemovePoweredBy: true });
@@ -133,7 +139,8 @@ export function normalizeDocumentSettings(
   const language = pick<DocumentLanguage>(raw.language, DOCUMENT_LANGUAGES, 'fr');
 
   if (!entitlements.canCustomize) {
-    const base = presetSettings('modern', language);
+    // Modèle par défaut SANS logo : le logo fait partie de la personnalisation (Starter+).
+    const base: DocumentTemplateSettings = { ...BASIC_DOCUMENT_SETTINGS, columns: [...BASIC_DOCUMENT_SETTINGS.columns], colors: { ...BASIC_DOCUMENT_SETTINGS.colors }, layout: { ...BASIC_DOCUMENT_SETTINGS.layout }, language };
     const customized = input !== undefined && input !== null && Object.keys(raw).some((k) => !['version', 'language'].includes(k));
     if (customized) warnings.push('La personnalisation des documents n’est pas incluse dans votre plan : modèle par défaut appliqué.');
     return { settings: base, warnings };

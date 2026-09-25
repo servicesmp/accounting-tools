@@ -15,7 +15,7 @@ const fr = {
     status: { draft: 'Brouillon', pending: 'En attente', paid: 'Payée', accepted: 'Accepté', rejected: 'Refusé', cancelled: 'Annulé' },
     amount: { invoice: 'Montant à payer', credit: 'Montant crédité', quote: 'Montant du devis', order: 'Montant de la commande' },
     creditRef: (n, d, r) => `Avoir sur la facture ${n}${d ? ` du ${d}` : ''}.${r ? ` Motif : ${r}.` : ''}`,
-    quoteRef: (days, until) => `Devis valable ${days ? `${days} jours` : `jusqu'au ${until}`}. Bon pour accord : date, signature et cachet du client.`,
+    quoteRef: (days, until) => `${days ? `Devis valable ${days} jours. ` : until ? `Devis valable jusqu'au ${until}. ` : ''}Bon pour accord : date, signature et cachet du client.`,
     orderRef: (n, ref) => `Commande n° ${n}${ref ? ` · référence acheteur ${ref}` : ''}.`,
     capital: (name, cap) => `${name} au capital de ${cap}`,
     mentions: {
@@ -43,7 +43,7 @@ const en = {
     status: { draft: 'Draft', pending: 'Pending', paid: 'Paid', accepted: 'Accepted', rejected: 'Rejected', cancelled: 'Cancelled' },
     amount: { invoice: 'Amount due', credit: 'Amount credited', quote: 'Quote amount', order: 'Order amount' },
     creditRef: (n, d, r) => `Credit note for invoice ${n}${d ? ` dated ${d}` : ''}.${r ? ` Reason: ${r}.` : ''}`,
-    quoteRef: (days, until) => `Quote valid ${days ? `for ${days} days` : `until ${until}`}. Approval: date, signature and stamp.`,
+    quoteRef: (days, until) => `${days ? `Quote valid for ${days} days. ` : until ? `Quote valid until ${until}. ` : ''}Approval: date, signature and stamp.`,
     orderRef: (n, ref) => `Order no. ${n}${ref ? ` · buyer reference ${ref}` : ''}.`,
     capital: (name, cap) => `${name}, share capital ${cap}`,
     mentions: {
@@ -71,7 +71,7 @@ const de = {
     status: { draft: 'Entwurf', pending: 'Offen', paid: 'Bezahlt', accepted: 'Angenommen', rejected: 'Abgelehnt', cancelled: 'Storniert' },
     amount: { invoice: 'Zu zahlender Betrag', credit: 'Gutgeschriebener Betrag', quote: 'Angebotsbetrag', order: 'Bestellbetrag' },
     creditRef: (n, d, r) => `Gutschrift zur Rechnung ${n}${d ? ` vom ${d}` : ''}.${r ? ` Grund: ${r}.` : ''}`,
-    quoteRef: (days, until) => `Angebot ${days ? `${days} Tage gültig` : `gültig bis ${until}`}. Auftragsbestätigung: Datum, Unterschrift, Stempel.`,
+    quoteRef: (days, until) => `${days ? `Angebot ${days} Tage gültig. ` : until ? `Angebot gültig bis ${until}. ` : ''}Auftragsbestätigung: Datum, Unterschrift, Stempel.`,
     orderRef: (n, ref) => `Bestellung Nr. ${n}${ref ? ` · Käuferreferenz ${ref}` : ''}.`,
     capital: (name, cap) => `${name}, Stammkapital ${cap}`,
     mentions: {
