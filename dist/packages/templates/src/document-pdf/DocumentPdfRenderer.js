@@ -455,8 +455,8 @@ class DocumentPdfRenderer {
             this.pattern();
         if (logo) {
             const ly = above ? top : top + (leftH - 50) / 2;
-            this.rect(SIDE, ly, 50, 50, { fill: white, r: 12 });
-            this.logoIn(SIDE + 5, ly + 5, 40, 40);
+            // Logo sans cadre (comme l'aperçu HTML).
+            this.logoIn(SIDE, ly, 50, 50);
         }
         this.text(v.seller.name, tx, ty, nameS);
         this.text([v.seller.oneLineNoCountry, v.seller.id].filter(Boolean).join(' · '), tx, ty + normalLH(19) + 4, subS);
@@ -490,8 +490,7 @@ class DocumentPdfRenderer {
         let y = 52;
         // Bloc 1 : logo, raison sociale, coordonnées
         if (this.hasLogo) {
-            this.rect(x, y, 52, 52, { fill: white, r: 12 });
-            this.logoIn(x + 5, y + 5, 42, 42);
+            this.logoIn(x, y, 52, 52);
             y += 52 + 12;
         }
         this.text(v.seller.name, x, y, { size: 16, bold: true, color: white });
@@ -581,8 +580,7 @@ class DocumentPdfRenderer {
         const cx = (this.L + this.R) / 2;
         let y = 48;
         if (this.hasLogo) {
-            this.rect(cx - 30, y, 60, 60, { fill: this.primary, r: 30 });
-            this.logoIn(cx - 21, y + 9, 42, 42);
+            this.logoIn(cx - 30, y, 60, 60);
             y += 60 + 10;
         }
         this.text(v.seller.name, cx, y, { size: 17, bold: true, color: C.ink }, 'center');

@@ -14,7 +14,7 @@
  */
 export type DocumentKind = 'invoice' | 'credit' | 'quote' | 'order';
 export declare const DOCUMENT_KINDS: readonly DocumentKind[];
-export type DocumentLanguage = 'fr' | 'en' | 'de';
+export type DocumentLanguage = 'fr' | 'en' | 'es' | 'de';
 export declare const DOCUMENT_LANGUAGES: readonly DocumentLanguage[];
 /**
  * État métier du document, qui pilote le filigrane et le libellé d'état.

@@ -96,12 +96,17 @@ export function renderDocumentHtml(view: DocumentView, options: RenderDocumentHt
   const img = (url: string, w: number, h: number, style = '') =>
     `<img src="${e(url)}" alt="" style="width:${w}px;height:${h}px;object-fit:contain;display:block;${style}">`;
 
+  // Cadre blanc du QR : marge intérieure en plus de l'image (content-box explicite).
+  // Avec box-sizing:border-box hérité de la page (Tailwind), l'ancien cadre à
+  // bordure rognait l'image : QR coupé en bas et à droite, donc illisible.
+  const qrFrame = (size: number, pad: number, line: string | null) =>
+    `display:block;flex:none;box-sizing:content-box;width:${size}px;height:${size}px;padding:${pad}px;background:#fff;line-height:0;overflow:hidden${line ? `;border:1px solid ${line}` : ''}`;
+
   // ── En-têtes ──────────────────────────────────────────────────────────────
-  const logoBox = (size: number, inner: number, bg: string | null, radius: string) => {
-    if (!logoUrl) return '';
-    if (!bg) return img(logoUrl, size, size, 'flex:none');
-    return `<span style="width:${size}px;height:${size}px;border-radius:${radius};background:${bg};display:flex;align-items:center;justify-content:center;flex:none">${img(logoUrl, inner, inner)}</span>`;
-  };
+  // Logo affiché tel quel (proportions conservées), sans pastille ni cadre de couleur :
+  // l'ancien rond / carré arrondi recadrait les logos et ajoutait une forme étrangère.
+  const logoBox = (size: number, _inner?: number, _bg?: string | null, _radius?: string) =>
+    logoUrl ? img(logoUrl, size, size, 'flex:none') : '';
   const logoWrap = `display:flex;gap:14px;align-items:${above ? 'flex-start' : 'center'};flex-direction:${above ? 'column' : 'row'}`;
 
   const headerStandard = () => {
@@ -236,7 +241,7 @@ ${v.rows.map(row).join('\n')}
     }
     if (pay) {
       const lines = [...(pay.iban ? [`${L.iban} ${pay.iban}`] : []), ...(pay.bic ? [`${L.bic} ${pay.bic}`] : [])];
-      left.push(`<div style="display:flex;gap:14px;align-items:flex-start">${qrUrl ? `<span style="width:62px;height:62px;flex:none;border:4px solid #fff;outline:1px solid ${C.line};display:block">${img(qrUrl, 62, 62)}</span>` : ''}<div style="display:flex;flex-direction:column;gap:3px;color:${C.slate600}"><span style="${lab(labelC)}">${e(L.paymentTerms)}</span>${lines.map((l) => `<span>${e(l)}</span>`).join('')}${qrUrl ? `<span style="font-weight:700;color:${primary}">${e(L.scanToPay)}</span>` : ''}</div></div>`);
+      left.push(`<div style="display:flex;gap:14px;align-items:flex-start">${qrUrl ? `<span style="${qrFrame(62, 4, C.line)}">${img(qrUrl, 62, 62)}</span>` : ''}<div style="display:flex;flex-direction:column;gap:3px;color:${C.slate600}"><span style="${lab(labelC)}">${e(L.paymentTerms)}</span>${lines.map((l) => `<span>${e(l)}</span>`).join('')}${qrUrl ? `<span style="font-weight:700;color:${primary}">${e(L.scanToPay)}</span>` : ''}</div></div>`);
     }
     const row = (l: string, val: string) => `<div style="display:flex;justify-content:space-between;gap:12px"><span style="color:${C.slate500}">${e(l)}</span><span>${e(val)}</span></div>`;
     return `<div style="margin-top:22px;display:grid;grid-template-columns:minmax(0,1fr) ${sb ? 270 : 250}px;gap:${sb ? 16 : 26}px;align-items:start">
@@ -296,7 +301,7 @@ ${col(v.taxes.length ? L.taxBreakdown : '', c1)}${col(v.payment ? L.paymentTerms
       `<div style="display:flex;flex-direction:column;gap:3px"><span style="color:${faint};text-transform:uppercase;letter-spacing:.1em;font-size:8px">${e(label)}</span><span style="font-weight:700;font-size:12px;${acc ? `color:${accent}` : ''}">${e(val)}</span></div>`;
     const addr = [...v.seller.street, v.seller.cityLine, ...(v.seller.vat ? [v.seller.vat] : []), ...(v.seller.id ? [v.seller.id] : [])];
     const pay = v.payment
-      ? `<div style="display:flex;flex-direction:column;gap:8px;padding-top:22px;border-top:1px solid ${blend(white, primary, 0.2)};font-size:9.5px;line-height:1.55"><span style="color:${faint};text-transform:uppercase;letter-spacing:.1em;font-size:8px">${e(L.paymentTerms)}</span>${v.payment.iban ? `<span>${e(`${L.iban} ${v.payment.iban}`)}</span>` : ''}${v.payment.bic ? `<span>${e(`${L.bic} ${v.payment.bic}`)}</span>` : ''}${qrUrl ? `<span style="width:74px;height:74px;margin-top:6px;border:5px solid #fff;background:#fff;display:block">${img(qrUrl, 74, 74)}</span><span style="font-weight:700">${e(L.scanToPay)}</span>` : ''}</div>`
+      ? `<div style="display:flex;flex-direction:column;gap:8px;padding-top:22px;border-top:1px solid ${blend(white, primary, 0.2)};font-size:9.5px;line-height:1.55"><span style="color:${faint};text-transform:uppercase;letter-spacing:.1em;font-size:8px">${e(L.paymentTerms)}</span>${v.payment.iban ? `<span>${e(`${L.iban} ${v.payment.iban}`)}</span>` : ''}${v.payment.bic ? `<span>${e(`${L.bic} ${v.payment.bic}`)}</span>` : ''}${qrUrl ? `<span style="${qrFrame(74, 5, null)};margin-top:6px">${img(qrUrl, 74, 74)}</span><span style="font-weight:700">${e(L.scanToPay)}</span>` : ''}</div>`
       : '';
     return `<div style="position:absolute;left:0;top:0;bottom:0;width:${SIDEBAR_W}px;background:${primary};color:#fff;padding:52px 28px 34px;box-sizing:border-box;display:flex;flex-direction:column;gap:30px">
 <div style="display:flex;flex-direction:column;gap:12px">${logoBox(52, 42, white, '12px')}<span style="${F(700, 16)}">${e(v.seller.name)}</span><span style="${F(400, 10, '/1.6')};color:${blend(white, primary, 0.8)}">${addr.map(e).join('<br>')}</span></div>

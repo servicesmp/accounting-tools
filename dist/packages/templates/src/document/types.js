@@ -10,7 +10,7 @@
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.REQUIRED_COLUMNS = exports.COLUMN_KEYS = exports.LOGO_LAYOUTS = exports.TOTALS_LAYOUTS = exports.TABLE_LAYOUTS = exports.PARTIES_LAYOUTS = exports.FRAME_LAYOUTS = exports.DOCUMENT_LANGUAGES = exports.DOCUMENT_KINDS = void 0;
 exports.DOCUMENT_KINDS = ['invoice', 'credit', 'quote', 'order'];
-exports.DOCUMENT_LANGUAGES = ['fr', 'en', 'de'];
+exports.DOCUMENT_LANGUAGES = ['fr', 'en', 'es', 'de'];
 exports.FRAME_LAYOUTS = ['standard', 'band', 'sidebar', 'hero', 'centered'];
 exports.PARTIES_LAYOUTS = ['plain', 'framed', 'card'];
 exports.TABLE_LAYOUTS = ['lines', 'zebra', 'filled'];

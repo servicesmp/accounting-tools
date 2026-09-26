@@ -106,8 +106,50 @@ const de = {
     },
     continuation: 'Fortsetzung',
 };
-exports.DOCUMENT_LABELS = { fr, en, de };
-exports.DOCUMENT_LOCALES = { fr: 'fr-FR', en: 'en-GB', de: 'de-DE' };
+const es = {
+    titles: { invoice: 'FACTURA', credit: 'FACTURA RECTIFICATIVA', quote: 'PRESUPUESTO', order: 'PEDIDO' },
+    number: 'N.º', issue: 'Fecha de emisión', due: 'Vencimiento', valid: 'Válido hasta', delivery: 'Entrega prevista',
+    seller: 'Vendedor', buyer: 'Cliente', vat: 'NIF-IVA', siret: 'SIRET', siren: 'SIREN',
+    columns: { ref: 'Ref.', description: 'Descripción', quantity: 'Cant.', unit: 'Unidad', unitPrice: 'Precio unit.', discount: 'Dto.', vatRate: 'IVA', lineTotal: 'Importe' },
+    subtotal: 'Base imponible', taxTotal: 'Total IVA', grandTotal: 'Total',
+    taxBreakdown: 'Desglose del IVA', taxBase: 'Base', taxAmount: 'IVA',
+    paymentTerms: 'Pago', iban: 'IBAN', bic: 'BIC', scanToPay: 'Escanee para pagar',
+    poweredBy: 'Documento emitido con', page: 'Página', of: 'de',
+    watermark: (kind, status) => {
+        // Factura y factura rectificativa: femenino; presupuesto y pedido: masculino.
+        const f = kind === 'invoice' || kind === 'credit';
+        const w = {
+            draft: 'BORRADOR',
+            paid: f ? 'PAGADA' : 'PAGADO',
+            cancelled: f ? 'ANULADA' : 'ANULADO',
+            refunded: f ? 'REEMBOLSADA' : 'REEMBOLSADO',
+            overdue: 'VENCIDA',
+            accepted: 'ACEPTADO',
+            rejected: 'RECHAZADO',
+            expired: 'CADUCADO',
+        };
+        return w[status];
+    },
+    status: { draft: 'Borrador', pending: 'Pendiente', paid: 'Pagada', accepted: 'Aceptado', rejected: 'Rechazado', cancelled: 'Anulado', expired: 'Caducado', overdue: 'Vencida', refunded: 'Reembolsada' },
+    amount: { invoice: 'Importe a pagar', credit: 'Importe abonado', quote: 'Importe del presupuesto', order: 'Importe del pedido' },
+    creditRef: (n, d, r) => `Rectifica la factura ${n}${d ? ` del ${d}` : ''}.${r ? ` Motivo: ${r}.` : ''}`,
+    quoteRef: (days, until) => `${days ? `Presupuesto válido ${days} días. ` : until ? `Presupuesto válido hasta el ${until}. ` : ''}Conforme: fecha, firma y sello del cliente.`,
+    orderRef: (n, ref) => `Pedido n.º ${n}${ref ? ` · referencia del comprador ${ref}` : ''}.`,
+    capital: (name, cap) => `${name}, capital social ${cap}`,
+    mentions: {
+        latePenalties: 'Intereses de demora: 3 veces el tipo de interés legal',
+        recoveryIndemnity: 'Indemnización fija por costes de cobro: 40 €.',
+        noDiscount: 'Sin descuento por pronto pago.',
+        nature: (l) => `Naturaleza de la operación: ${l}.`,
+        natureLabels: { goods: 'entrega de bienes', services: 'prestación de servicios', mixed: 'operación mixta' },
+        vatOnDebits: 'IVA exigible según los débitos.',
+        deliveryAddress: (a) => `Dirección de entrega: ${a}.`,
+        orderNoPayment: 'Este pedido no es una factura.',
+    },
+    continuation: 'Continuación',
+};
+exports.DOCUMENT_LABELS = { fr, en, es, de };
+exports.DOCUMENT_LOCALES = { fr: 'fr-FR', en: 'en-GB', es: 'es-ES', de: 'de-DE' };
 function getDocumentLabels(language) {
     return exports.DOCUMENT_LABELS[language] ?? fr;
 }

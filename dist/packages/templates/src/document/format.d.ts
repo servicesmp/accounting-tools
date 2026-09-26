@@ -7,7 +7,7 @@
  */
 /** Nombre de décimales d'une devise (JPY, XOF, XAF : 0 ; EUR, USD : 2…). */
 export declare function currencyDecimals(currency: string): number;
-/** Montant avec devise : « 6 336,00 € », « 12 000 FCFA », « $1,250.00 ». */
+/** Montant avec devise, symbole après : « 6 336,00 € », « 12 000 FCFA », « 1,250.00 $ ». */
 export declare function formatMoney(minor: number, currency: string, locale: string): string;
 /** Montant sans devise (cellules du tableau) : « 3 200,00 ». */
 export declare function formatAmount(minor: number, currency: string, locale: string): string;

@@ -22,12 +22,17 @@ function major(minor: number, currency: string): { value: number; decimals: numb
   return { value: (Number(minor) || 0) / Math.pow(10, decimals), decimals };
 }
 
-/** Montant avec devise : « 6 336,00 € », « 12 000 FCFA », « $1,250.00 ». */
+/** Montant avec devise, symbole après : « 6 336,00 € », « 12 000 FCFA », « 1,250.00 $ ». */
 export function formatMoney(minor: number, currency: string, locale: string): string {
   const code = (currency || 'EUR').toUpperCase();
   const { value, decimals } = major(minor, code);
   try {
-    return nbsp(new Intl.NumberFormat(locale, { style: 'currency', currency: code, minimumFractionDigits: decimals, maximumFractionDigits: decimals }).format(value));
+    // Symbole TOUJOURS après le montant (« 6 480,00 € », « 6,480.00 € ») : convention
+    // des documents comptables de la plateforme, quelle que soit la langue.
+    const parts = new Intl.NumberFormat(locale, { style: 'currency', currency: code, minimumFractionDigits: decimals, maximumFractionDigits: decimals }).formatToParts(value);
+    const symbol = parts.find((p) => p.type === 'currency')?.value ?? code;
+    const amount = parts.filter((p) => p.type !== 'currency').map((p) => p.value).join('').trim();
+    return nbsp(`${amount} ${symbol}`);
   } catch {
     return `${value.toFixed(decimals)} ${code}`;
   }

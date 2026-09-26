@@ -1,5 +1,5 @@
 /**
- * Libellés des documents commerciaux (fr, en, de) — repris mot pour mot de la
+ * Libellés des documents commerciaux (fr, en, es, de) — repris mot pour mot de la
  * maquette « Document Page » (Claude Design). Seule source des textes imprimés :
  * le PDF et le rendu web utilisent exactement les mêmes.
  */

@@ -159,3 +159,21 @@ describe('filigranes', () => {
     expect(withWm.pdf.length).toBeGreaterThan(without.pdf.length);
   });
 });
+
+describe('espagnol', () => {
+  it('langue disponible, libellés et filigranes accordés', () => {
+    const v = buildDocumentView(sampleData('invoice', { status: 'paid' }), { settings: settings({ language: 'es' }) });
+    expect(v.title).toBe('FACTURA');
+    expect(v.watermark).toBe('PAGADA');
+    expect(buildDocumentView(sampleData('quote', { status: 'expired' }), { settings: settings({ language: 'es' }) }).watermark).toBe('CADUCADO');
+    expect(buildDocumentView(sampleData('quote'), { settings: settings({ language: 'es' }) }).title).toBe('PRESUPUESTO');
+  });
+  it('un réglage « es » n’est plus ramené au français', () => {
+    expect(normalizeDocumentSettings({ language: 'es' }, FULL_DOCUMENT_ENTITLEMENTS).settings.language).toBe('es');
+  });
+  it('le PDF espagnol se génère (dates et montants au format es-ES)', async () => {
+    const out = await generateDocumentPdf({ data: sampleData('invoice'), settings: { language: 'es' }, entitlements: FULL_DOCUMENT_ENTITLEMENTS });
+    expect(out.view.title).toBe('FACTURA');
+    expect(out.pdf.length).toBeGreaterThan(1000);
+  });
+});
