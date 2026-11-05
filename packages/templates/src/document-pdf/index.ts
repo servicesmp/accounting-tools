@@ -51,3 +51,34 @@ export async function generateDocumentPdf(input: GenerateDocumentPdfInput): Prom
   const { pdf, pageCount } = await renderDocumentPdf(view, { logo: input.logo, facturXml: xml });
   return { pdf, pageCount, view, xml, warnings: allWarnings };
 }
+
+// ─── Rapports par blocs ──────────────────────────────────────────────────────
+import { buildReportView } from '../document/report-view';
+import type { ReportDocumentData, ReportView } from '../document/report-types';
+import { renderReportPdf } from './ReportPdfRenderer';
+export { renderReportPdf, ReportPdfRenderer } from './ReportPdfRenderer';
+export type { RenderReportPdfOptions, RenderedReportPdf } from './ReportPdfRenderer';
+
+export interface GenerateReportPdfInput {
+  readonly data: ReportDocumentData;
+  /** Réglage enregistré de l'organisation (non fiable : normalisé ici), le même que pour les factures. */
+  readonly settings?: unknown;
+  readonly entitlements?: DocumentEntitlements;
+  readonly logo?: Uint8Array | null;
+  readonly generatedAt?: Date;
+}
+
+export interface GeneratedReportPdf {
+  readonly pdf: Uint8Array;
+  readonly pageCount: number;
+  readonly view: ReportView;
+  readonly warnings: string[];
+}
+
+/** Point d'entrée des rapports : rapport de tâche, compte rendu de réunion, rapport d'activité… */
+export async function generateReportPdf(input: GenerateReportPdfInput): Promise<GeneratedReportPdf> {
+  const { settings, warnings } = normalizeDocumentSettings(input.settings, input.entitlements ?? NO_DOCUMENT_ENTITLEMENTS);
+  const view = buildReportView(input.data, { settings });
+  const { pdf, pageCount } = await renderReportPdf(view, { logo: input.logo, generatedAt: input.generatedAt });
+  return { pdf, pageCount, view, warnings: [...warnings] };
+}

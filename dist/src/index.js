@@ -26,7 +26,7 @@ var __exportStar = (this && this.__exportStar) || function(m, exports) {
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.validateBusinessRules = exports.getDefaultBusinessRuleValidator = exports.BusinessRuleValidator = exports.RealXsdValidator = exports.validateXmlAsync = exports.validateXml = exports.getDefaultValidator = exports.XsdValidator = exports.convertCurrency = exports.parseCurrency = exports.formatAmountForXml = exports.formatCurrency = exports.getCurrencyInfo = exports.isValidCurrency = exports.CurrencyFormatter = exports.validateDate = exports.validateAmount = exports.validateCountryCode = exports.validatePhone = exports.validateEmail = exports.sanitizeString = exports.unescapeXml = exports.escapeXml = exports.formatAmount = exports.formatDateFacturX = exports.getRegionalConfigOrDefault = exports.getRegionalConfig = exports.getProfilePolicy = exports.getGuidelineUrn = exports.REGIONAL_CONFIGS = exports.PATTERNS = exports.PROFILE_POLICIES = exports.GUIDELINE_URNS = exports.XML_NAMESPACES = exports.AllowanceChargeImpl = exports.InvoiceLineImpl = exports.DocumentHeaderImpl = exports.PaymentDetailsImpl = exports.TradePartyImpl = exports.PostalAddressImpl = exports.TaxCalculator = exports.FacturXInvoiceBuilder = exports.FacturXInvoice = exports.ComplianceType = exports.CurrencyCode = exports.UnitCode = exports.PaymentMeansCode = exports.TaxCategoryCode = exports.DocTypeCode = exports.FacturxProfile = void 0;
 exports.buildFacturXInvoice = exports.DocumentPdfRenderer = exports.renderDocumentPdf = exports.generateDocumentPdf = exports.getDocumentTitle = exports.DOCUMENT_TITLES = exports.generatePDFFileID = exports.generatePDFA3XMP = exports.loadSRGBProfile = exports.addAFRelationshipToFile = exports.applyPDFA3Compliance = exports.setupPDFA3Compliance = exports.validateQuick = exports.validateAfterGeneration = exports.validateBeforeGeneration = exports.getDefaultPipeline = exports.ValidationPipeline = exports.generatePDF = exports.generateMinimalPDF = exports.generateCorporatePDF = exports.generateBrandPDF = exports.generateFancyPDF = exports.generateModernPDF = exports.MinimalTemplate = exports.CorporateTemplate = exports.BrandTemplate = exports.FancyTemplate = exports.ModernTemplate = exports.TemplateRenderer = exports.LOCALIZED_STRINGS = exports.FANCY_THEME = exports.BRAND_THEME = exports.DEFAULT_THEME = exports.TemplateType = exports.buildBusinessProcessType = exports.FR_BUSINESS_PROCESS_PATTERN = exports.OperationNature = exports.VatDueDateTypeCode = exports.getAvailableLocaleCodes = exports.getLocaleByCode = exports.DEFAULT_LOCALES = exports.translate = exports.createI18n = exports.t = exports.getDefaultI18n = exports.I18n = exports.validateInvoiceCodes = exports.isValidCode = exports.getDefaultCodeListValidator = exports.CodeListValidator = void 0;
-exports.LIBRARY_INFO = exports.EN16931_VERSION = exports.FACTURX_VERSION = exports.VERSION = exports.FR_FRANCHISE_MENTION = exports.FR_MANDATORY_NOTES = void 0;
+exports.LIBRARY_INFO = exports.EN16931_VERSION = exports.FACTURX_VERSION = exports.VERSION = exports.ReportPdfRenderer = exports.renderReportPdf = exports.generateReportPdf = exports.FR_FRANCHISE_MENTION = exports.FR_MANDATORY_NOTES = void 0;
 // ============================================================================
 // CORE — all types, entities, validators, XML generation
 // ============================================================================
@@ -145,10 +145,14 @@ Object.defineProperty(exports, "DocumentPdfRenderer", { enumerable: true, get: f
 Object.defineProperty(exports, "buildFacturXInvoice", { enumerable: true, get: function () { return document_pdf_1.buildFacturXInvoice; } });
 Object.defineProperty(exports, "FR_MANDATORY_NOTES", { enumerable: true, get: function () { return document_pdf_1.FR_MANDATORY_NOTES; } });
 Object.defineProperty(exports, "FR_FRANCHISE_MENTION", { enumerable: true, get: function () { return document_pdf_1.FR_FRANCHISE_MENTION; } });
+// Rapports par blocs (rapport de tâche, compte rendu de réunion, rapport d'activité…)
+Object.defineProperty(exports, "generateReportPdf", { enumerable: true, get: function () { return document_pdf_1.generateReportPdf; } });
+Object.defineProperty(exports, "renderReportPdf", { enumerable: true, get: function () { return document_pdf_1.renderReportPdf; } });
+Object.defineProperty(exports, "ReportPdfRenderer", { enumerable: true, get: function () { return document_pdf_1.ReportPdfRenderer; } });
 // ============================================================================
 // VERSION
 // ============================================================================
-exports.VERSION = '1.2.0';
+exports.VERSION = '1.3.0';
 exports.FACTURX_VERSION = '1.07.2';
 exports.EN16931_VERSION = '2017';
 exports.LIBRARY_INFO = Object.freeze({

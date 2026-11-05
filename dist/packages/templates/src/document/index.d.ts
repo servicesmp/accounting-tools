@@ -20,4 +20,9 @@ export type { DocumentLabels } from './i18n';
 export { renderDocumentHtml, escapeHtml, safeImageUrl } from './html';
 export type { RenderDocumentHtmlOptions } from './html';
 export { normalizeHex, contrastRatio, ensureContrastOnWhite, tint, shade, relativeLuminance, mix, blend } from './color';
+export * from './report-types';
+export { buildReportView, normalizeReportBlock, reportLine, reportText, REPORT_MAX_BLOCKS, REPORT_MAX_ITEMS, REPORT_MAX_META, REPORT_MAX_TILES, REPORT_TITLE_MAX, REPORT_LINE_MAX, REPORT_TEXT_MAX } from './report-view';
+export type { BuildReportViewOptions } from './report-view';
+export { renderReportHtml, reportInitials, reportAvatarColor, REPORT_PAGE_W, REPORT_PAGE_H, REPORT_TONE_COLORS, REPORT_TONE_SOLID } from './report-html';
+export type { RenderReportHtmlOptions } from './report-html';
 //# sourceMappingURL=index.d.ts.map

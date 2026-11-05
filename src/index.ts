@@ -69,9 +69,12 @@ export * from '@facturx/templates/document';
 export {
   generateDocumentPdf, renderDocumentPdf, DocumentPdfRenderer, buildFacturXInvoice,
   FR_MANDATORY_NOTES, FR_FRANCHISE_MENTION,
+  // Rapports par blocs (rapport de tâche, compte rendu de réunion, rapport d'activité…)
+  generateReportPdf, renderReportPdf, ReportPdfRenderer,
 } from '@facturx/templates/document-pdf';
 export type {
   GenerateDocumentPdfInput, GeneratedDocumentPdf, RenderDocumentPdfOptions, RenderedDocumentPdf, FacturXBuildResult,
+  GenerateReportPdfInput, GeneratedReportPdf, RenderReportPdfOptions, RenderedReportPdf,
 } from '@facturx/templates/document-pdf';
 
 // Type-only exports from templates
@@ -84,7 +87,7 @@ export type {
 // ============================================================================
 // VERSION
 // ============================================================================
-export const VERSION = '1.2.0';
+export const VERSION = '1.3.0';
 export const FACTURX_VERSION = '1.07.2';
 export const EN16931_VERSION = '2017';
 

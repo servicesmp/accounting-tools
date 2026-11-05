@@ -29,4 +29,23 @@ export interface GeneratedDocumentPdf {
  * totaux sont ceux affichés (aucun écart possible entre PDF et XML).
  */
 export declare function generateDocumentPdf(input: GenerateDocumentPdfInput): Promise<GeneratedDocumentPdf>;
+import type { ReportDocumentData, ReportView } from '../document/report-types';
+export { renderReportPdf, ReportPdfRenderer } from './ReportPdfRenderer';
+export type { RenderReportPdfOptions, RenderedReportPdf } from './ReportPdfRenderer';
+export interface GenerateReportPdfInput {
+    readonly data: ReportDocumentData;
+    /** Réglage enregistré de l'organisation (non fiable : normalisé ici), le même que pour les factures. */
+    readonly settings?: unknown;
+    readonly entitlements?: DocumentEntitlements;
+    readonly logo?: Uint8Array | null;
+    readonly generatedAt?: Date;
+}
+export interface GeneratedReportPdf {
+    readonly pdf: Uint8Array;
+    readonly pageCount: number;
+    readonly view: ReportView;
+    readonly warnings: string[];
+}
+/** Point d'entrée des rapports : rapport de tâche, compte rendu de réunion, rapport d'activité… */
+export declare function generateReportPdf(input: GenerateReportPdfInput): Promise<GeneratedReportPdf>;
 //# sourceMappingURL=index.d.ts.map

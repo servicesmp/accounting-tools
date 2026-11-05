@@ -14,7 +14,7 @@ var __exportStar = (this && this.__exportStar) || function(m, exports) {
     for (var p in m) if (p !== "default" && !Object.prototype.hasOwnProperty.call(exports, p)) __createBinding(exports, m, p);
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.blend = exports.mix = exports.relativeLuminance = exports.shade = exports.tint = exports.ensureContrastOnWhite = exports.contrastRatio = exports.normalizeHex = exports.safeImageUrl = exports.escapeHtml = exports.renderDocumentHtml = exports.getDocumentLabels = exports.DOCUMENT_LOCALES = exports.DOCUMENT_LABELS = void 0;
+exports.REPORT_TONE_SOLID = exports.REPORT_TONE_COLORS = exports.REPORT_PAGE_H = exports.REPORT_PAGE_W = exports.reportAvatarColor = exports.reportInitials = exports.renderReportHtml = exports.REPORT_TEXT_MAX = exports.REPORT_LINE_MAX = exports.REPORT_TITLE_MAX = exports.REPORT_MAX_TILES = exports.REPORT_MAX_META = exports.REPORT_MAX_ITEMS = exports.REPORT_MAX_BLOCKS = exports.reportText = exports.reportLine = exports.normalizeReportBlock = exports.buildReportView = exports.blend = exports.mix = exports.relativeLuminance = exports.shade = exports.tint = exports.ensureContrastOnWhite = exports.contrastRatio = exports.normalizeHex = exports.safeImageUrl = exports.escapeHtml = exports.renderDocumentHtml = exports.getDocumentLabels = exports.DOCUMENT_LOCALES = exports.DOCUMENT_LABELS = void 0;
 /**
  * accounting-tools/document — module NAVIGATEUR-COMPATIBLE.
  *
@@ -49,4 +49,26 @@ Object.defineProperty(exports, "shade", { enumerable: true, get: function () { r
 Object.defineProperty(exports, "relativeLuminance", { enumerable: true, get: function () { return color_1.relativeLuminance; } });
 Object.defineProperty(exports, "mix", { enumerable: true, get: function () { return color_1.mix; } });
 Object.defineProperty(exports, "blend", { enumerable: true, get: function () { return color_1.blend; } });
+// Rapports par blocs (rapport de tâche, compte rendu de réunion, rapport d'activité…)
+__exportStar(require("./report-types"), exports);
+var report_view_1 = require("./report-view");
+Object.defineProperty(exports, "buildReportView", { enumerable: true, get: function () { return report_view_1.buildReportView; } });
+Object.defineProperty(exports, "normalizeReportBlock", { enumerable: true, get: function () { return report_view_1.normalizeReportBlock; } });
+Object.defineProperty(exports, "reportLine", { enumerable: true, get: function () { return report_view_1.reportLine; } });
+Object.defineProperty(exports, "reportText", { enumerable: true, get: function () { return report_view_1.reportText; } });
+Object.defineProperty(exports, "REPORT_MAX_BLOCKS", { enumerable: true, get: function () { return report_view_1.REPORT_MAX_BLOCKS; } });
+Object.defineProperty(exports, "REPORT_MAX_ITEMS", { enumerable: true, get: function () { return report_view_1.REPORT_MAX_ITEMS; } });
+Object.defineProperty(exports, "REPORT_MAX_META", { enumerable: true, get: function () { return report_view_1.REPORT_MAX_META; } });
+Object.defineProperty(exports, "REPORT_MAX_TILES", { enumerable: true, get: function () { return report_view_1.REPORT_MAX_TILES; } });
+Object.defineProperty(exports, "REPORT_TITLE_MAX", { enumerable: true, get: function () { return report_view_1.REPORT_TITLE_MAX; } });
+Object.defineProperty(exports, "REPORT_LINE_MAX", { enumerable: true, get: function () { return report_view_1.REPORT_LINE_MAX; } });
+Object.defineProperty(exports, "REPORT_TEXT_MAX", { enumerable: true, get: function () { return report_view_1.REPORT_TEXT_MAX; } });
+var report_html_1 = require("./report-html");
+Object.defineProperty(exports, "renderReportHtml", { enumerable: true, get: function () { return report_html_1.renderReportHtml; } });
+Object.defineProperty(exports, "reportInitials", { enumerable: true, get: function () { return report_html_1.reportInitials; } });
+Object.defineProperty(exports, "reportAvatarColor", { enumerable: true, get: function () { return report_html_1.reportAvatarColor; } });
+Object.defineProperty(exports, "REPORT_PAGE_W", { enumerable: true, get: function () { return report_html_1.REPORT_PAGE_W; } });
+Object.defineProperty(exports, "REPORT_PAGE_H", { enumerable: true, get: function () { return report_html_1.REPORT_PAGE_H; } });
+Object.defineProperty(exports, "REPORT_TONE_COLORS", { enumerable: true, get: function () { return report_html_1.REPORT_TONE_COLORS; } });
+Object.defineProperty(exports, "REPORT_TONE_SOLID", { enumerable: true, get: function () { return report_html_1.REPORT_TONE_SOLID; } });
 //# sourceMappingURL=index.js.map

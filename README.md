@@ -203,6 +203,40 @@ const postCheck = await validateAfterGeneration(pdfBytes, xmlString);
 
 Voir `packages/templates/examples/` pour des exemples de chaque template.
 
+**Rapports par blocs (`accounting-tools/document` + `generateReportPdf`) :**
+
+Rapport de tâche, compte rendu de réunion, rapport d'activité d'une équipe… tout document de
+restitution d'une organisation, rendu avec le MÊME réglage de présentation que ses factures
+(couleurs, logo selon le plan, mention « Document émis avec Services ») : à l'écran avec
+`renderReportHtml` (fragment HTML autonome, navigateur-compatible) et en PDF paginé avec
+`generateReportPdf` (Node). La librairie ne calcule rien : l'appelant fournit des blocs typés déjà
+calculés (`paragraph`, `callout`, `list`, `rows`, `stats`, `bars`, `distribution`, `people`,
+`actions`, `agenda`, `columns`), bornés et nettoyés par `buildReportView`.
+
+```typescript
+import { buildReportView, renderReportHtml, type ReportDocumentData } from 'accounting-tools/document';
+import { generateReportPdf } from 'accounting-tools';
+
+const data: ReportDocumentData = {
+  kind: 'meeting_minutes', typeLabel: 'Rapport Services · Compte rendu',
+  title: 'Point client', subtitle: 'Vendredi 16 octobre 2026', issuer: { name: 'Atelier Roux' },
+  meta: [{ label: 'Lieu', value: 'Visio' }],
+  blocks: [
+    { type: 'paragraph', title: 'Synthèse', badge: "Fils d'Iro", text: '…' },
+    { type: 'callout', title: 'Décisions', style: 'dark', items: [{ text: 'Restitution le 28/10' }] },
+    { type: 'actions', title: 'Actions à réaliser', items: [{ title: 'Envoyer la liste', owner: 'Camille Roux', due: '21/10', status: 'À créer', statusTone: 'info' }] },
+  ],
+  footer: { sources: 'Généré par le fils d’Iro à partir de : notes de la réunion.' },
+  status: 'draft', // filigrane BROUILLON si le réglage l'active
+};
+const html = renderReportHtml(buildReportView(data, { settings }), { logoUrl });
+const { pdf, pageCount } = await generateReportPdf({ data, settings, entitlements, logo });
+```
+
+Pagination du PDF : chaque ligne, action ou élément d'agenda est insécable ; un encart passe entier
+à la page suivante s'il y tient, sinon il est découpé ; un bloc à deux colonnes trop haut est empilé.
+Titres en Chillax (embarquée entière), corps en Liberation Sans.
+
 ---
 
 ### `@facturx/cli` (`packages/cli`)
