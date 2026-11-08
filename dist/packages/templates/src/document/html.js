@@ -222,16 +222,17 @@ ${col(v.taxes.length ? L.taxBreakdown : '', c1)}${col(v.payment ? L.paymentTerms
         ? `<div style="margin-top:22px;font-size:10px;color:${C.slate600};white-space:pre-line">${e(v.notes)}</div>`
         : '');
     // ── Pied ──────────────────────────────────────────────────────────────────
+    // Mentions et pagination en #64748b (4,8:1 sur blanc) : #94a3b8 (2,6:1) était sous le seuil de lecture.
     const powered = (extra) => (v.poweredBy
-        ? `<span style="display:flex;align-items:center;gap:6px;padding-right:10px;border-right:1px solid ${C.line};${extra}"><span style="${F(400, 8)};color:${C.slate400};white-space:nowrap">${e(L.poweredBy)}</span>${servicesLogo ? `<img src="${e(servicesLogo)}" alt="Services" style="height:11px;display:block">` : `<b style="font-size:9px;color:${C.ink}">Services</b>`}</span>`
+        ? `<span style="display:flex;align-items:center;gap:6px;padding-right:10px;border-right:1px solid ${C.line};${extra}"><span style="${F(400, 8)};color:${C.slate500};white-space:nowrap">${e(L.poweredBy)}</span>${servicesLogo ? `<img src="${e(servicesLogo)}" alt="Services" style="height:11px;display:block">` : `<b style="font-size:9px;color:${C.ink}">Services</b>`}</span>`
         : '');
     const badge = () => (v.badge
         ? `<span style="padding:3px 7px;border:1px solid ${C.slate300};border-radius:4px;${F(700, 8)};color:${C.slate600};white-space:nowrap">${e(v.badge)}</span>`
         : '');
     const page = `<span style="white-space:nowrap">${e(`${L.page} 1 ${L.of} 1`)}</span>`;
     const footer = () => (sb
-        ? `<div style="position:absolute;left:0;right:56px;bottom:34px;display:flex;justify-content:flex-end;align-items:center;gap:10px;font-size:8.5px;color:${C.slate400}">${powered('margin-right:auto')}${badge()}${page}</div>`
-        : `<div style="position:absolute;left:0;right:56px;bottom:34px;padding-top:12px;border-top:1px solid ${C.line};display:flex;justify-content:space-between;align-items:flex-end;gap:20px;font-size:8.5px;color:${C.slate400}">
+        ? `<div style="position:absolute;left:0;right:56px;bottom:34px;display:flex;justify-content:flex-end;align-items:center;gap:10px;font-size:8.5px;color:${C.slate500}">${powered('margin-right:auto')}${badge()}${page}</div>`
+        : `<div style="position:absolute;left:0;right:56px;bottom:34px;padding-top:12px;border-top:1px solid ${C.line};display:flex;justify-content:space-between;align-items:flex-end;gap:20px;font-size:8.5px;color:${C.slate500}">
 <span style="max-width:500px;line-height:1.5">${e(v.legal)}</span>
 <div style="display:flex;align-items:center;gap:10px;flex:none">${powered('')}${badge()}${page}</div>
 </div>`);

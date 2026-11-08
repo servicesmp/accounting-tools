@@ -14,7 +14,7 @@ var __exportStar = (this && this.__exportStar) || function(m, exports) {
     for (var p in m) if (p !== "default" && !Object.prototype.hasOwnProperty.call(exports, p)) __createBinding(exports, m, p);
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.REPORT_TONE_SOLID = exports.REPORT_TONE_COLORS = exports.REPORT_PAGE_H = exports.REPORT_PAGE_W = exports.reportAvatarColor = exports.reportInitials = exports.renderReportHtml = exports.REPORT_TEXT_MAX = exports.REPORT_LINE_MAX = exports.REPORT_TITLE_MAX = exports.REPORT_MAX_TILES = exports.REPORT_MAX_META = exports.REPORT_MAX_ITEMS = exports.REPORT_MAX_BLOCKS = exports.reportText = exports.reportLine = exports.normalizeReportBlock = exports.buildReportView = exports.blend = exports.mix = exports.relativeLuminance = exports.shade = exports.tint = exports.ensureContrastOnWhite = exports.contrastRatio = exports.normalizeHex = exports.safeImageUrl = exports.escapeHtml = exports.renderDocumentHtml = exports.getDocumentLabels = exports.DOCUMENT_LOCALES = exports.DOCUMENT_LABELS = void 0;
+exports.TIMESHEET_TONES = exports.TIMESHEET_COLORS = exports.TIMESHEET_FOOT_RESERVE = exports.TIMESHEET_SIDE = exports.TIMESHEET_PAGE_H = exports.TIMESHEET_PAGE_W = exports.renderTimesheetHtml = exports.TIMESHEET_MAX_LINES = exports.TIMESHEET_LABELS = exports.timesheetDuration = exports.buildTimesheetView = exports.REPORT_TONE_SOLID = exports.REPORT_TONE_COLORS = exports.REPORT_PAGE_H = exports.REPORT_PAGE_W = exports.reportAvatarColor = exports.reportInitials = exports.renderReportHtml = exports.REPORT_TEXT_MAX = exports.REPORT_LINE_MAX = exports.REPORT_TITLE_MAX = exports.REPORT_MAX_TILES = exports.REPORT_MAX_META = exports.REPORT_MAX_ITEMS = exports.REPORT_MAX_BLOCKS = exports.reportText = exports.reportLine = exports.normalizeReportBlock = exports.buildReportView = exports.blend = exports.mix = exports.relativeLuminance = exports.shade = exports.tint = exports.ensureContrastOnWhite = exports.contrastRatio = exports.normalizeHex = exports.safeImageUrl = exports.escapeHtml = exports.renderDocumentHtml = exports.getDocumentLabels = exports.DOCUMENT_LOCALES = exports.DOCUMENT_LABELS = void 0;
 /**
  * accounting-tools/document — module NAVIGATEUR-COMPATIBLE.
  *
@@ -71,4 +71,19 @@ Object.defineProperty(exports, "REPORT_PAGE_W", { enumerable: true, get: functio
 Object.defineProperty(exports, "REPORT_PAGE_H", { enumerable: true, get: function () { return report_html_1.REPORT_PAGE_H; } });
 Object.defineProperty(exports, "REPORT_TONE_COLORS", { enumerable: true, get: function () { return report_html_1.REPORT_TONE_COLORS; } });
 Object.defineProperty(exports, "REPORT_TONE_SOLID", { enumerable: true, get: function () { return report_html_1.REPORT_TONE_SOLID; } });
+// Relevé de temps (versions simple et détaillée), même feuille que les devis et factures
+__exportStar(require("./timesheet-types"), exports);
+var timesheet_view_1 = require("./timesheet-view");
+Object.defineProperty(exports, "buildTimesheetView", { enumerable: true, get: function () { return timesheet_view_1.buildTimesheetView; } });
+Object.defineProperty(exports, "timesheetDuration", { enumerable: true, get: function () { return timesheet_view_1.timesheetDuration; } });
+Object.defineProperty(exports, "TIMESHEET_LABELS", { enumerable: true, get: function () { return timesheet_view_1.TIMESHEET_LABELS; } });
+Object.defineProperty(exports, "TIMESHEET_MAX_LINES", { enumerable: true, get: function () { return timesheet_view_1.TIMESHEET_MAX_LINES; } });
+var timesheet_html_1 = require("./timesheet-html");
+Object.defineProperty(exports, "renderTimesheetHtml", { enumerable: true, get: function () { return timesheet_html_1.renderTimesheetHtml; } });
+Object.defineProperty(exports, "TIMESHEET_PAGE_W", { enumerable: true, get: function () { return timesheet_html_1.TIMESHEET_PAGE_W; } });
+Object.defineProperty(exports, "TIMESHEET_PAGE_H", { enumerable: true, get: function () { return timesheet_html_1.TIMESHEET_PAGE_H; } });
+Object.defineProperty(exports, "TIMESHEET_SIDE", { enumerable: true, get: function () { return timesheet_html_1.TIMESHEET_SIDE; } });
+Object.defineProperty(exports, "TIMESHEET_FOOT_RESERVE", { enumerable: true, get: function () { return timesheet_html_1.TIMESHEET_FOOT_RESERVE; } });
+Object.defineProperty(exports, "TIMESHEET_COLORS", { enumerable: true, get: function () { return timesheet_html_1.TIMESHEET_COLORS; } });
+Object.defineProperty(exports, "TIMESHEET_TONES", { enumerable: true, get: function () { return timesheet_html_1.TIMESHEET_TONES; } });
 //# sourceMappingURL=index.js.map

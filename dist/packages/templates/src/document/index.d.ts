@@ -25,4 +25,9 @@ export { buildReportView, normalizeReportBlock, reportLine, reportText, REPORT_M
 export type { BuildReportViewOptions } from './report-view';
 export { renderReportHtml, reportInitials, reportAvatarColor, REPORT_PAGE_W, REPORT_PAGE_H, REPORT_TONE_COLORS, REPORT_TONE_SOLID } from './report-html';
 export type { RenderReportHtmlOptions } from './report-html';
+export * from './timesheet-types';
+export { buildTimesheetView, timesheetDuration, TIMESHEET_LABELS, TIMESHEET_MAX_LINES } from './timesheet-view';
+export type { BuildTimesheetViewOptions } from './timesheet-view';
+export { renderTimesheetHtml, TIMESHEET_PAGE_W, TIMESHEET_PAGE_H, TIMESHEET_SIDE, TIMESHEET_FOOT_RESERVE, TIMESHEET_COLORS, TIMESHEET_TONES } from './timesheet-html';
+export type { RenderTimesheetHtmlOptions } from './timesheet-html';
 //# sourceMappingURL=index.d.ts.map

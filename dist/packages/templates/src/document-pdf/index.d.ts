@@ -48,4 +48,27 @@ export interface GeneratedReportPdf {
 }
 /** Point d'entrée des rapports : rapport de tâche, compte rendu de réunion, rapport d'activité… */
 export declare function generateReportPdf(input: GenerateReportPdfInput): Promise<GeneratedReportPdf>;
+import type { TimesheetDocumentData, TimesheetVariant, TimesheetView } from '../document/timesheet-types';
+export { renderTimesheetPdf, TimesheetPdfRenderer } from './TimesheetPdfRenderer';
+export type { RenderTimesheetPdfOptions, RenderedTimesheetPdf } from './TimesheetPdfRenderer';
+export interface GenerateTimesheetPdfInput {
+    readonly data: TimesheetDocumentData;
+    readonly variant?: TimesheetVariant;
+    /** Réglage enregistré de l'organisation (non fiable : normalisé ici), le même que pour les factures. */
+    readonly settings?: unknown;
+    /** Droits du plan : sans `canCustomize`, ni logo ni personnalisation. */
+    readonly entitlements?: DocumentEntitlements;
+    readonly logo?: Uint8Array | null;
+    readonly generatedAt?: Date;
+    /** Fuseau des horodatages (défaut Europe/Paris). */
+    readonly timeZone?: string;
+}
+export interface GeneratedTimesheetPdf {
+    readonly pdf: Uint8Array;
+    readonly pageCount: number;
+    readonly view: TimesheetView;
+    readonly warnings: string[];
+}
+/** Point d'entrée du relevé de temps (versions simple et détaillée). */
+export declare function generateTimesheetPdf(input: GenerateTimesheetPdfInput): Promise<GeneratedTimesheetPdf>;
 //# sourceMappingURL=index.d.ts.map

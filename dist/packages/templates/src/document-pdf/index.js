@@ -1,8 +1,9 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.ReportPdfRenderer = exports.renderReportPdf = exports.FR_FRANCHISE_MENTION = exports.FR_MANDATORY_NOTES = exports.buildFacturXInvoice = exports.renderDocumentPdf = exports.DocumentPdfRenderer = void 0;
+exports.TimesheetPdfRenderer = exports.renderTimesheetPdf = exports.ReportPdfRenderer = exports.renderReportPdf = exports.FR_FRANCHISE_MENTION = exports.FR_MANDATORY_NOTES = exports.buildFacturXInvoice = exports.renderDocumentPdf = exports.DocumentPdfRenderer = void 0;
 exports.generateDocumentPdf = generateDocumentPdf;
 exports.generateReportPdf = generateReportPdf;
+exports.generateTimesheetPdf = generateTimesheetPdf;
 const settings_1 = require("../document/settings");
 const view_1 = require("../document/view");
 const DocumentPdfRenderer_1 = require("./DocumentPdfRenderer");
@@ -45,6 +46,19 @@ async function generateReportPdf(input) {
     const { settings, warnings } = (0, settings_1.normalizeDocumentSettings)(input.settings, input.entitlements ?? settings_1.NO_DOCUMENT_ENTITLEMENTS);
     const view = (0, report_view_1.buildReportView)(input.data, { settings });
     const { pdf, pageCount } = await (0, ReportPdfRenderer_1.renderReportPdf)(view, { logo: input.logo, generatedAt: input.generatedAt });
+    return { pdf, pageCount, view, warnings: [...warnings] };
+}
+// ─── Relevé de temps ─────────────────────────────────────────────────────────
+const timesheet_view_1 = require("../document/timesheet-view");
+const TimesheetPdfRenderer_1 = require("./TimesheetPdfRenderer");
+var TimesheetPdfRenderer_2 = require("./TimesheetPdfRenderer");
+Object.defineProperty(exports, "renderTimesheetPdf", { enumerable: true, get: function () { return TimesheetPdfRenderer_2.renderTimesheetPdf; } });
+Object.defineProperty(exports, "TimesheetPdfRenderer", { enumerable: true, get: function () { return TimesheetPdfRenderer_2.TimesheetPdfRenderer; } });
+/** Point d'entrée du relevé de temps (versions simple et détaillée). */
+async function generateTimesheetPdf(input) {
+    const { settings, warnings } = (0, settings_1.normalizeDocumentSettings)(input.settings, input.entitlements ?? settings_1.NO_DOCUMENT_ENTITLEMENTS);
+    const view = (0, timesheet_view_1.buildTimesheetView)(input.data, { settings, variant: input.variant, timeZone: input.timeZone });
+    const { pdf, pageCount } = await (0, TimesheetPdfRenderer_1.renderTimesheetPdf)(view, { logo: input.logo, generatedAt: input.generatedAt });
     return { pdf, pageCount, view, warnings: [...warnings] };
 }
 //# sourceMappingURL=index.js.map

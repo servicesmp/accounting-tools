@@ -77,7 +77,9 @@ describe('billingInvoiceToDocumentData (mu-billing)', () => {
   it('statut et lien de paiement : lien seulement pour une facture à payer', () => {
     expect(billingInvoiceToDocumentData(billingInvoice(), { isDraft: true, paymentLink: 'https://x' })).toMatchObject({ status: 'draft', payment: { link: undefined } });
     expect(billingInvoiceToDocumentData(billingInvoice({ paymentStatus: 'PAID' }), { paymentLink: 'https://x' })).toMatchObject({ status: 'paid', payment: { link: undefined } });
-    expect(billingInvoiceToDocumentData(billingInvoice(), { paymentLink: 'https://x' })).toMatchObject({ status: 'pending', payment: { link: 'https://x', means: 'card' } });
+    // Date de référence fixe : la facture d'exemple est due le 25/10/2026 (sans elle, le test échoue passé cette date).
+    expect(billingInvoiceToDocumentData(billingInvoice(), { paymentLink: 'https://x', asOf: new Date('2026-10-01T00:00:00Z') })).toMatchObject({ status: 'pending', payment: { link: 'https://x', means: 'card' } });
+    expect(billingInvoiceToDocumentData(billingInvoice(), { paymentLink: 'https://x', asOf: new Date('2026-11-01T00:00:00Z') })).toMatchObject({ status: 'overdue', payment: { link: 'https://x' } });
   });
 
   it('TVA à 0 % : mention de franchise en base', () => {
@@ -107,8 +109,10 @@ describe('estimateToDocumentData (mu-contract)', () => {
   });
 
   it('lignes des éléments de service, TVA du devis, parties et validité', () => {
-    const d = estimateToDocumentData(estimate(), { number: 'qte-4f8c72a9ea05' });
+    // Date de référence fixe : le devis d'exemple est valable jusqu'au 23/10/2026.
+    const d = estimateToDocumentData(estimate(), { number: 'qte-4f8c72a9ea05', asOf: new Date('2026-10-01T00:00:00Z') });
     expect(d).toMatchObject({ kind: 'quote', number: 'qte-4f8c72a9ea05', status: 'pending', currency: 'EUR' });
+    expect(estimateToDocumentData(estimate(), { asOf: new Date('2026-11-01T00:00:00Z') }).status).toBe('expired');
     expect(d.lines.map((l) => [l.description, l.quantity, l.unitPrice, l.vatRate])).toEqual([['Audit', 1, 50000, 20], ['Atelier', 2, 10000, 20]]);
     expect(d.lines[0].details).toBe('Audit complet');
     const v = buildDocumentView(d);

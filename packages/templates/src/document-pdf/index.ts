@@ -82,3 +82,38 @@ export async function generateReportPdf(input: GenerateReportPdfInput): Promise<
   const { pdf, pageCount } = await renderReportPdf(view, { logo: input.logo, generatedAt: input.generatedAt });
   return { pdf, pageCount, view, warnings: [...warnings] };
 }
+
+// ─── Relevé de temps ─────────────────────────────────────────────────────────
+import { buildTimesheetView } from '../document/timesheet-view';
+import type { TimesheetDocumentData, TimesheetVariant, TimesheetView } from '../document/timesheet-types';
+import { renderTimesheetPdf } from './TimesheetPdfRenderer';
+export { renderTimesheetPdf, TimesheetPdfRenderer } from './TimesheetPdfRenderer';
+export type { RenderTimesheetPdfOptions, RenderedTimesheetPdf } from './TimesheetPdfRenderer';
+
+export interface GenerateTimesheetPdfInput {
+  readonly data: TimesheetDocumentData;
+  readonly variant?: TimesheetVariant;
+  /** Réglage enregistré de l'organisation (non fiable : normalisé ici), le même que pour les factures. */
+  readonly settings?: unknown;
+  /** Droits du plan : sans `canCustomize`, ni logo ni personnalisation. */
+  readonly entitlements?: DocumentEntitlements;
+  readonly logo?: Uint8Array | null;
+  readonly generatedAt?: Date;
+  /** Fuseau des horodatages (défaut Europe/Paris). */
+  readonly timeZone?: string;
+}
+
+export interface GeneratedTimesheetPdf {
+  readonly pdf: Uint8Array;
+  readonly pageCount: number;
+  readonly view: TimesheetView;
+  readonly warnings: string[];
+}
+
+/** Point d'entrée du relevé de temps (versions simple et détaillée). */
+export async function generateTimesheetPdf(input: GenerateTimesheetPdfInput): Promise<GeneratedTimesheetPdf> {
+  const { settings, warnings } = normalizeDocumentSettings(input.settings, input.entitlements ?? NO_DOCUMENT_ENTITLEMENTS);
+  const view = buildTimesheetView(input.data, { settings, variant: input.variant, timeZone: input.timeZone });
+  const { pdf, pageCount } = await renderTimesheetPdf(view, { logo: input.logo, generatedAt: input.generatedAt });
+  return { pdf, pageCount, view, warnings: [...warnings] };
+}

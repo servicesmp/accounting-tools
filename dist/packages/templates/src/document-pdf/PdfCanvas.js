@@ -35,18 +35,30 @@ function assetPath(...p) {
 class PdfCanvas {
     constructor(doc) {
         this.pages = [];
+        this.chillaxBody = false;
         this.doc = doc;
     }
-    static async create() {
+    /**
+     * `body: 'chillax'` : corps en Chillax (Regular / Bold), comme la webapp — relevé de temps.
+     * Chillax n'a ni espace insécable ni flèche : `prep` les remplace (espace, tiret demi-cadratin).
+     */
+    static async create(options = {}) {
         const doc = await pdf_lib_1.PDFDocument.create();
         doc.registerFontkit(fontkit_1.default);
         const c = new PdfCanvas(doc);
         // Chillax (OpenType CFF) est embarquée entière : le sous-ensemble produit par pdf-lib sur une
         // police CFF est invalide pour certains lecteurs (poppler). Liberation Sans (TrueType) est sous-ensemblée.
-        const embed = (file, subset) => doc.embedFont(fs_1.default.readFileSync(assetPath('fonts', file)), { subset });
+        const cache = new Map();
+        const embed = (file, subset) => {
+            if (!cache.has(file))
+                cache.set(file, doc.embedFont(fs_1.default.readFileSync(assetPath('fonts', file)), { subset }));
+            return cache.get(file);
+        };
+        const chillaxBody = options.body === 'chillax';
+        c.chillaxBody = chillaxBody;
         c.fonts = {
-            body: await embed('LiberationSans-Regular.ttf', true),
-            bodyBold: await embed('LiberationSans-Bold.ttf', true),
+            body: await (chillaxBody ? embed('Chillax-Regular.otf', false) : embed('LiberationSans-Regular.ttf', true)),
+            bodyBold: await (chillaxBody ? embed('Chillax-Bold.otf', false) : embed('LiberationSans-Bold.ttf', true)),
             heading: await embed('Chillax-Semibold.otf', false),
             headingBold: await embed('Chillax-Bold.otf', false),
         };
@@ -100,7 +112,10 @@ class PdfCanvas {
         return (this.lineHeight(s) - (a + d)) / 2 + a + BASELINE_NUDGE;
     }
     prep(t, s) {
-        const txt = String(t ?? '').replace(/[\r\n\t]+/g, ' ');
+        let txt = String(t ?? '').replace(/[\r\n\t]+/g, ' ');
+        // Glyphes absents de Chillax : espaces insécables → espace, flèche → tiret.
+        if (this.chillaxBody || s.family === 'heading')
+            txt = txt.replace(/[\u00a0\u202f\u2009]/g, ' ').replace(/\u2192/g, '–');
         return s.upper ? txt.toLocaleUpperCase('fr-FR') : txt;
     }
     /** Segments sans crénage interne, placés aux positions exactes (pdf-lib n'applique pas le crénage). */

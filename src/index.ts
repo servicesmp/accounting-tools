@@ -71,10 +71,13 @@ export {
   FR_MANDATORY_NOTES, FR_FRANCHISE_MENTION,
   // Rapports par blocs (rapport de tâche, compte rendu de réunion, rapport d'activité…)
   generateReportPdf, renderReportPdf, ReportPdfRenderer,
+  // Relevé de temps (versions simple et détaillée)
+  generateTimesheetPdf, renderTimesheetPdf, TimesheetPdfRenderer,
 } from '@facturx/templates/document-pdf';
 export type {
   GenerateDocumentPdfInput, GeneratedDocumentPdf, RenderDocumentPdfOptions, RenderedDocumentPdf, FacturXBuildResult,
   GenerateReportPdfInput, GeneratedReportPdf, RenderReportPdfOptions, RenderedReportPdf,
+  GenerateTimesheetPdfInput, GeneratedTimesheetPdf, RenderTimesheetPdfOptions, RenderedTimesheetPdf,
 } from '@facturx/templates/document-pdf';
 
 // Type-only exports from templates

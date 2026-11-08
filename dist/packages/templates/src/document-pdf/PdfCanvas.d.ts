@@ -22,7 +22,14 @@ export declare class PdfCanvas {
     readonly pages: PDFPage[];
     private fonts;
     private constructor();
-    static create(): Promise<PdfCanvas>;
+    /**
+     * `body: 'chillax'` : corps en Chillax (Regular / Bold), comme la webapp — relevé de temps.
+     * Chillax n'a ni espace insécable ni flèche : `prep` les remplace (espace, tiret demi-cadratin).
+     */
+    static create(options?: {
+        body?: 'liberation' | 'chillax';
+    }): Promise<PdfCanvas>;
+    private chillaxBody;
     newPage(): PDFPage;
     embedImage(bytes: Uint8Array | null | undefined): Promise<PDFImage | undefined>;
     embedAsset(...p: string[]): Promise<PDFImage | undefined>;

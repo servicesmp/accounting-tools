@@ -1000,7 +1000,7 @@ export class DocumentPdfRenderer {
       const sb = this.frame === 'sidebar';
       const bottom = PAGE_H - FOOT_BOTTOM;
       const pageTxt = `${v.labels.page} ${i + 1} ${v.labels.of} ${total}`;
-      const small: TextStyle = { size: 8.5, color: C.slate400 };
+      const small: TextStyle = { size: 8.5, color: C.slate500 };
       // Groupe de droite (aligné en bas) : [émis avec Services] | [badge] Page x sur y
       const badgeS: TextStyle = { size: 8, bold: true, color: C.slate600 };
       const badgeH = 3 + normalLH(8) + 3 + 2;
@@ -1018,7 +1018,7 @@ export class DocumentPdfRenderer {
       }
       if (v.poweredBy) {
         const lw = this.servicesLogoWidth();
-        const tS: TextStyle = { size: 8, color: C.slate400 };
+        const tS: TextStyle = { size: 8, color: C.slate500 };
         const tw = this.width(v.labels.poweredBy, tS);
         const blockW = tw + 6 + lw + 10 + 1;
         const bx = sb ? SIDEBAR_MAIN_L : x - 10 - blockW;
@@ -1027,7 +1027,7 @@ export class DocumentPdfRenderer {
         this.vline(bx + blockW - 1, gTop + (groupH - 11) / 2, gTop + (groupH + 11) / 2, 1, C.line);
       }
       if (!sb) {
-        const lS: TextStyle = { size: 8.5, lh: 1.5, color: C.slate400 };
+        const lS: TextStyle = { size: 8.5, lh: 1.5, color: C.slate500 };
         const lw = this.legalWidth();
         const lh = this.paraHeight(v.legal, lw, lS);
         const h = Math.max(lh, groupH);
