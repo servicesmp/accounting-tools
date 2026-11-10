@@ -9,12 +9,12 @@
 import {
   FacturXInvoice, FacturxProfile, DocTypeCode, PaymentMeansCode, PostalAddressImpl,
   TradePartyImpl, DocumentHeaderImpl, PaymentDetailsImpl, InvoiceLineImpl, VatDueDateTypeCode,
-  OperationNature, buildBusinessProcessType,
+  OperationNature, buildBusinessProcessType, AllowanceChargeImpl,
 } from '@facturx/core';
 import type { DocumentData, DocumentParty, DocumentAddress, DocumentTotals } from '../document/types';
 import { toIsoCountryCode } from '../document/country';
 import { currencyDecimals, toDate } from '../document/format';
-import { computeLineTotal } from '../document/view';
+import { computeLineTotal, sellerLegalInformation } from '../document/view';
 
 /** Notes obligatoires françaises portées dans le XML (BR-FR-05). */
 export const FR_MANDATORY_NOTES: ReadonlyArray<{ subjectCode: string; content: string }> = [
@@ -72,6 +72,7 @@ function means(data: DocumentData): PaymentMeansCode {
     case 'cash': return PaymentMeansCode.CASH;
     case 'cheque': return PaymentMeansCode.CHEQUE;
     case 'card': return PaymentMeansCode.BANK_CARD;
+    case 'clearing': return PaymentMeansCode.CLEARING_BETWEEN_PARTNERS;
     default: return data.payment?.iban ? PaymentMeansCode.SEPA_CREDIT_TRANSFER : PaymentMeansCode.BANK_CARD;
   }
 }
@@ -107,6 +108,8 @@ export function buildFacturXInvoice(
     undefined,
     data.seller.email,
     data.seller.email ? 'EM' : undefined,
+    // BT-33 : forme juridique, capital, immatriculation (profils EN16931 / EXTENDED).
+    sellerLegalInformation(data.seller),
   );
   const buyerSiren = siren(data.buyer);
   const buyerParty = new TradePartyImpl(
@@ -150,6 +153,10 @@ export function buildFacturXInvoice(
   }
   const deliveryDate = toDate(data.deliveryDate);
   if (deliveryDate) hb.deliveryDate(deliveryDate);
+  const periodStart = toDate(data.billingPeriod?.start);
+  const periodEnd = toDate(data.billingPeriod?.end);
+  if (periodStart && periodEnd && periodEnd >= periodStart) hb.billingPeriod(periodStart, periodEnd);
+  else if (data.billingPeriod) warnings.push('Période facturée incomplète ou inversée : non portée dans le XML (BG-14).');
   if (data.precedingInvoice?.number) {
     hb.precedingInvoice(data.precedingInvoice.number, toDate(data.precedingInvoice.issueDate) ?? undefined);
   }
@@ -188,11 +195,23 @@ export function buildFacturXInvoice(
     ));
   });
 
+  // BG-20 : remises au niveau du document, au taux de TVA des lignes qu'elles réduisent (BR-S-08).
+  for (const a of data.allowances ?? []) {
+    const amount = Math.round(Number(a.amount) || 0);
+    if (amount <= 0) continue;
+    const rate = Number(a.vatRate) || 0;
+    invoice.addDocAllowanceCharge(new AllowanceChargeImpl(false, toMajor(amount), a.reason.slice(0, 200), '95', rate / 100, rate === 0 ? 'E' : 'S'));
+  }
+  // BT-113 : facture réglée à l'émission → reste à payer (BT-115) diminué d'autant.
+  if (data.paidAmount && data.paidAmount > 0) invoice.setPrepaidAmount(toMajor(data.paidAmount));
+
   const s = invoice.finalizeTotals();
   const totals: DocumentTotals = {
     subtotal: toMinor(s.lineTotal),
     taxTotal: toMinor(s.taxTotal),
     total: toMinor(s.grandTotal),
+    ...(s.allowanceTotal ? { allowanceTotal: toMinor(s.allowanceTotal) } : {}),
+    ...(s.paidAmount ? { paidAmount: toMinor(s.paidAmount) } : {}),
     taxBreakdown: s.taxSummaries.map((t: any) => ({
       rate: Math.round(Number(t.rate) * 100) / 100, // TaxCalculator renvoie déjà un pourcentage
       base: toMinor(t.taxable),

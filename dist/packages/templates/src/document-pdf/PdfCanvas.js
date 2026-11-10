@@ -62,6 +62,13 @@ class PdfCanvas {
             heading: await embed('Chillax-Semibold.otf', false),
             headingBold: await embed('Chillax-Bold.otf', false),
         };
+        if (options.weights) {
+            c.weights = {
+                500: await embed('Chillax-Medium.otf', false),
+                600: await embed('Chillax-Semibold.otf', false),
+                700: await embed('Chillax-Bold.otf', false),
+            };
+        }
         return c;
     }
     newPage() {
@@ -89,6 +96,8 @@ class PdfCanvas {
     }
     // ─── Polices et métriques ──────────────────────────────────────────────────
     font(s) {
+        if (s.weight && this.weights)
+            return this.weights[s.weight];
         const heading = s.family === 'heading';
         return heading ? (s.bold ? this.fonts.headingBold : this.fonts.heading) : (s.bold ? this.fonts.bodyBold : this.fonts.body);
     }
@@ -105,6 +114,10 @@ class PdfCanvas {
         const m = this.metrics(s);
         return Math.round(m.asc * s.size) + Math.round(m.desc * s.size) + Math.round(m.gap * s.size);
     }
+    /** Distance (px) entre le haut de la boîte de ligne et la ligne de base : alignement sur la base. */
+    baseline(s) {
+        return this.baselineOffset(s);
+    }
     baselineOffset(s) {
         const m = this.metrics(s);
         const a = Math.round(m.asc * s.size);
@@ -114,7 +127,7 @@ class PdfCanvas {
     prep(t, s) {
         let txt = String(t ?? '').replace(/[\r\n\t]+/g, ' ');
         // Glyphes absents de Chillax : espaces insécables → espace, flèche → tiret.
-        if (this.chillaxBody || s.family === 'heading')
+        if (this.chillaxBody || s.family === 'heading' || (s.weight && this.weights))
             txt = txt.replace(/[\u00a0\u202f\u2009]/g, ' ').replace(/\u2192/g, '–');
         return s.upper ? txt.toLocaleUpperCase('fr-FR') : txt;
     }
@@ -190,7 +203,10 @@ class PdfCanvas {
     wrap(t, maxW, s) {
         const st = { ...s, upper: false };
         const parts = [];
-        for (const w of this.prep(t, s).split(' ').filter(Boolean)) {
+        // Coupe aux seules espaces ordinaires : une espace insécable (« 40 € », « 20 % ») lie ses voisins,
+        // puis `prep` la remplace au dessin (glyphe absent de Chillax).
+        const raw = String(t ?? '').replace(/[\r\n\t]+/g, ' ');
+        for (const w of (s.upper ? raw.toLocaleUpperCase('fr-FR') : raw).split(' ').filter(Boolean)) {
             w.split(/(?<=\p{L}-)(?=\p{L})/u).forEach((piece, i) => parts.push({ t: piece, sep: i === 0 ? ' ' : '' }));
         }
         const lines = [];

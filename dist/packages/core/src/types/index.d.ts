@@ -93,7 +93,9 @@ export declare enum PaymentMeansCode {
     /** SEPA credit transfer */
     SEPA_CREDIT_TRANSFER = 58,
     /** SEPA direct debit */
-    SEPA_DIRECT_DEBIT = 59
+    SEPA_DIRECT_DEBIT = 59,
+    /** Clearing between partners (compensation : prélèvement sur un solde, wallet) */
+    CLEARING_BETWEEN_PARTNERS = 97
 }
 /**
  * Unit codes (UN/ECE Recommendation 20/21)
@@ -286,6 +288,8 @@ export interface TradeParty {
     readonly electronicAddress?: string;
     /** Electronic address scheme identifier (e.g. 'EM' for email) */
     readonly electronicAddressScheme?: string;
+    /** BT-33 — mentions légales complémentaires du vendeur (forme, capital, immatriculation). */
+    readonly legalInformation?: string;
 }
 /**
  * Payment details

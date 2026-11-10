@@ -1,9 +1,10 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.TimesheetPdfRenderer = exports.renderTimesheetPdf = exports.ReportPdfRenderer = exports.renderReportPdf = exports.FR_FRANCHISE_MENTION = exports.FR_MANDATORY_NOTES = exports.buildFacturXInvoice = exports.renderDocumentPdf = exports.DocumentPdfRenderer = void 0;
+exports.PlatformInvoicePdfRenderer = exports.renderPlatformInvoicePdf = exports.TimesheetPdfRenderer = exports.renderTimesheetPdf = exports.ReportPdfRenderer = exports.renderReportPdf = exports.FR_FRANCHISE_MENTION = exports.FR_MANDATORY_NOTES = exports.buildFacturXInvoice = exports.renderDocumentPdf = exports.DocumentPdfRenderer = void 0;
 exports.generateDocumentPdf = generateDocumentPdf;
 exports.generateReportPdf = generateReportPdf;
 exports.generateTimesheetPdf = generateTimesheetPdf;
+exports.generatePlatformInvoicePdf = generatePlatformInvoicePdf;
 const settings_1 = require("../document/settings");
 const view_1 = require("../document/view");
 const DocumentPdfRenderer_1 = require("./DocumentPdfRenderer");
@@ -60,5 +61,35 @@ async function generateTimesheetPdf(input) {
     const view = (0, timesheet_view_1.buildTimesheetView)(input.data, { settings, variant: input.variant, timeZone: input.timeZone });
     const { pdf, pageCount } = await (0, TimesheetPdfRenderer_1.renderTimesheetPdf)(view, { logo: input.logo, generatedAt: input.generatedAt });
     return { pdf, pageCount, view, warnings: [...warnings] };
+}
+// ─── Factures émises par la plateforme (abonnement, frais de service) ───────
+const platform_invoice_view_1 = require("../document/platform-invoice-view");
+const PlatformInvoicePdfRenderer_1 = require("./PlatformInvoicePdfRenderer");
+var PlatformInvoicePdfRenderer_2 = require("./PlatformInvoicePdfRenderer");
+Object.defineProperty(exports, "renderPlatformInvoicePdf", { enumerable: true, get: function () { return PlatformInvoicePdfRenderer_2.renderPlatformInvoicePdf; } });
+Object.defineProperty(exports, "PlatformInvoicePdfRenderer", { enumerable: true, get: function () { return PlatformInvoicePdfRenderer_2.PlatformInvoicePdfRenderer; } });
+/**
+ * Facture d'abonnement ou de frais de service de la plateforme : XML Factur-X (remise BG-20,
+ * période BG-14, montant payé BT-113, blocs d'information en notes) puis PDF/A-3 dessiné avec
+ * les totaux du XML — aucun écart possible entre ce qui est imprimé et ce qui est transmis.
+ */
+async function generatePlatformInvoicePdf(input) {
+    const draft = (0, platform_invoice_view_1.buildPlatformInvoiceView)(input.data);
+    const built = (0, facturx_1.buildFacturXInvoice)((0, platform_invoice_view_1.platformInvoiceToDocumentData)(input.data, draft), { defaultCountry: input.defaultCountry });
+    const warnings = [...built.warnings];
+    const computed = (0, platform_invoice_view_1.computePlatformTotals)(input.data);
+    if (built.totals.total !== computed.total) {
+        warnings.push(`TTC du XML (${built.totals.total}) différent du calcul par taux (${computed.total}) : le XML fait foi.`);
+    }
+    if (input.expectedTotal !== undefined && built.totals.total !== Math.round(input.expectedTotal)) {
+        warnings.push(`TTC de la facture (${built.totals.total}) différent du montant prélevé (${Math.round(input.expectedTotal)}).`);
+    }
+    // Réglée à l'émission : montant payé = TTC (BT-113), reste à payer nul (BT-115).
+    if (input.data.state === 'paid')
+        built.invoice.setPrepaidAmount(built.invoice.finalizeTotals().grandTotal);
+    const xml = built.invoice.generateXml(true);
+    const view = (0, platform_invoice_view_1.buildPlatformInvoiceView)(input.data, { totals: built.totals });
+    const { pdf, pageCount } = await (0, PlatformInvoicePdfRenderer_1.renderPlatformInvoicePdf)(view, { logo: input.logo, facturXml: xml, generatedAt: input.generatedAt });
+    return { pdf, pageCount, view, xml, warnings };
 }
 //# sourceMappingURL=index.js.map

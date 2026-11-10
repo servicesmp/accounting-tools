@@ -40,6 +40,13 @@ export declare class FacturXInvoice {
      * Finalize and get totals - CACHED for performance
      */
     finalizeTotals(): MonetarySummary;
+    /** Montant déjà payé, en unités majeures (BT-113, `TotalPrepaidAmount`). */
+    private prepaidAmount;
+    /**
+     * Déclare un montant déjà payé (BT-113) : le reste à payer (BT-115) devient TTC − payé.
+     * Pour une facture réglée à l'émission (prélèvement, compensation), passer le TTC.
+     */
+    setPrepaidAmount(amount: number): void;
     /**
      * Get totals - Lazy getter for profile validation
      * This allows profile validation to check for totals.lineTotal, etc.

@@ -58,6 +58,7 @@ function means(data) {
         case 'cash': return core_1.PaymentMeansCode.CASH;
         case 'cheque': return core_1.PaymentMeansCode.CHEQUE;
         case 'card': return core_1.PaymentMeansCode.BANK_CARD;
+        case 'clearing': return core_1.PaymentMeansCode.CLEARING_BETWEEN_PARTNERS;
         default: return data.payment?.iban ? core_1.PaymentMeansCode.SEPA_CREDIT_TRANSFER : core_1.PaymentMeansCode.BANK_CARD;
     }
 }
@@ -75,7 +76,9 @@ function buildFacturXInvoice(data, options = {}) {
     const toMajor = (minor) => Math.round(Number(minor) || 0) / Math.pow(10, decimals);
     const toMinor = (major) => Math.round((Number(major) || 0) * Math.pow(10, decimals));
     const sellerSiren = siren(data.seller);
-    const sellerParty = new core_1.TradePartyImpl(data.seller.legalName || data.seller.name, address(data.seller.address, fallbackCountry, warnings, 'du vendeur'), data.seller.legalName && data.seller.legalName !== data.seller.name ? data.seller.name : undefined, vatId(data.seller.vatId, warnings, 'du vendeur'), undefined, sellerSiren, sellerSiren ? '0002' : undefined, data.seller.email, data.seller.phone, undefined, data.seller.email, data.seller.email ? 'EM' : undefined);
+    const sellerParty = new core_1.TradePartyImpl(data.seller.legalName || data.seller.name, address(data.seller.address, fallbackCountry, warnings, 'du vendeur'), data.seller.legalName && data.seller.legalName !== data.seller.name ? data.seller.name : undefined, vatId(data.seller.vatId, warnings, 'du vendeur'), undefined, sellerSiren, sellerSiren ? '0002' : undefined, data.seller.email, data.seller.phone, undefined, data.seller.email, data.seller.email ? 'EM' : undefined, 
+    // BT-33 : forme juridique, capital, immatriculation (profils EN16931 / EXTENDED).
+    (0, view_1.sellerLegalInformation)(data.seller));
     const buyerSiren = siren(data.buyer);
     const buyerParty = new core_1.TradePartyImpl(data.buyer.legalName || data.buyer.name || 'Client', address(data.buyer.address, fallbackCountry, warnings, 'du client'), undefined, vatId(data.buyer.vatId, warnings, 'du client'), undefined, buyerSiren, buyerSiren ? '0002' : undefined, data.buyer.email, data.buyer.phone, undefined, data.buyer.email, data.buyer.email ? 'EM' : undefined);
     const issueDate = (0, format_1.toDate)(data.issueDate) ?? new Date();
@@ -107,6 +110,12 @@ function buildFacturXInvoice(data, options = {}) {
     const deliveryDate = (0, format_1.toDate)(data.deliveryDate);
     if (deliveryDate)
         hb.deliveryDate(deliveryDate);
+    const periodStart = (0, format_1.toDate)(data.billingPeriod?.start);
+    const periodEnd = (0, format_1.toDate)(data.billingPeriod?.end);
+    if (periodStart && periodEnd && periodEnd >= periodStart)
+        hb.billingPeriod(periodStart, periodEnd);
+    else if (data.billingPeriod)
+        warnings.push('Période facturée incomplète ou inversée : non portée dans le XML (BG-14).');
     if (data.precedingInvoice?.number) {
         hb.precedingInvoice(data.precedingInvoice.number, (0, format_1.toDate)(data.precedingInvoice.issueDate) ?? undefined);
     }
@@ -124,11 +133,24 @@ function buildFacturXInvoice(data, options = {}) {
         const exempt = rate === 0;
         invoice.addLine(new core_1.InvoiceLineImpl(String(i + 1), [line.description, line.details].filter(Boolean).join(' — ').slice(0, 500) || `Article ${i + 1}`, qty, Math.round(net * 1e6) / 1e6, rate / 100, exempt ? 'E' : 'S', 'C62', undefined, undefined, undefined, line.ref, undefined, exempt ? (data.vatExemptionReason || records_1.FR_FRANCHISE_MENTION) : undefined, exempt ? 'VATEX-FR-FRANCHISE' : undefined));
     });
+    // BG-20 : remises au niveau du document, au taux de TVA des lignes qu'elles réduisent (BR-S-08).
+    for (const a of data.allowances ?? []) {
+        const amount = Math.round(Number(a.amount) || 0);
+        if (amount <= 0)
+            continue;
+        const rate = Number(a.vatRate) || 0;
+        invoice.addDocAllowanceCharge(new core_1.AllowanceChargeImpl(false, toMajor(amount), a.reason.slice(0, 200), '95', rate / 100, rate === 0 ? 'E' : 'S'));
+    }
+    // BT-113 : facture réglée à l'émission → reste à payer (BT-115) diminué d'autant.
+    if (data.paidAmount && data.paidAmount > 0)
+        invoice.setPrepaidAmount(toMajor(data.paidAmount));
     const s = invoice.finalizeTotals();
     const totals = {
         subtotal: toMinor(s.lineTotal),
         taxTotal: toMinor(s.taxTotal),
         total: toMinor(s.grandTotal),
+        ...(s.allowanceTotal ? { allowanceTotal: toMinor(s.allowanceTotal) } : {}),
+        ...(s.paidAmount ? { paidAmount: toMinor(s.paidAmount) } : {}),
         taxBreakdown: s.taxSummaries.map((t) => ({
             rate: Math.round(Number(t.rate) * 100) / 100, // TaxCalculator renvoie déjà un pourcentage
             base: toMinor(t.taxable),

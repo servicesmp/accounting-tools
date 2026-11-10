@@ -71,7 +71,9 @@ class PostalAddressBuilder {
 // TRADE PARTY - Immutable
 // ============================================================================
 class TradePartyImpl {
-    constructor(name, address, tradingName, vatId, taxId, legalId, legalIdScheme, email, phone, globalId, electronicAddress, electronicAddressScheme) {
+    constructor(name, address, tradingName, vatId, taxId, legalId, legalIdScheme, email, phone, globalId, electronicAddress, electronicAddressScheme, 
+    /** BT-33 — mentions légales complémentaires du vendeur (forme, capital, immatriculation). */
+    legalInformation) {
         this.name = name;
         this.address = address;
         this.tradingName = tradingName;
@@ -84,6 +86,7 @@ class TradePartyImpl {
         this.globalId = globalId;
         this.electronicAddress = electronicAddress;
         this.electronicAddressScheme = electronicAddressScheme;
+        this.legalInformation = legalInformation;
         if (!name || !address) {
             throw new Error('Name and address are required');
         }
@@ -143,11 +146,15 @@ class TradePartyBuilder {
         this._electronicAddressScheme = value;
         return this;
     }
+    legalInformation(value) {
+        this._legalInformation = value;
+        return this;
+    }
     build() {
         if (!this._name || !this._address) {
             throw new Error('Name and address are required');
         }
-        return new TradePartyImpl(this._name, this._address, this._tradingName, this._vatId, this._taxId, this._legalId, this._legalIdScheme, this._email, this._phone, this._globalId, this._electronicAddress, this._electronicAddressScheme);
+        return new TradePartyImpl(this._name, this._address, this._tradingName, this._vatId, this._taxId, this._legalId, this._legalIdScheme, this._email, this._phone, this._globalId, this._electronicAddress, this._electronicAddressScheme, this._legalInformation);
     }
 }
 // ============================================================================

@@ -117,3 +117,53 @@ export async function generateTimesheetPdf(input: GenerateTimesheetPdfInput): Pr
   const { pdf, pageCount } = await renderTimesheetPdf(view, { logo: input.logo, generatedAt: input.generatedAt });
   return { pdf, pageCount, view, warnings: [...warnings] };
 }
+
+// ─── Factures émises par la plateforme (abonnement, frais de service) ───────
+import { buildPlatformInvoiceView, computePlatformTotals, platformInvoiceToDocumentData } from '../document/platform-invoice-view';
+import type { PlatformInvoiceData, PlatformInvoiceView } from '../document/platform-invoice-types';
+import { renderPlatformInvoicePdf } from './PlatformInvoicePdfRenderer';
+export { renderPlatformInvoicePdf, PlatformInvoicePdfRenderer } from './PlatformInvoicePdfRenderer';
+export type { RenderPlatformInvoicePdfOptions, RenderedPlatformInvoicePdf } from './PlatformInvoicePdfRenderer';
+
+export interface GeneratePlatformInvoicePdfInput {
+  readonly data: PlatformInvoiceData;
+  /** Logo Services (défaut : logo haute définition de la librairie). */
+  readonly logo?: Uint8Array | null;
+  readonly defaultCountry?: string;
+  readonly generatedAt?: Date;
+  /** TTC attendu (montant réellement prélevé), unités mineures : un écart est signalé. */
+  readonly expectedTotal?: number;
+}
+
+export interface GeneratedPlatformInvoicePdf {
+  readonly pdf: Uint8Array;
+  readonly pageCount: number;
+  readonly view: PlatformInvoiceView;
+  /** XML Factur-X EN 16931 embarqué. */
+  readonly xml: string;
+  readonly warnings: string[];
+}
+
+/**
+ * Facture d'abonnement ou de frais de service de la plateforme : XML Factur-X (remise BG-20,
+ * période BG-14, montant payé BT-113, blocs d'information en notes) puis PDF/A-3 dessiné avec
+ * les totaux du XML — aucun écart possible entre ce qui est imprimé et ce qui est transmis.
+ */
+export async function generatePlatformInvoicePdf(input: GeneratePlatformInvoicePdfInput): Promise<GeneratedPlatformInvoicePdf> {
+  const draft = buildPlatformInvoiceView(input.data);
+  const built = buildFacturXInvoice(platformInvoiceToDocumentData(input.data, draft), { defaultCountry: input.defaultCountry });
+  const warnings = [...built.warnings];
+  const computed = computePlatformTotals(input.data);
+  if (built.totals.total !== computed.total) {
+    warnings.push(`TTC du XML (${built.totals.total}) différent du calcul par taux (${computed.total}) : le XML fait foi.`);
+  }
+  if (input.expectedTotal !== undefined && built.totals.total !== Math.round(input.expectedTotal)) {
+    warnings.push(`TTC de la facture (${built.totals.total}) différent du montant prélevé (${Math.round(input.expectedTotal)}).`);
+  }
+  // Réglée à l'émission : montant payé = TTC (BT-113), reste à payer nul (BT-115).
+  if (input.data.state === 'paid') built.invoice.setPrepaidAmount(built.invoice.finalizeTotals().grandTotal);
+  const xml = built.invoice.generateXml(true);
+  const view = buildPlatformInvoiceView(input.data, { totals: built.totals });
+  const { pdf, pageCount } = await renderPlatformInvoicePdf(view, { logo: input.logo, facturXml: xml, generatedAt: input.generatedAt });
+  return { pdf, pageCount, view, xml, warnings };
+}

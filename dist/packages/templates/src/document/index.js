@@ -14,7 +14,8 @@ var __exportStar = (this && this.__exportStar) || function(m, exports) {
     for (var p in m) if (p !== "default" && !Object.prototype.hasOwnProperty.call(exports, p)) __createBinding(exports, m, p);
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.TIMESHEET_TONES = exports.TIMESHEET_COLORS = exports.TIMESHEET_FOOT_RESERVE = exports.TIMESHEET_SIDE = exports.TIMESHEET_PAGE_H = exports.TIMESHEET_PAGE_W = exports.renderTimesheetHtml = exports.TIMESHEET_MAX_LINES = exports.TIMESHEET_LABELS = exports.timesheetDuration = exports.buildTimesheetView = exports.REPORT_TONE_SOLID = exports.REPORT_TONE_COLORS = exports.REPORT_PAGE_H = exports.REPORT_PAGE_W = exports.reportAvatarColor = exports.reportInitials = exports.renderReportHtml = exports.REPORT_TEXT_MAX = exports.REPORT_LINE_MAX = exports.REPORT_TITLE_MAX = exports.REPORT_MAX_TILES = exports.REPORT_MAX_META = exports.REPORT_MAX_ITEMS = exports.REPORT_MAX_BLOCKS = exports.reportText = exports.reportLine = exports.normalizeReportBlock = exports.buildReportView = exports.blend = exports.mix = exports.relativeLuminance = exports.shade = exports.tint = exports.ensureContrastOnWhite = exports.contrastRatio = exports.normalizeHex = exports.safeImageUrl = exports.escapeHtml = exports.renderDocumentHtml = exports.getDocumentLabels = exports.DOCUMENT_LOCALES = exports.DOCUMENT_LABELS = void 0;
+exports.formatVatNumber = exports.formatSiret = exports.platformDiscountRate = exports.platformSubscriptionLineLabel = exports.platformInvoiceToDocumentData = exports.computePlatformTotals = exports.buildPlatformInvoiceView = exports.TIMESHEET_TONES = exports.TIMESHEET_COLORS = exports.TIMESHEET_FOOT_RESERVE = exports.TIMESHEET_SIDE = exports.TIMESHEET_PAGE_H = exports.TIMESHEET_PAGE_W = exports.renderTimesheetHtml = exports.TIMESHEET_MAX_LINES = exports.TIMESHEET_LABELS = exports.timesheetDuration = exports.buildTimesheetView = exports.REPORT_TONE_SOLID = exports.REPORT_TONE_COLORS = exports.REPORT_PAGE_H = exports.REPORT_PAGE_W = exports.reportAvatarColor = exports.reportInitials = exports.renderReportHtml = exports.REPORT_TEXT_MAX = exports.REPORT_LINE_MAX = exports.REPORT_TITLE_MAX = exports.REPORT_MAX_TILES = exports.REPORT_MAX_META = exports.REPORT_MAX_ITEMS = exports.REPORT_MAX_BLOCKS = exports.reportText = exports.reportLine = exports.normalizeReportBlock = exports.buildReportView = exports.blend = exports.mix = exports.relativeLuminance = exports.shade = exports.tint = exports.ensureContrastOnWhite = exports.contrastRatio = exports.normalizeHex = exports.safeImageUrl = exports.escapeHtml = exports.renderDocumentHtml = exports.getDocumentLabels = exports.DOCUMENT_LOCALES = exports.DOCUMENT_LABELS = void 0;
+exports.PLATFORM_PLAN_NAMES = exports.platformSubscriptionReference = exports.platformPlanName = exports.platformInvoiceKindOf = exports.billingRecordToPlatformInvoiceData = exports.PLATFORM_PAGE_H = exports.PLATFORM_PAGE_W = exports.PLATFORM_COLORS = exports.renderPlatformInvoiceHtml = exports.PLATFORM_ALERT_COLOR = exports.currencyDisplayName = void 0;
 /**
  * accounting-tools/document — module NAVIGATEUR-COMPATIBLE.
  *
@@ -86,4 +87,27 @@ Object.defineProperty(exports, "TIMESHEET_SIDE", { enumerable: true, get: functi
 Object.defineProperty(exports, "TIMESHEET_FOOT_RESERVE", { enumerable: true, get: function () { return timesheet_html_1.TIMESHEET_FOOT_RESERVE; } });
 Object.defineProperty(exports, "TIMESHEET_COLORS", { enumerable: true, get: function () { return timesheet_html_1.TIMESHEET_COLORS; } });
 Object.defineProperty(exports, "TIMESHEET_TONES", { enumerable: true, get: function () { return timesheet_html_1.TIMESHEET_TONES; } });
+// Factures émises par la plateforme (abonnement, frais de service) — modèle distinct, non personnalisable
+__exportStar(require("./platform-invoice-types"), exports);
+var platform_invoice_view_1 = require("./platform-invoice-view");
+Object.defineProperty(exports, "buildPlatformInvoiceView", { enumerable: true, get: function () { return platform_invoice_view_1.buildPlatformInvoiceView; } });
+Object.defineProperty(exports, "computePlatformTotals", { enumerable: true, get: function () { return platform_invoice_view_1.computePlatformTotals; } });
+Object.defineProperty(exports, "platformInvoiceToDocumentData", { enumerable: true, get: function () { return platform_invoice_view_1.platformInvoiceToDocumentData; } });
+Object.defineProperty(exports, "platformSubscriptionLineLabel", { enumerable: true, get: function () { return platform_invoice_view_1.platformSubscriptionLineLabel; } });
+Object.defineProperty(exports, "platformDiscountRate", { enumerable: true, get: function () { return platform_invoice_view_1.platformDiscountRate; } });
+Object.defineProperty(exports, "formatSiret", { enumerable: true, get: function () { return platform_invoice_view_1.formatSiret; } });
+Object.defineProperty(exports, "formatVatNumber", { enumerable: true, get: function () { return platform_invoice_view_1.formatVatNumber; } });
+Object.defineProperty(exports, "currencyDisplayName", { enumerable: true, get: function () { return platform_invoice_view_1.currencyDisplayName; } });
+Object.defineProperty(exports, "PLATFORM_ALERT_COLOR", { enumerable: true, get: function () { return platform_invoice_view_1.PLATFORM_ALERT_COLOR; } });
+var platform_invoice_html_1 = require("./platform-invoice-html");
+Object.defineProperty(exports, "renderPlatformInvoiceHtml", { enumerable: true, get: function () { return platform_invoice_html_1.renderPlatformInvoiceHtml; } });
+Object.defineProperty(exports, "PLATFORM_COLORS", { enumerable: true, get: function () { return platform_invoice_html_1.PLATFORM_COLORS; } });
+Object.defineProperty(exports, "PLATFORM_PAGE_W", { enumerable: true, get: function () { return platform_invoice_html_1.PLATFORM_PAGE_W; } });
+Object.defineProperty(exports, "PLATFORM_PAGE_H", { enumerable: true, get: function () { return platform_invoice_html_1.PLATFORM_PAGE_H; } });
+var platform_invoice_records_1 = require("./platform-invoice-records");
+Object.defineProperty(exports, "billingRecordToPlatformInvoiceData", { enumerable: true, get: function () { return platform_invoice_records_1.billingRecordToPlatformInvoiceData; } });
+Object.defineProperty(exports, "platformInvoiceKindOf", { enumerable: true, get: function () { return platform_invoice_records_1.platformInvoiceKindOf; } });
+Object.defineProperty(exports, "platformPlanName", { enumerable: true, get: function () { return platform_invoice_records_1.platformPlanName; } });
+Object.defineProperty(exports, "platformSubscriptionReference", { enumerable: true, get: function () { return platform_invoice_records_1.platformSubscriptionReference; } });
+Object.defineProperty(exports, "PLATFORM_PLAN_NAMES", { enumerable: true, get: function () { return platform_invoice_records_1.PLATFORM_PLAN_NAMES; } });
 //# sourceMappingURL=index.js.map

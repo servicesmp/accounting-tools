@@ -23,6 +23,11 @@ export type CanvasFamily = 'body' | 'heading';
 export interface CanvasTextStyle {
   size: number;
   bold?: boolean;
+  /**
+   * Graisse Chillax exacte (500 Medium, 600 Semibold, 700 Bold) — seulement si la toile a été créée
+   * avec `weights: true` (factures de la plateforme). Prioritaire sur `bold` et `family`.
+   */
+  weight?: 500 | 600 | 700;
   family?: CanvasFamily;
   color?: string;
   /** letter-spacing en em */
@@ -60,7 +65,7 @@ export class PdfCanvas {
    * `body: 'chillax'` : corps en Chillax (Regular / Bold), comme la webapp — relevé de temps.
    * Chillax n'a ni espace insécable ni flèche : `prep` les remplace (espace, tiret demi-cadratin).
    */
-  static async create(options: { body?: 'liberation' | 'chillax' } = {}): Promise<PdfCanvas> {
+  static async create(options: { body?: 'liberation' | 'chillax'; weights?: boolean } = {}): Promise<PdfCanvas> {
     const doc = await PDFDocument.create();
     doc.registerFontkit(fontkit);
     const c = new PdfCanvas(doc);
@@ -79,8 +84,17 @@ export class PdfCanvas {
       heading: await embed('Chillax-Semibold.otf', false),
       headingBold: await embed('Chillax-Bold.otf', false),
     };
+    if (options.weights) {
+      c.weights = {
+        500: await embed('Chillax-Medium.otf', false),
+        600: await embed('Chillax-Semibold.otf', false),
+        700: await embed('Chillax-Bold.otf', false),
+      };
+    }
     return c;
   }
+
+  private weights?: Record<500 | 600 | 700, PDFFont>;
 
   private chillaxBody = false;
 
@@ -102,6 +116,7 @@ export class PdfCanvas {
   // ─── Polices et métriques ──────────────────────────────────────────────────
 
   font(s: CanvasTextStyle): PDFFont {
+    if (s.weight && this.weights) return this.weights[s.weight];
     const heading = s.family === 'heading';
     return heading ? (s.bold ? this.fonts.headingBold : this.fonts.heading) : (s.bold ? this.fonts.bodyBold : this.fonts.body);
   }
@@ -119,6 +134,11 @@ export class PdfCanvas {
     return Math.round(m.asc * s.size) + Math.round(m.desc * s.size) + Math.round(m.gap * s.size);
   }
 
+  /** Distance (px) entre le haut de la boîte de ligne et la ligne de base : alignement sur la base. */
+  baseline(s: CanvasTextStyle): number {
+    return this.baselineOffset(s);
+  }
+
   private baselineOffset(s: CanvasTextStyle): number {
     const m = this.metrics(s);
     const a = Math.round(m.asc * s.size);
@@ -129,7 +149,7 @@ export class PdfCanvas {
   private prep(t: string, s: CanvasTextStyle) {
     let txt = String(t ?? '').replace(/[\r\n\t]+/g, ' ');
     // Glyphes absents de Chillax : espaces insécables → espace, flèche → tiret.
-    if (this.chillaxBody || s.family === 'heading') txt = txt.replace(/[\u00a0\u202f\u2009]/g, ' ').replace(/\u2192/g, '–');
+    if (this.chillaxBody || s.family === 'heading' || (s.weight && this.weights)) txt = txt.replace(/[\u00a0\u202f\u2009]/g, ' ').replace(/\u2192/g, '–');
     return s.upper ? txt.toLocaleUpperCase('fr-FR') : txt;
   }
 
@@ -195,7 +215,10 @@ export class PdfCanvas {
   wrap(t: string, maxW: number, s: CanvasTextStyle): string[] {
     const st = { ...s, upper: false };
     const parts: { t: string; sep: string }[] = [];
-    for (const w of this.prep(t, s).split(' ').filter(Boolean)) {
+    // Coupe aux seules espaces ordinaires : une espace insécable (« 40 € », « 20 % ») lie ses voisins,
+    // puis `prep` la remplace au dessin (glyphe absent de Chillax).
+    const raw = String(t ?? '').replace(/[\r\n\t]+/g, ' ');
+    for (const w of (s.upper ? raw.toLocaleUpperCase('fr-FR') : raw).split(' ').filter(Boolean)) {
       w.split(/(?<=\p{L}-)(?=\p{L})/u).forEach((piece, i) => parts.push({ t: piece, sep: i === 0 ? ' ' : '' }));
     }
     const lines: string[] = [];

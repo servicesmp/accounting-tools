@@ -73,11 +73,14 @@ export {
   generateReportPdf, renderReportPdf, ReportPdfRenderer,
   // Relevé de temps (versions simple et détaillée)
   generateTimesheetPdf, renderTimesheetPdf, TimesheetPdfRenderer,
+  // Factures émises par la plateforme (abonnement, frais de service)
+  generatePlatformInvoicePdf, renderPlatformInvoicePdf, PlatformInvoicePdfRenderer,
 } from '@facturx/templates/document-pdf';
 export type {
   GenerateDocumentPdfInput, GeneratedDocumentPdf, RenderDocumentPdfOptions, RenderedDocumentPdf, FacturXBuildResult,
   GenerateReportPdfInput, GeneratedReportPdf, RenderReportPdfOptions, RenderedReportPdf,
   GenerateTimesheetPdfInput, GeneratedTimesheetPdf, RenderTimesheetPdfOptions, RenderedTimesheetPdf,
+  GeneratePlatformInvoicePdfInput, GeneratedPlatformInvoicePdf, RenderPlatformInvoicePdfOptions, RenderedPlatformInvoicePdf,
 } from '@facturx/templates/document-pdf';
 
 // Type-only exports from templates

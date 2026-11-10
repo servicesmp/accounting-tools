@@ -120,7 +120,9 @@ export class TradePartyImpl implements TradeParty {
     public readonly phone?: string,
     public readonly globalId?: string,
     public readonly electronicAddress?: string,
-    public readonly electronicAddressScheme?: string
+    public readonly electronicAddressScheme?: string,
+    /** BT-33 — mentions légales complémentaires du vendeur (forme, capital, immatriculation). */
+    public readonly legalInformation?: string
   ) {
     if (!name || !address) {
       throw new Error('Name and address are required');
@@ -196,6 +198,13 @@ class TradePartyBuilder {
     return this;
   }
 
+  legalInformation(value: string): this {
+    this._legalInformation = value;
+    return this;
+  }
+
+  private _legalInformation?: string;
+
   build(): TradePartyImpl {
     if (!this._name || !this._address) {
       throw new Error('Name and address are required');
@@ -212,7 +221,8 @@ class TradePartyBuilder {
       this._phone,
       this._globalId,
       this._electronicAddress,
-      this._electronicAddressScheme
+      this._electronicAddressScheme,
+      this._legalInformation
     );
   }
 }

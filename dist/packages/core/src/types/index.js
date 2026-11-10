@@ -105,6 +105,8 @@ var PaymentMeansCode;
     PaymentMeansCode[PaymentMeansCode["SEPA_CREDIT_TRANSFER"] = 58] = "SEPA_CREDIT_TRANSFER";
     /** SEPA direct debit */
     PaymentMeansCode[PaymentMeansCode["SEPA_DIRECT_DEBIT"] = 59] = "SEPA_DIRECT_DEBIT";
+    /** Clearing between partners (compensation : prélèvement sur un solde, wallet) */
+    PaymentMeansCode[PaymentMeansCode["CLEARING_BETWEEN_PARTNERS"] = 97] = "CLEARING_BETWEEN_PARTNERS";
 })(PaymentMeansCode || (exports.PaymentMeansCode = PaymentMeansCode = {}));
 /**
  * Unit codes (UN/ECE Recommendation 20/21)

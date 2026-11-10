@@ -32,3 +32,11 @@ export { buildTimesheetView, timesheetDuration, TIMESHEET_LABELS, TIMESHEET_MAX_
 export type { BuildTimesheetViewOptions } from './timesheet-view';
 export { renderTimesheetHtml, TIMESHEET_PAGE_W, TIMESHEET_PAGE_H, TIMESHEET_SIDE, TIMESHEET_FOOT_RESERVE, TIMESHEET_COLORS, TIMESHEET_TONES } from './timesheet-html';
 export type { RenderTimesheetHtmlOptions } from './timesheet-html';
+// Factures émises par la plateforme (abonnement, frais de service) — modèle distinct, non personnalisable
+export * from './platform-invoice-types';
+export { buildPlatformInvoiceView, computePlatformTotals, platformInvoiceToDocumentData, platformSubscriptionLineLabel, platformDiscountRate, formatSiret, formatVatNumber, currencyDisplayName, PLATFORM_ALERT_COLOR } from './platform-invoice-view';
+export type { BuildPlatformInvoiceViewOptions } from './platform-invoice-view';
+export { renderPlatformInvoiceHtml, PLATFORM_COLORS, PLATFORM_PAGE_W, PLATFORM_PAGE_H } from './platform-invoice-html';
+export type { RenderPlatformInvoiceHtmlOptions } from './platform-invoice-html';
+export { billingRecordToPlatformInvoiceData, platformInvoiceKindOf, platformPlanName, platformSubscriptionReference, PLATFORM_PLAN_NAMES } from './platform-invoice-records';
+export type { PlatformInvoiceRecordOptions } from './platform-invoice-records';

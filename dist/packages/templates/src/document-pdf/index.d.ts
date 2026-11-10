@@ -71,4 +71,30 @@ export interface GeneratedTimesheetPdf {
 }
 /** Point d'entrée du relevé de temps (versions simple et détaillée). */
 export declare function generateTimesheetPdf(input: GenerateTimesheetPdfInput): Promise<GeneratedTimesheetPdf>;
+import type { PlatformInvoiceData, PlatformInvoiceView } from '../document/platform-invoice-types';
+export { renderPlatformInvoicePdf, PlatformInvoicePdfRenderer } from './PlatformInvoicePdfRenderer';
+export type { RenderPlatformInvoicePdfOptions, RenderedPlatformInvoicePdf } from './PlatformInvoicePdfRenderer';
+export interface GeneratePlatformInvoicePdfInput {
+    readonly data: PlatformInvoiceData;
+    /** Logo Services (défaut : logo haute définition de la librairie). */
+    readonly logo?: Uint8Array | null;
+    readonly defaultCountry?: string;
+    readonly generatedAt?: Date;
+    /** TTC attendu (montant réellement prélevé), unités mineures : un écart est signalé. */
+    readonly expectedTotal?: number;
+}
+export interface GeneratedPlatformInvoicePdf {
+    readonly pdf: Uint8Array;
+    readonly pageCount: number;
+    readonly view: PlatformInvoiceView;
+    /** XML Factur-X EN 16931 embarqué. */
+    readonly xml: string;
+    readonly warnings: string[];
+}
+/**
+ * Facture d'abonnement ou de frais de service de la plateforme : XML Factur-X (remise BG-20,
+ * période BG-14, montant payé BT-113, blocs d'information en notes) puis PDF/A-3 dessiné avec
+ * les totaux du XML — aucun écart possible entre ce qui est imprimé et ce qui est transmis.
+ */
+export declare function generatePlatformInvoicePdf(input: GeneratePlatformInvoicePdfInput): Promise<GeneratedPlatformInvoicePdf>;
 //# sourceMappingURL=index.d.ts.map

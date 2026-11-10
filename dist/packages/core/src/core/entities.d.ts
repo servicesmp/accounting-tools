@@ -46,7 +46,11 @@ export declare class TradePartyImpl implements TradeParty {
     readonly globalId?: string | undefined;
     readonly electronicAddress?: string | undefined;
     readonly electronicAddressScheme?: string | undefined;
-    constructor(name: string, address: PostalAddress, tradingName?: string | undefined, vatId?: string | undefined, taxId?: string | undefined, legalId?: string | undefined, legalIdScheme?: string | undefined, email?: string | undefined, phone?: string | undefined, globalId?: string | undefined, electronicAddress?: string | undefined, electronicAddressScheme?: string | undefined);
+    /** BT-33 — mentions légales complémentaires du vendeur (forme, capital, immatriculation). */
+    readonly legalInformation?: string | undefined;
+    constructor(name: string, address: PostalAddress, tradingName?: string | undefined, vatId?: string | undefined, taxId?: string | undefined, legalId?: string | undefined, legalIdScheme?: string | undefined, email?: string | undefined, phone?: string | undefined, globalId?: string | undefined, electronicAddress?: string | undefined, electronicAddressScheme?: string | undefined, 
+    /** BT-33 — mentions légales complémentaires du vendeur (forme, capital, immatriculation). */
+    legalInformation?: string | undefined);
     static builder(): TradePartyBuilder;
 }
 declare class TradePartyBuilder {
@@ -74,6 +78,8 @@ declare class TradePartyBuilder {
     globalId(value: string): this;
     electronicAddress(value: string): this;
     electronicAddressScheme(value: string): this;
+    legalInformation(value: string): this;
+    private _legalInformation?;
     build(): TradePartyImpl;
 }
 export declare class PaymentDetailsImpl implements PaymentDetails {

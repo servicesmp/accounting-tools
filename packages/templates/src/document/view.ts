@@ -171,11 +171,14 @@ export function buildDocumentView(data: DocumentData, options: BuildDocumentView
 
   // Pied légal : identité du vendeur puis mentions obligatoires
   const seller = data.seller;
-  const legalName = seller.legalName || seller.name;
+  // « Atelier Demo, SAS » : la forme juridique n'est pas répétée si la raison
+  // sociale la contient déjà (« Atelier Demo SAS »).
+  const identity = sellerIdentity(seller);
   const head: string[] = [];
-  if (seller.capital) head.push(L.capital(legalName, seller.capital));
+  if (seller.capital) head.push(L.capital(identity, seller.capital));
   if (seller.registration) head.push(seller.registration);
-  else if (!seller.capital && seller.siret) head.push(`${legalName} · ${L.siret} ${seller.siret}`);
+  else if (!seller.capital && seller.siret) head.push(`${identity} · ${L.siret} ${seller.siret}`);
+  else if (!seller.capital && identity !== (seller.legalName || seller.name)) head.push(identity);
   // Conditions de règlement : sur tous les documents, comme dans la maquette
   // (obligatoires sur facture et avoir, informatives sur devis et commande).
   head.push(L.mentions.latePenalties, L.mentions.recoveryIndemnity);
@@ -243,4 +246,27 @@ export function buildDocumentView(data: DocumentData, options: BuildDocumentView
     statusLabel: status ? L.status[status] : undefined,
     totalsRaw: { ...totals, amountDue },
   };
+}
+
+const escapeRegExp = (v: string) => v.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+
+/** Raison sociale suivie de la forme juridique si elle n'y figure pas déjà. */
+export function sellerIdentity(seller: Pick<DocumentParty, 'name' | 'legalName' | 'legalForm'>): string {
+  const legalName = seller.legalName || seller.name;
+  const form = seller.legalForm?.trim();
+  if (!form) return legalName;
+  const already = new RegExp(`(^|[\\s,(])${escapeRegExp(form)}($|[\\s,).])`, 'i').test(legalName);
+  return already ? legalName : `${legalName}, ${form}`;
+}
+
+/**
+ * Mentions légales complémentaires du vendeur pour le Factur-X (BT-33) :
+ * forme juridique, capital, immatriculation. `undefined` si aucune.
+ */
+export function sellerLegalInformation(seller: Pick<DocumentParty, 'legalForm' | 'capital' | 'registration'>): string | undefined {
+  const parts = [
+    seller.legalForm?.trim() && seller.capital ? `${seller.legalForm.trim()} au capital de ${seller.capital}` : seller.legalForm?.trim() || (seller.capital ? `Capital ${seller.capital}` : undefined),
+    seller.registration?.trim(),
+  ].filter(Boolean);
+  return parts.length ? parts.join(' · ') : undefined;
 }

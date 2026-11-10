@@ -34,6 +34,8 @@ class FacturXInvoice {
         this.currency = currency;
         this.compliance = compliance;
         this.regionalConfig = regionalConfig;
+        /** Montant déjà payé, en unités majeures (BT-113, `TotalPrepaidAmount`). */
+        this.prepaidAmount = 0;
         this.taxCalculator = new TaxCalculator_1.TaxCalculator('line'); // Always use line mode for Factur-X
     }
     // ==========================================================================
@@ -58,9 +60,24 @@ class FacturXInvoice {
      */
     finalizeTotals() {
         if (!this.cachedSummary) {
-            this.cachedSummary = this.taxCalculator.computeSummary(this.lines, this.docAllowancesCharges);
+            const summary = this.taxCalculator.computeSummary(this.lines, this.docAllowancesCharges);
+            // BT-113 / BT-115 : montant déjà payé et reste à payer (facture réglée au moment de l'émission).
+            const paid = Math.min(Math.max(0, this.prepaidAmount), summary.grandTotal);
+            this.cachedSummary = paid > 0
+                ? { ...summary, paidAmount: paid, dueAmount: Math.round((summary.grandTotal - paid) * 100) / 100 }
+                : summary;
         }
         return this.cachedSummary;
+    }
+    /**
+     * Déclare un montant déjà payé (BT-113) : le reste à payer (BT-115) devient TTC − payé.
+     * Pour une facture réglée à l'émission (prélèvement, compensation), passer le TTC.
+     */
+    setPrepaidAmount(amount) {
+        if (!Number.isFinite(amount) || amount < 0)
+            throw new Error('Prepaid amount must be a non-negative number');
+        this.prepaidAmount = amount;
+        this.invalidateCaches();
     }
     /**
      * Get totals - Lazy getter for profile validation
@@ -203,6 +220,14 @@ class FacturXInvoice {
         // Seller
         const seller = agreement.ele('ram:SellerTradeParty');
         seller.ele('ram:Name').txt(this.seller.name);
+        // BT-33 Seller additional legal information (forme juridique, capital, RCS…).
+        // Ordre CII : Name → Description → SpecifiedLegalOrganization. Absent des profils
+        // MINIMUM / BASIC WL / BASIC (non prévu par leurs schémas).
+        const legalInformation = this.seller.legalInformation?.trim();
+        if (legalInformation &&
+            (this.profile === types_1.FacturxProfile.EN16931 || this.profile === types_1.FacturxProfile.EXTENDED)) {
+            seller.ele('ram:Description').txt(legalInformation);
+        }
         // Seller legal organization (BT-30: SIREN for FR, required by BR-FR-10)
         if (this.seller.legalId) {
             const legalOrg = seller.ele('ram:SpecifiedLegalOrganization');
@@ -429,6 +454,10 @@ class FacturXInvoice {
         monetary.ele('ram:TaxTotalAmount', { currencyID: this.currency })
             .txt((0, constants_1.formatAmount)(summary.taxTotal));
         monetary.ele('ram:GrandTotalAmount').txt((0, constants_1.formatAmount)(summary.grandTotal));
+        // BT-113 : ordre CII — après GrandTotalAmount, avant DuePayableAmount.
+        if ((summary.paidAmount ?? 0) > 0) {
+            monetary.ele('ram:TotalPrepaidAmount').txt((0, constants_1.formatAmount)(summary.paidAmount));
+        }
         monetary.ele('ram:DuePayableAmount')
             .txt((0, constants_1.formatAmount)(summary.dueAmount ?? summary.grandTotal));
         // 7. BT-25/26 — facture d'origine (avoir, facture rectificative).

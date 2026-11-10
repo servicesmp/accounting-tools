@@ -86,6 +86,7 @@ export function billingPartyToDocumentParty(raw: unknown, currency = 'EUR'): Doc
     siren: siret ? undefined : digits(li.siren, 9),
     capital: capitalText(li.capital ?? p.capital, currency),
     registration: str(p.rcs ?? li.rcs),
+    legalForm: str(li.legalForm ?? p.legalForm ?? li.juridicForm ?? p.juridicForm),
   };
 }
 
@@ -250,6 +251,7 @@ function estimateParty(raw: any, currency: string): DocumentParty {
     siret: digits(p.siret ?? p.company?.siret, 14),
     capital: capitalText(p.capital, currency),
     registration: str(p.rcs),
+    legalForm: str(p.legalForm ?? p.juridicForm ?? p.company?.legalForm),
   };
 }
 

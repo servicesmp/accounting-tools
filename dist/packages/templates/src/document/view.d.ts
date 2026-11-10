@@ -3,7 +3,7 @@
  * « Document Page » : tout texte imprimé est décidé ici, une seule fois. Les
  * moteurs PDF et HTML ne font que la dessiner.
  */
-import { DocumentData, DocumentTemplateSettings, DocumentView, DocumentTotals, ColumnKey, DocumentKind } from './types';
+import { DocumentData, DocumentTemplateSettings, DocumentView, DocumentTotals, ColumnKey, DocumentParty, DocumentKind } from './types';
 /** Total HT d'une ligne (unités mineures) : quantité × prix, remise déduite. */
 export declare function computeLineTotal(line: {
     quantity: number;
@@ -32,4 +32,11 @@ export interface BuildDocumentViewOptions {
  */
 export declare function watermarkFontSize(text: string): number;
 export declare function buildDocumentView(data: DocumentData, options?: BuildDocumentViewOptions): DocumentView;
+/** Raison sociale suivie de la forme juridique si elle n'y figure pas déjà. */
+export declare function sellerIdentity(seller: Pick<DocumentParty, 'name' | 'legalName' | 'legalForm'>): string;
+/**
+ * Mentions légales complémentaires du vendeur pour le Factur-X (BT-33) :
+ * forme juridique, capital, immatriculation. `undefined` si aucune.
+ */
+export declare function sellerLegalInformation(seller: Pick<DocumentParty, 'legalForm' | 'capital' | 'registration'>): string | undefined;
 //# sourceMappingURL=view.d.ts.map

@@ -123,6 +123,8 @@ export interface DocumentParty {
   readonly capital?: string;
   /** Immatriculation, ex. « RCS Lyon 812 456 789 ». */
   readonly registration?: string;
+  /** Forme juridique, ex. « SAS », « SASU » (mention « SAS au capital de … »). */
+  readonly legalForm?: string;
 }
 
 export interface DocumentLine {
@@ -159,6 +161,20 @@ export interface DocumentTotals {
   /** Total TTC hors frais additionnels. */
   readonly total: number;
   readonly taxBreakdown: readonly DocumentTaxLine[];
+  /** Remises au niveau du document, HT (BT-107) — `subtotal` reste la somme des lignes (BT-106). */
+  readonly allowanceTotal?: number;
+  /** Montant déjà payé, TTC (BT-113). */
+  readonly paidAmount?: number;
+}
+
+/** Remise au niveau du document (BG-20), HT, au taux de TVA des lignes qu'elle réduit. */
+export interface DocumentAllowance {
+  /** Montant HT, unités mineures. */
+  readonly amount: number;
+  /** Motif imprimé et porté dans le XML (BT-97). */
+  readonly reason: string;
+  /** Taux de TVA en pourcentage (20 = 20 %). */
+  readonly vatRate: number;
 }
 
 export interface DocumentData {
@@ -193,6 +209,13 @@ export interface DocumentData {
   /** Option pour le paiement de la TVA d'après les débits. */
   readonly vatOnDebits?: boolean;
 
+  /** Période facturée (BG-14, BT-73/74), ex. période d'un abonnement. */
+  readonly billingPeriod?: { readonly start: string | Date; readonly end: string | Date };
+  /** Remises au niveau du document (BG-20). */
+  readonly allowances?: readonly DocumentAllowance[];
+  /** Montant déjà payé, TTC, unités mineures (BT-113) : facture réglée à l'émission. */
+  readonly paidAmount?: number;
+
   readonly payment?: {
     readonly terms?: string;
     readonly iban?: string;
@@ -200,7 +223,7 @@ export interface DocumentData {
     /** Lien de paiement en ligne (encodé dans le QR code). */
     readonly link?: string;
     /** Moyen de paiement (Factur-X BT-81). Par défaut : virement si IBAN, carte sinon. */
-    readonly means?: 'transfer' | 'card' | 'direct_debit' | 'cash' | 'cheque';
+    readonly means?: 'transfer' | 'card' | 'direct_debit' | 'cash' | 'cheque' | 'clearing';
   };
 
   /** Facture d'origine — obligatoire pour un avoir. */

@@ -84,6 +84,7 @@ function billingPartyToDocumentParty(raw, currency = 'EUR') {
         siren: siret ? undefined : digits(li.siren, 9),
         capital: capitalText(li.capital ?? p.capital, currency),
         registration: str(p.rcs ?? li.rcs),
+        legalForm: str(li.legalForm ?? p.legalForm ?? li.juridicForm ?? p.juridicForm),
     };
 }
 function billingVatPercent(line) {
@@ -236,6 +237,7 @@ function estimateParty(raw, currency) {
         siret: digits(p.siret ?? p.company?.siret, 14),
         capital: capitalText(p.capital, currency),
         registration: str(p.rcs),
+        legalForm: str(p.legalForm ?? p.juridicForm ?? p.company?.legalForm),
     };
 }
 const ESTIMATE_STATUS = {

@@ -7,6 +7,11 @@ export type CanvasFamily = 'body' | 'heading';
 export interface CanvasTextStyle {
     size: number;
     bold?: boolean;
+    /**
+     * Graisse Chillax exacte (500 Medium, 600 Semibold, 700 Bold) — seulement si la toile a été créée
+     * avec `weights: true` (factures de la plateforme). Prioritaire sur `bold` et `family`.
+     */
+    weight?: 500 | 600 | 700;
     family?: CanvasFamily;
     color?: string;
     /** letter-spacing en em */
@@ -28,7 +33,9 @@ export declare class PdfCanvas {
      */
     static create(options?: {
         body?: 'liberation' | 'chillax';
+        weights?: boolean;
     }): Promise<PdfCanvas>;
+    private weights?;
     private chillaxBody;
     newPage(): PDFPage;
     embedImage(bytes: Uint8Array | null | undefined): Promise<PDFImage | undefined>;
@@ -37,6 +44,8 @@ export declare class PdfCanvas {
     private metrics;
     /** Hauteur de ligne (px) : `lh` × taille, sinon « normale » (métriques arrondies au pixel). */
     lineHeight(s: CanvasTextStyle): number;
+    /** Distance (px) entre le haut de la boîte de ligne et la ligne de base : alignement sur la base. */
+    baseline(s: CanvasTextStyle): number;
     private baselineOffset;
     private prep;
     /** Segments sans crénage interne, placés aux positions exactes (pdf-lib n'applique pas le crénage). */

@@ -85,12 +85,30 @@ export class FacturXInvoice {
    */
   finalizeTotals(): MonetarySummary {
     if (!this.cachedSummary) {
-      this.cachedSummary = this.taxCalculator.computeSummary(
+      const summary = this.taxCalculator.computeSummary(
         this.lines,
         this.docAllowancesCharges
       );
+      // BT-113 / BT-115 : montant déjà payé et reste à payer (facture réglée au moment de l'émission).
+      const paid = Math.min(Math.max(0, this.prepaidAmount), summary.grandTotal);
+      this.cachedSummary = paid > 0
+        ? { ...summary, paidAmount: paid, dueAmount: Math.round((summary.grandTotal - paid) * 100) / 100 }
+        : summary;
     }
     return this.cachedSummary;
+  }
+
+  /** Montant déjà payé, en unités majeures (BT-113, `TotalPrepaidAmount`). */
+  private prepaidAmount = 0;
+
+  /**
+   * Déclare un montant déjà payé (BT-113) : le reste à payer (BT-115) devient TTC − payé.
+   * Pour une facture réglée à l'émission (prélèvement, compensation), passer le TTC.
+   */
+  setPrepaidAmount(amount: number): void {
+    if (!Number.isFinite(amount) || amount < 0) throw new Error('Prepaid amount must be a non-negative number');
+    this.prepaidAmount = amount;
+    this.invalidateCaches();
   }
 
   /**
@@ -269,6 +287,16 @@ export class FacturXInvoice {
     // Seller
     const seller = agreement.ele('ram:SellerTradeParty');
     seller.ele('ram:Name').txt(this.seller.name);
+    // BT-33 Seller additional legal information (forme juridique, capital, RCS…).
+    // Ordre CII : Name → Description → SpecifiedLegalOrganization. Absent des profils
+    // MINIMUM / BASIC WL / BASIC (non prévu par leurs schémas).
+    const legalInformation = this.seller.legalInformation?.trim();
+    if (
+      legalInformation &&
+      (this.profile === FacturxProfile.EN16931 || this.profile === FacturxProfile.EXTENDED)
+    ) {
+      seller.ele('ram:Description').txt(legalInformation);
+    }
 
     // Seller legal organization (BT-30: SIREN for FR, required by BR-FR-10)
     if (this.seller.legalId) {
@@ -516,6 +544,10 @@ export class FacturXInvoice {
     monetary.ele('ram:TaxTotalAmount', { currencyID: this.currency })
       .txt(formatAmount(summary.taxTotal));
     monetary.ele('ram:GrandTotalAmount').txt(formatAmount(summary.grandTotal));
+    // BT-113 : ordre CII — après GrandTotalAmount, avant DuePayableAmount.
+    if ((summary.paidAmount ?? 0) > 0) {
+      monetary.ele('ram:TotalPrepaidAmount').txt(formatAmount(summary.paidAmount!));
+    }
     monetary.ele('ram:DuePayableAmount')
       .txt(formatAmount(summary.dueAmount ?? summary.grandTotal));
 
