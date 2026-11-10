@@ -3,6 +3,7 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.COLUMN_SPEC = void 0;
 exports.computeLineTotal = computeLineTotal;
 exports.computeDocumentTotals = computeDocumentTotals;
+exports.buyerIdentity = buyerIdentity;
 exports.isFacturXDocument = isFacturXDocument;
 exports.watermarkFontSize = watermarkFontSize;
 exports.buildDocumentView = buildDocumentView;
@@ -72,6 +73,23 @@ function partyView(party, vatLabel, idLabels) {
         id: party.siret ? `${idLabels.siret} ${party.siret}` : party.siren ? `${idLabels.siren} ${party.siren}` : undefined,
     };
 }
+/**
+ * Identifiants imprimés pour le client (10/11). Un particulier n'a ni n° de TVA intracommunautaire
+ * ni SIRET : ils ne sont repris que pour un client entreprise (raison sociale ou SIRET / SIREN).
+ * Un identifiant égal à celui du vendeur est une erreur de saisie (facture INV-20261106-0001 :
+ * client particulier portant le n° de TVA du prestataire) : jamais imprimé.
+ */
+function buyerIdentity(buyer, seller) {
+    const norm = (v) => (v ?? '').replace(/[\s.\-]/g, '').toUpperCase();
+    const isCompany = !!(buyer.legalName?.trim() || norm(buyer.siret) || norm(buyer.siren));
+    const sameAsSeller = (a, b) => !!norm(a) && norm(a) === norm(b);
+    return {
+        ...buyer,
+        vatId: isCompany && !sameAsSeller(buyer.vatId, seller.vatId) ? buyer.vatId : undefined,
+        siret: sameAsSeller(buyer.siret, seller.siret) ? undefined : buyer.siret,
+        siren: sameAsSeller(buyer.siren, seller.siren) ? undefined : buyer.siren,
+    };
+}
 const HAS_FACTURX = { invoice: true, credit: true, quote: false, order: false };
 /** Le document embarque-t-il un XML Factur-X ? (facture et avoir uniquement) */
 function isFacturXDocument(kind) {
@@ -99,14 +117,25 @@ function buildDocumentView(data, options = {}) {
         throw new Error("Un avoir doit mentionner la facture d'origine (precedingInvoice).");
     }
     const totals = data.totals ?? computeDocumentTotals(data);
+    // Document sans TVA (franchise, exonération) : « HT », « TTC » et lignes de TVA n'ont pas de sens.
+    const hasExemption = !!data.vatExemptionReason || totals.taxBreakdown.some((t) => !!t.exemptionReason);
+    const vatApplicable = !(hasExemption && totals.taxTotal === 0 && data.lines.every((l) => !(Number(l.vatRate) > 0)));
     const extra = data.extraCharges ?? [];
     const amountDue = totals.total + extra.reduce((s, c) => s + (Number(c.amount) || 0), 0);
     // Colonnes : la remise DOIT figurer si une ligne en porte une (art. 242 nonies A CGI).
     const keys = [...settings.columns];
     if (!keys.includes('discount') && data.lines.some((l) => (Number(l.discountPercent) || 0) > 0))
         keys.push('discount');
+    if (!vatApplicable)
+        keys.splice(0, keys.length, ...keys.filter((k) => k !== 'vatRate'));
+    // Colonne « Unité » sans aucune unité renseignée : en-tête au-dessus de cases vides (10/11).
+    if (!data.lines.some((l) => (l.unit ?? '').trim()))
+        keys.splice(0, keys.length, ...keys.filter((k) => k !== 'unit'));
     const ORDER = ['ref', 'description', 'quantity', 'unit', 'unitPrice', 'discount', 'vatRate', 'lineTotal'];
-    const columns = ORDER.filter((k) => keys.includes(k)).map((key) => ({ key, label: L.columns[key], ...exports.COLUMN_SPEC[key] }));
+    const columnLabel = (key) => !vatApplicable && key === 'unitPrice' ? L.noVat.unitPrice : !vatApplicable && key === 'lineTotal' ? L.noVat.lineTotal : L.columns[key];
+    // Sans TVA, « Prix unitaire » est plus long que « PU HT » : la colonne reprend la place de la colonne TVA.
+    const columnSpec = (key) => (!vatApplicable && key === 'unitPrice' ? { ...exports.COLUMN_SPEC.unitPrice, width: (exports.COLUMN_SPEC.unitPrice.width ?? 66) + exports.COLUMN_SPEC.vatRate.width } : exports.COLUMN_SPEC[key]);
+    const columns = ORDER.filter((k) => keys.includes(k)).map((key) => ({ key, label: columnLabel(key), ...columnSpec(key) }));
     // Lignes (regroupées par service quand il y en a plusieurs)
     const rows = [];
     const groupTotals = new Map();
@@ -163,7 +192,7 @@ function buildDocumentView(data, options = {}) {
     if (seller.registration)
         head.push(seller.registration);
     else if (!seller.capital && seller.siret)
-        head.push(`${identity} · ${L.siret} ${seller.siret}`);
+        head.push(`${identity}, ${L.siret} ${seller.siret}`);
     else if (!seller.capital && identity !== (seller.legalName || seller.name))
         head.push(identity);
     // Conditions de règlement : sur tous les documents, comme dans la maquette
@@ -187,7 +216,9 @@ function buildDocumentView(data, options = {}) {
         tail.push(L.mentions.deliveryAddress([data.delivery.name, d.oneLine].filter(Boolean).join(', ')));
     }
     // Mention libre de l'organisation (réglage « footerNote ») en fin de pied légal.
-    const legal = [head.join(' · '), tail.join(' '), settings.footerNote?.trim()].filter(Boolean).join(' ');
+    // Mentions en phrases (10/11) : plus de « · » entre elles.
+    const sentence = (t) => (/[.!?]$/.test(t.trim()) ? t.trim() : `${t.trim()}.`);
+    const legal = [head.map(sentence).join(' '), tail.join(' '), settings.footerNote?.trim()].filter(Boolean).join(' ');
     const payment = kind !== 'order' && settings.showPaymentBlock && data.payment && (data.payment.iban || data.payment.bic || data.payment.link)
         ? { iban: data.payment.iban, bic: data.payment.bic, terms: data.payment.terms, qrData: data.payment.link || undefined }
         : undefined;
@@ -205,7 +236,7 @@ function buildDocumentView(data, options = {}) {
         number: data.number,
         labels: {
             number: L.number, issue: L.issue, seller: L.seller, buyer: L.buyer,
-            subtotal: L.subtotal, taxTotal: L.taxTotal, grandTotal: L.grandTotal,
+            subtotal: L.subtotal, taxTotal: L.taxTotal, grandTotal: vatApplicable ? L.grandTotal : L.noVat.grandTotal,
             taxBreakdown: L.taxBreakdown, taxBase: L.taxBase, taxAmount: L.taxAmount,
             paymentTerms: L.paymentTerms, iban: L.iban, bic: L.bic, scanToPay: L.scanToPay,
             poweredBy: L.poweredBy, page: L.page, of: L.of, continuation: L.continuation,
@@ -213,12 +244,13 @@ function buildDocumentView(data, options = {}) {
         issueDate: (0, format_1.formatDate)(data.issueDate, locale),
         due,
         seller: partyView(seller, L.vat, L),
-        buyer: partyView(data.buyer, L.vat, L),
+        buyer: partyView(buyerIdentity(data.buyer, seller), L.vat, L),
         delivery: data.delivery?.address ? partyView({ name: data.delivery.name ?? '', address: data.delivery.address }, L.vat, L) : undefined,
         refLine,
         columns,
         rows,
-        taxes: settings.showTaxBreakdown
+        vatApplicable,
+        taxes: vatApplicable && settings.showTaxBreakdown
             ? totals.taxBreakdown.map((t) => ({ rate: (0, format_1.formatPercent)(t.rate, locale), base: money(t.base), amount: money(t.amount) }))
             : [],
         subtotal: money(totals.subtotal),
@@ -229,7 +261,7 @@ function buildDocumentView(data, options = {}) {
         payment,
         legal,
         notes: data.notes?.trim() || undefined,
-        badge: isFacturXDocument(kind) ? 'Factur-X · EN 16931' : undefined,
+        badge: isFacturXDocument(kind) ? 'Factur-X EN 16931' : undefined,
         poweredBy: settings.showPoweredBy,
         watermark,
         watermarkSize: watermark ? watermarkFontSize(watermark) : undefined,
@@ -256,6 +288,6 @@ function sellerLegalInformation(seller) {
         seller.legalForm?.trim() && seller.capital ? `${seller.legalForm.trim()} au capital de ${seller.capital}` : seller.legalForm?.trim() || (seller.capital ? `Capital ${seller.capital}` : undefined),
         seller.registration?.trim(),
     ].filter(Boolean);
-    return parts.length ? parts.join(' · ') : undefined;
+    return parts.length ? parts.join(', ') : undefined;
 }
 //# sourceMappingURL=view.js.map

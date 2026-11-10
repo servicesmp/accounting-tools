@@ -19,6 +19,13 @@ export declare const COLUMN_SPEC: Record<ColumnKey, {
     bold: boolean;
     primary: boolean;
 }>;
+/**
+ * Identifiants imprimés pour le client (10/11). Un particulier n'a ni n° de TVA intracommunautaire
+ * ni SIRET : ils ne sont repris que pour un client entreprise (raison sociale ou SIRET / SIREN).
+ * Un identifiant égal à celui du vendeur est une erreur de saisie (facture INV-20261106-0001 :
+ * client particulier portant le n° de TVA du prestataire) : jamais imprimé.
+ */
+export declare function buyerIdentity(buyer: DocumentParty, seller: Pick<DocumentParty, 'vatId' | 'siret' | 'siren'>): DocumentParty;
 /** Le document embarque-t-il un XML Factur-X ? (facture et avoir uniquement) */
 export declare function isFacturXDocument(kind: DocumentKind): boolean;
 export interface BuildDocumentViewOptions {

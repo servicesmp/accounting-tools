@@ -83,7 +83,7 @@ function renderDocumentHtml(view, options = {}) {
             v.due ? `<span style="color:${C.slate500}">${e(v.due.label)}</span><span style="text-align:right;font-weight:700;color:${accent}">${e(v.due.value)}</span>` : '',
         ].join('');
         return `<div style="padding:52px 0 0;display:flex;justify-content:space-between;align-items:flex-start">
-<div style="${logoWrap}">${logoBox(50, 50, null, '0')}<div style="display:flex;flex-direction:column;gap:6px"><span style="${F(700, 34)};letter-spacing:-.01em;color:${C.ink}">${e(v.title)}</span><span style="${F(400, 11)};color:${C.slate500}">${e([v.seller.name, v.seller.city].filter(Boolean).join(' · '))}</span></div></div>
+<div style="${logoWrap}">${logoBox(50, 50, null, '0')}<div style="display:flex;flex-direction:column;gap:6px"><span style="${F(700, 34)};letter-spacing:-.01em;color:${C.ink}">${e(v.title)}</span><span style="${F(400, 11)};color:${C.slate500}">${e([v.seller.name, v.seller.city].filter(Boolean).join(', '))}</span></div></div>
 <div style="display:grid;grid-template-columns:auto auto;gap:6px 18px;font-size:11px">${meta}</div>
 </div><div style="margin-top:26px;height:1px;background:${C.line}"></div>`;
     };
@@ -92,7 +92,7 @@ function renderDocumentHtml(view, options = {}) {
         return `<div style="position:relative;margin:0 -56px 0 -56px;background:${primary};color:#fff;padding:40px 56px 0">
 ${s.pattern ? pattern() : ''}
 <div style="position:relative;display:flex;justify-content:space-between;align-items:flex-start">
-<div style="${logoWrap}">${logoBox(50, 40, white, '12px')}<div style="display:flex;flex-direction:column;gap:4px"><span style="${F(700, 19)}">${e(v.seller.name)}</span><span style="${F(400, 10)};color:${(0, color_1.blend)(white, primary, 0.78)}">${e([v.seller.oneLineNoCountry, v.seller.id].filter(Boolean).join(' · '))}</span></div></div>
+<div style="${logoWrap}">${logoBox(50, 40, white, '12px')}<div style="display:flex;flex-direction:column;gap:4px"><span style="${F(700, 19)}">${e(v.seller.name)}</span><span style="${F(400, 10)};color:${(0, color_1.blend)(white, primary, 0.78)}">${e([v.seller.oneLineNoCountry, v.seller.id].filter(Boolean).join(', '))}</span></div></div>
 <span style="${F(700, 28)};letter-spacing:.05em;color:${accent}">${e(v.title)}</span></div>
 <div style="position:relative;margin-top:28px;display:grid;grid-template-columns:repeat(4,1fr);border-top:1px solid ${(0, color_1.blend)(white, primary, 0.18)}">
 ${cell(L.number, v.number)}${cell(L.issue, v.issueDate)}${v.due ? cell(v.due.label, v.due.value) : '<div></div>'}
@@ -101,16 +101,16 @@ ${cell(L.number, v.number)}${cell(L.issue, v.issueDate)}${v.due ? cell(v.due.lab
     };
     const headerSidebarTitle = () => `<div style="padding:52px 0 0;display:flex;flex-direction:column;gap:6px"><span style="${F(700, 40, '/1')};letter-spacing:-.02em;color:${primary}">${e(v.title)}</span><span style="width:48px;height:4px;background:${accent};margin-top:10px"></span></div>`;
     const headerHero = () => `<div style="padding:52px 0 0">
-<div style="display:flex;justify-content:space-between;align-items:center"><div style="display:flex;gap:10px;align-items:center">${logoBox(30, 30, null, '0')}<span style="${F(700, 12)};color:${C.ink}">${e(v.seller.name)}</span></div><span style="${F(700, 11)};letter-spacing:.2em;color:${C.ink}">${e(`${v.title} · ${v.number}`)}</span></div>
+<div style="display:flex;justify-content:space-between;align-items:center"><div style="display:flex;gap:10px;align-items:center">${logoBox(30, 30, null, '0')}<span style="${F(700, 12)};color:${C.ink}">${e(v.seller.name)}</span></div><span style="${F(700, 11)};letter-spacing:.2em;color:${C.ink}">${e(`${v.title} ${v.number}`)}</span></div>
 <div style="margin-top:44px;padding:0 0 30px;border-bottom:2px solid ${C.ink};display:flex;justify-content:space-between;align-items:flex-end">
 <div style="display:flex;flex-direction:column;gap:8px"><span style="${F(400, 11)};color:${C.slate500}">${e(v.amountLabel)}</span><span style="${F(700, 64, '/1')};letter-spacing:-.035em;color:${primary};white-space:nowrap">${e(v.grandTotal)}</span></div>
 ${v.due ? `<div style="display:flex;flex-direction:column;align-items:flex-end;gap:6px;font-size:11px"><span style="color:${C.slate500}">${e(v.due.label)}</span><span style="${F(700, 16)};color:${C.ink}">${e(v.due.value)}</span></div>` : ''}
 </div></div>`;
     const headerCentered = () => {
-        const meta = [`${L.number} ${v.number}`, `${L.issue} ${v.issueDate}`, ...(v.due ? [`${v.due.label} ${v.due.value}`] : [])].join(' · ');
+        const meta = [`${L.number} ${v.number}`, `${L.issue} ${v.issueDate}`, ...(v.due ? [`${v.due.label} ${v.due.value}`] : [])].join(', ');
         return `<div style="padding:48px 0 0;display:flex;flex-direction:column;align-items:center;gap:10px;text-align:center">
 ${logoBox(60, 42, primary, '9999px')}
-<span style="${F(700, 17)};color:${C.ink}">${e(v.seller.name)}</span><span style="${F(400, 10)};color:${C.slate500}">${e([v.seller.oneLineNoCountry, v.seller.vat].filter(Boolean).join(' · '))}</span>
+<span style="${F(700, 17)};color:${C.ink}">${e(v.seller.name)}</span><span style="${F(400, 10)};color:${C.slate500}">${e([v.seller.oneLineNoCountry, v.seller.vat].filter(Boolean).join(', '))}</span>
 <span style="margin-top:14px;padding:8px 22px;border-radius:9999px;background:${accentTint};color:${accent};${F(700, 14)};letter-spacing:.14em">${e(v.title)}</span>
 <span style="${F(400, 11)};color:${C.slate600}">${e(meta)}</span>
 </div>`;
@@ -171,7 +171,7 @@ ${v.rows.map(row).join('\n')}
 </div>`;
     };
     // ── Bas : TVA, paiement, totaux ───────────────────────────────────────────
-    const taxLine = (t) => `${t.rate} · ${L.taxBase} ${t.base} · ${L.taxAmount} ${t.amount}`;
+    const taxLine = (t) => `${t.rate}, ${L.taxBase} ${t.base}, ${L.taxAmount} ${t.amount}`;
     const grandBox = () => {
         const t = s.layout.totals;
         const pad = t === 'plain' ? '10px 0 0' : '12px 14px';
@@ -194,15 +194,15 @@ ${v.rows.map(row).join('\n')}
         const row = (l, val) => `<div style="display:flex;justify-content:space-between;gap:12px"><span style="color:${C.slate500}">${e(l)}</span><span>${e(val)}</span></div>`;
         return `<div style="margin-top:22px;display:grid;grid-template-columns:minmax(0,1fr) ${sb ? 270 : 250}px;gap:${sb ? 16 : 26}px;align-items:start">
 <div style="display:flex;flex-direction:column;gap:14px;font-size:10px">${left.join('')}</div>
-<div style="display:flex;flex-direction:column;gap:7px;font-size:11px">${row(L.subtotal, v.subtotal)}${row(L.taxTotal, v.taxTotal)}${v.extraCharges.map((c) => row(c.label, c.value)).join('')}${grandBox()}</div>
+<div style="display:flex;flex-direction:column;gap:7px;font-size:11px">${v.vatApplicable ? row(L.subtotal, v.subtotal) + row(L.taxTotal, v.taxTotal) : ''}${v.extraCharges.map((c) => row(c.label, c.value)).join('')}${grandBox()}</div>
 </div>`;
     };
     const bottomBand = () => {
         const col = (title, lines) => `<div style="padding:14px 16px;border-right:1px solid ${C.line};display:flex;flex-direction:column;gap:5px;font-size:10px;color:${C.slate600}">${title ? `<span style="${lab(primary)}">${e(title)}</span>` : ''}${lines.map((l) => `<span>${e(l)}</span>`).join('')}</div>`;
-        const c1 = v.taxes.flatMap((t) => [`${t.rate} · ${L.taxBase} ${t.base}`, `${L.taxAmount} ${t.amount}`]);
+        const c1 = v.taxes.flatMap((t) => [`${t.rate}, ${L.taxBase} ${t.base}`, `${L.taxAmount} ${t.amount}`]);
         const c2 = v.payment ? [v.payment.iban, v.payment.bic].filter((x) => !!x) : [];
         const r = `display:flex;justify-content:space-between;gap:12px;color:${(0, color_1.blend)(white, primary, 0.8)}`;
-        const rows = [[L.subtotal, v.subtotal], [L.taxTotal, v.taxTotal], ...v.extraCharges.map((c) => [c.label, c.value])]
+        const rows = [...(v.vatApplicable ? [[L.subtotal, v.subtotal], [L.taxTotal, v.taxTotal]] : []), ...v.extraCharges.map((c) => [c.label, c.value])]
             .map(([l, val]) => `<div style="${r}"><span>${e(l)}</span><span>${e(val)}</span></div>`).join('');
         return `<div style="margin-top:22px;display:grid;grid-template-columns:1fr 1fr 1.4fr;border:1px solid ${C.line}">
 ${col(v.taxes.length ? L.taxBreakdown : '', c1)}${col(v.payment ? L.paymentTerms : '', c2)}
@@ -211,11 +211,11 @@ ${col(v.taxes.length ? L.taxBreakdown : '', c1)}${col(v.payment ? L.paymentTerms
     };
     const bottomCard = () => {
         const lines = [...(v.payment?.iban ? [`${L.iban} ${v.payment.iban}`] : []), ...(v.payment?.bic ? [`${L.bic} ${v.payment.bic}`] : [])];
-        const taxes = v.taxes.map((t) => `${L.taxAmount} ${t.rate} · ${t.amount}`);
+        const taxes = v.taxes.map((t) => `${L.taxAmount} ${t.rate}, ${t.amount}`);
         const extra = v.extraCharges.map((c) => `<div style="display:flex;justify-content:space-between;font-size:10.5px;color:${(0, color_1.blend)(white, primary, 0.85)}"><span>${e(c.label)}</span><span>${e(c.value)}</span></div>`).join('');
         return `<div style="margin-top:24px;display:grid;grid-template-columns:1fr 1fr;gap:16px">
 <div style="padding:16px 18px;border-radius:14px;background:${C.surface};display:flex;flex-direction:column;gap:6px;font-size:10px;color:${C.slate600}"><span style="${lab(accent)}">${e(L.paymentTerms)}</span>${lines.map((l) => `<span>${e(l)}</span>`).join('')}${taxes.map((l) => `<span style="margin-top:4px">${e(l)}</span>`).join('')}</div>
-<div style="padding:18px 20px;border-radius:14px;background:${primary};color:#fff;display:flex;flex-direction:column;justify-content:space-between;gap:10px"><div style="display:flex;flex-direction:column;gap:6px"><div style="display:flex;justify-content:space-between;gap:12px;font-size:10.5px;color:${(0, color_1.blend)(white, primary, 0.85)}"><span>${e(`${L.subtotal} ${v.subtotal}`)}</span><span>${e(`${L.taxTotal} ${v.taxTotal}`)}</span></div>${extra}</div><div style="display:flex;justify-content:space-between;align-items:baseline"><span style="font-weight:700;font-size:12px">${e(L.grandTotal)}</span><span style="${F(700, 26)};white-space:nowrap">${e(v.grandTotal)}</span></div></div>
+<div style="padding:18px 20px;border-radius:14px;background:${primary};color:#fff;display:flex;flex-direction:column;justify-content:space-between;gap:10px"><div style="display:flex;flex-direction:column;gap:6px"><div style="display:flex;justify-content:space-between;gap:12px;font-size:10.5px;color:${(0, color_1.blend)(white, primary, 0.85)}"><span>${v.vatApplicable ? e(`${L.subtotal} ${v.subtotal}`) : ''}</span><span>${v.vatApplicable ? e(`${L.taxTotal} ${v.taxTotal}`) : ''}</span></div>${extra}</div><div style="display:flex;justify-content:space-between;align-items:baseline"><span style="font-weight:700;font-size:12px">${e(L.grandTotal)}</span><span style="${F(700, 26)};white-space:nowrap">${e(v.grandTotal)}</span></div></div>
 </div>`;
     };
     const notes = () => (v.notes

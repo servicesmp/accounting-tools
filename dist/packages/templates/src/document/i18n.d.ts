@@ -17,6 +17,12 @@ export interface DocumentLabels {
     readonly siret: string;
     readonly siren: string;
     readonly columns: Record<ColumnKey, string>;
+    /** Document sans TVA (franchise, exonération) : ni « HT » ni « TTC » (10/11). */
+    readonly noVat: {
+        readonly unitPrice: string;
+        readonly lineTotal: string;
+        readonly grandTotal: string;
+    };
     readonly subtotal: string;
     readonly taxTotal: string;
     readonly grandTotal: string;

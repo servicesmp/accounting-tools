@@ -397,8 +397,8 @@ class TimesheetPdfRenderer {
             c.page = p;
             const last = i === total - 1;
             const legal = last
-                ? [v.legal, v.closing].filter(Boolean).join(' · ')
-                : `${v.title} ${v.runningRef} · ${v.shortTitle.split(' · ').pop()} · ${v.labels.continuedOn} ${i + 2}`;
+                ? [v.legal, v.closing].filter(Boolean).map((t) => (/[.!?]$/.test(String(t).trim()) ? String(t).trim() : `${String(t).trim()}.`)).join(' ')
+                : `${v.title} ${v.runningRef}, ${v.shortTitle.split(', ').slice(1).join(', ')}, ${v.labels.continuedOn} ${i + 2}`;
             // Groupe de droite : [émis avec Services] | Page i / n.
             const pageTxt = `${v.labels.page} ${i + 1} ${v.labels.of} ${total}`;
             let groupW = c.width(pageTxt, s);

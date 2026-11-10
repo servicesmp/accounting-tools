@@ -311,6 +311,12 @@ export interface DocumentView {
         readonly base: string;
         readonly amount: string;
     }[];
+    /**
+     * Faux pour un document sans TVA (toutes les lignes à 0 % avec une mention d'exonération,
+     * ex. franchise art. 293 B) : ni lignes « Sous-total HT » / « Total TVA », ni détail de TVA,
+     * libellés sans HT ni TTC (10/11).
+     */
+    readonly vatApplicable: boolean;
     readonly subtotal: string;
     readonly taxTotal: string;
     /** Frais hors TVA ajoutés au montant à payer. */

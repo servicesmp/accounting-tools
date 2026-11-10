@@ -19,7 +19,7 @@ const DEFAULT_MINUTES_PER_DAY = 480;
 const LOCALES = { fr: 'fr-FR', en: 'en-GB', es: 'es-ES', de: 'de-DE' };
 const plural = (n, one, many) => `${n} ${n > 1 ? many : one}`;
 const fr = {
-    title: 'Relevé de temps', detailedVersion: 'version détaillée', number: 'Numéro', period: 'Période', issued: 'Émis le', status: 'Statut',
+    title: 'Relevé de temps', colon: ' : ', detailedVersion: 'version détaillée', number: 'Numéro', period: 'Période', issued: 'Émis le', status: 'Statut',
     statuses: { draft: 'Brouillon', submitted: 'Chez le client', rejected: 'Refusé', approved: 'Approuvé', invoiced: 'Facturé', paid: 'Payé', cancelled: 'Annulé' },
     provider: 'Prestataire', client: 'Client', contributor: 'Intervenant', attention: "À l'attention de", purchaseOrder: 'Bon de commande',
     service: 'Prestation', workedDays: 'Jours travaillés', referenceDay: 'Journée de référence', timeEntered: 'Temps saisi', deliverables: 'Livrables',
@@ -27,9 +27,9 @@ const fr = {
     billable: 'Fact.', amount: 'Montant', yes: 'Oui', no: 'Non', week: 'Semaine', subtotal: 'Sous-total', total: 'Total', adjustment: 'Ajustement',
     offBilling: 'Hors facturation', billingMode: 'Mode de facturation',
     billingModes: {
-        hour: 'Régie au temps passé · facturation sur relevé validé par le client.',
-        day: 'Régie au jour · facturation sur relevé validé par le client.',
-        deliverable: 'Au livrable · facturation sur relevé validé par le client.',
+        hour: 'Régie au temps passé, facturation sur relevé validé par le client.',
+        day: 'Régie au jour, facturation sur relevé validé par le client.',
+        deliverable: 'Au livrable, facturation sur relevé validé par le client.',
     },
     quantity: 'Quantité facturable', preTax: 'Hors taxes', vat: 'TVA', toInvoice: 'À facturer TTC', toInvoicePreTax: 'À facturer HT',
     submittedBy: 'Soumis par', notSubmitted: 'Non encore soumis', contributorOn: 'intervenant sur la prestation',
@@ -38,8 +38,8 @@ const fr = {
     pendingSince: 'En attente depuis le', reason: 'Motif', fingerprint: 'empreinte', poweredBy: 'Document émis avec', page: 'Page', of: '/',
     continuedOn: 'suite page', draft: 'BROUILLON', noEntries: 'Aucun temps saisi sur la période.', dayUnit: 'j',
     daysCount: (n) => plural(n, 'jour', 'jours'), deliverablesCount: (n) => plural(n, 'livrable', 'livrables'), slotsCount: (n) => plural(n, 'créneau', 'créneaux'),
-    totalWorked: (days) => `Total · ${days} travaillé${days.startsWith('1 ') ? '' : 's'}`,
-    excluded: (what) => `Hors facturation · ${what}, exclu du décompte.`,
+    totalWorked: (days) => `Total : ${days} travaillé${days.startsWith('1 ') ? '' : 's'}`,
+    excluded: (what) => `Hors facturation : ${what}, exclu du décompte.`,
     referenceDayNote: (d) => `Journée de référence ${d}.`,
     approvalNote: 'Une fois ce relevé approuvé, la facture correspondante est établie au tarif prévu au contrat.',
     closingSimple: 'Le détail des créneaux figure dans la version détaillée de ce relevé.',
@@ -50,6 +50,7 @@ const fr = {
 };
 const en = {
     ...fr,
+    colon: ': ',
     title: 'Timesheet', detailedVersion: 'detailed version', number: 'Number', period: 'Period', issued: 'Issued on', status: 'Status',
     statuses: { draft: 'Draft', submitted: 'With the client', rejected: 'Rejected', approved: 'Approved', invoiced: 'Invoiced', paid: 'Paid', cancelled: 'Cancelled' },
     provider: 'Provider', client: 'Client', contributor: 'Consultant', attention: 'Attention of', purchaseOrder: 'Purchase order',
@@ -58,9 +59,9 @@ const en = {
     billable: 'Bill.', amount: 'Amount', yes: 'Yes', no: 'No', week: 'Week', subtotal: 'Subtotal', total: 'Total', adjustment: 'Adjustment',
     offBilling: 'Not billed', billingMode: 'Billing',
     billingModes: {
-        hour: 'Time and materials, hourly · invoiced on the timesheet approved by the client.',
-        day: 'Time and materials, daily · invoiced on the timesheet approved by the client.',
-        deliverable: 'Per deliverable · invoiced on the timesheet approved by the client.',
+        hour: 'Time and materials, hourly, invoiced on the timesheet approved by the client.',
+        day: 'Time and materials, daily, invoiced on the timesheet approved by the client.',
+        deliverable: 'Per deliverable, invoiced on the timesheet approved by the client.',
     },
     quantity: 'Billable quantity', preTax: 'Excl. tax', vat: 'VAT', toInvoice: 'To invoice incl. tax', toInvoicePreTax: 'To invoice excl. tax',
     submittedBy: 'Submitted by', notSubmitted: 'Not submitted yet', contributorOn: 'consultant on the engagement',
@@ -69,8 +70,8 @@ const en = {
     pendingSince: 'Pending since', reason: 'Reason', fingerprint: 'fingerprint', poweredBy: 'Issued with', continuedOn: 'continued on page',
     draft: 'DRAFT', noEntries: 'No time entered for the period.', dayUnit: 'd',
     daysCount: (n) => plural(n, 'day', 'days'), deliverablesCount: (n) => plural(n, 'deliverable', 'deliverables'), slotsCount: (n) => plural(n, 'entry', 'entries'),
-    totalWorked: (days) => `Total · ${days} worked`,
-    excluded: (what) => `Not billed · ${what}, excluded from the count.`,
+    totalWorked: (days) => `Total: ${days} worked`,
+    excluded: (what) => `Not billed: ${what}, excluded from the count.`,
     referenceDayNote: (d) => `Reference day ${d}.`,
     approvalNote: 'Once this timesheet is approved, the matching invoice is issued at the rate set in the contract.',
     closingSimple: 'Each time entry is listed in the detailed version of this timesheet.',
@@ -81,6 +82,7 @@ const en = {
 };
 const es = {
     ...fr,
+    colon: ': ',
     title: 'Relación de horas', detailedVersion: 'versión detallada', number: 'Número', period: 'Periodo', issued: 'Emitido el', status: 'Estado',
     statuses: { draft: 'Borrador', submitted: 'En el cliente', rejected: 'Rechazado', approved: 'Aprobado', invoiced: 'Facturado', paid: 'Pagado', cancelled: 'Cancelado' },
     provider: 'Proveedor', client: 'Cliente', contributor: 'Consultor', attention: 'A la atención de', purchaseOrder: 'Orden de compra',
@@ -89,9 +91,9 @@ const es = {
     billable: 'Fact.', amount: 'Importe', yes: 'Sí', no: 'No', week: 'Semana', subtotal: 'Subtotal', total: 'Total', adjustment: 'Ajuste',
     offBilling: 'No facturado', billingMode: 'Modo de facturación',
     billingModes: {
-        hour: 'Por horas · facturación según la relación aprobada por el cliente.',
-        day: 'Por jornadas · facturación según la relación aprobada por el cliente.',
-        deliverable: 'Por entregable · facturación según la relación aprobada por el cliente.',
+        hour: 'Por horas, facturación según la relación aprobada por el cliente.',
+        day: 'Por jornadas, facturación según la relación aprobada por el cliente.',
+        deliverable: 'Por entregable, facturación según la relación aprobada por el cliente.',
     },
     quantity: 'Cantidad facturable', preTax: 'Sin impuestos', vat: 'IVA', toInvoice: 'A facturar con IVA', toInvoicePreTax: 'A facturar sin IVA',
     submittedBy: 'Enviado por', notSubmitted: 'Aún no enviado', contributorOn: 'consultor del servicio',
@@ -100,8 +102,8 @@ const es = {
     pendingSince: 'Pendiente desde el', reason: 'Motivo', fingerprint: 'huella', poweredBy: 'Documento emitido con', continuedOn: 'continúa en la página',
     draft: 'BORRADOR', noEntries: 'Sin tiempo registrado en el periodo.', dayUnit: 'd',
     daysCount: (n) => plural(n, 'día', 'días'), deliverablesCount: (n) => plural(n, 'entregable', 'entregables'), slotsCount: (n) => plural(n, 'franja', 'franjas'),
-    totalWorked: (days) => `Total · ${days} trabajado${days.startsWith('1 ') ? '' : 's'}`,
-    excluded: (what) => `No facturado · ${what}, excluido del cómputo.`,
+    totalWorked: (days) => `Total: ${days} trabajado${days.startsWith('1 ') ? '' : 's'}`,
+    excluded: (what) => `No facturado: ${what}, excluido del cómputo.`,
     referenceDayNote: (d) => `Jornada de referencia ${d}.`,
     approvalNote: 'Una vez aprobada esta relación, la factura correspondiente se emite a la tarifa prevista en el contrato.',
     closingSimple: 'El detalle de las franjas figura en la versión detallada de esta relación.',
@@ -112,6 +114,7 @@ const es = {
 };
 const de = {
     ...fr,
+    colon: ': ',
     title: 'Zeitnachweis', detailedVersion: 'Detailfassung', number: 'Nummer', period: 'Zeitraum', issued: 'Ausgestellt am', status: 'Status',
     statuses: { draft: 'Entwurf', submitted: 'Beim Kunden', rejected: 'Abgelehnt', approved: 'Freigegeben', invoiced: 'Abgerechnet', paid: 'Bezahlt', cancelled: 'Storniert' },
     provider: 'Auftragnehmer', client: 'Kunde', contributor: 'Berater', attention: 'z. Hd.', purchaseOrder: 'Bestellung',
@@ -120,9 +123,9 @@ const de = {
     billable: 'Abr.', amount: 'Betrag', yes: 'Ja', no: 'Nein', week: 'KW', subtotal: 'Zwischensumme', total: 'Summe', adjustment: 'Korrektur',
     offBilling: 'Nicht abgerechnet', billingMode: 'Abrechnung',
     billingModes: {
-        hour: 'Nach Aufwand, stundenweise · Abrechnung nach vom Kunden freigegebenem Nachweis.',
-        day: 'Nach Aufwand, tageweise · Abrechnung nach vom Kunden freigegebenem Nachweis.',
-        deliverable: 'Pro Lieferung · Abrechnung nach vom Kunden freigegebenem Nachweis.',
+        hour: 'Nach Aufwand, stundenweise, Abrechnung nach vom Kunden freigegebenem Nachweis.',
+        day: 'Nach Aufwand, tageweise, Abrechnung nach vom Kunden freigegebenem Nachweis.',
+        deliverable: 'Pro Lieferung, Abrechnung nach vom Kunden freigegebenem Nachweis.',
     },
     quantity: 'Abrechenbare Menge', preTax: 'Netto', vat: 'USt.', toInvoice: 'Abzurechnen brutto', toInvoicePreTax: 'Abzurechnen netto',
     submittedBy: 'Eingereicht von', notSubmitted: 'Noch nicht eingereicht', contributorOn: 'Berater der Leistung',
@@ -131,8 +134,8 @@ const de = {
     pendingSince: 'Ausstehend seit', reason: 'Grund', fingerprint: 'Prüfsumme', poweredBy: 'Erstellt mit', continuedOn: 'weiter auf Seite',
     draft: 'ENTWURF', noEntries: 'Keine Zeit im Zeitraum erfasst.', dayUnit: 'T',
     daysCount: (n) => plural(n, 'Tag', 'Tage'), deliverablesCount: (n) => plural(n, 'Lieferung', 'Lieferungen'), slotsCount: (n) => plural(n, 'Eintrag', 'Einträge'),
-    totalWorked: (days) => `Summe · ${days} gearbeitet`,
-    excluded: (what) => `Nicht abgerechnet · ${what}, nicht berücksichtigt.`,
+    totalWorked: (days) => `Summe: ${days} gearbeitet`,
+    excluded: (what) => `Nicht abgerechnet: ${what}, nicht berücksichtigt.`,
     referenceDayNote: (d) => `Referenztag ${d}.`,
     approvalNote: 'Nach Freigabe dieses Nachweises wird die Rechnung zum vertraglich vereinbarten Satz erstellt.',
     closingSimple: 'Alle Zeiteinträge stehen in der Detailfassung dieses Nachweises.',
@@ -244,7 +247,7 @@ function buildTimesheetView(data, options = {}) {
     const clientAddress = lines(client.addressLines);
     const providerIds = lines(provider.legalIds, 4);
     const detailed = variant === 'detailed';
-    const providerMuted = [...providerIds, ...(person ? [`${L.contributor} · ${person}`] : [])];
+    const providerMuted = [...providerIds, ...(person ? [`${L.contributor}${L.colon}${person}`] : [])];
     const clientMuted = [...(contact ? [`${L.attention} ${contact}`] : []), ...(po ? [`${L.purchaseOrder} ${po}`] : [])];
     // ── Bandeau ────────────────────────────────────────────────────────────────
     const rateText = includedReason ? L.included[includedReason]
@@ -253,7 +256,7 @@ function buildTimesheetView(data, options = {}) {
         ? [
             { label: L.service, value: line(data.projectName, 200) || '—' },
             { label: L.rate, value: rateText },
-            { label: L.slots, value: `${rows.length} · ${timesheetDuration(totals?.totalMinutes ?? rows.reduce((s, l) => s + l.minutes, 0))}` },
+            { label: L.slots, value: `${rows.length} (${timesheetDuration(totals?.totalMinutes ?? rows.reduce((s, l) => s + l.minutes, 0))}` },
         ]
         : [
             { label: L.service, value: line(data.projectName, 200) || '—' },
@@ -273,7 +276,7 @@ function buildTimesheetView(data, options = {}) {
     const equivalentOf = (minutes, count) => (unit === 'day' ? dayEquivalent(minutes) : unit === 'deliverable' ? String(count) : undefined);
     const simpleRows = [
         ...[...byDay.entries()].map(([day, d]) => ({ day: longDay(day), duration: timesheetDuration(d.minutes), equivalent: equivalentOf(d.minutes, d.count) })),
-        ...adjustments.map((a) => ({ day: `${L.adjustment} · ${a.label}`, duration: signed(a.minutes), equivalent: unit === 'day' ? dayEquivalent(a.minutes) : undefined, muted: true })),
+        ...adjustments.map((a) => ({ day: `${L.adjustment}${L.colon}${a.label}`, duration: signed(a.minutes), equivalent: unit === 'day' ? dayEquivalent(a.minutes) : undefined, muted: true })),
     ];
     const worked = L.daysCount(int(totals?.workedDays));
     const simpleTotal = {
@@ -294,8 +297,8 @@ function buildTimesheetView(data, options = {}) {
         const d2 = isoDay(last);
         const range = first === last ? dayMonth(first)
             : d1.getUTCMonth() === d2.getUTCMonth() ? `${d1.getUTCDate()} – ${dayMonth(last)}` : `${dayMonth(first)} – ${dayMonth(last)}`;
-        const label = `${L.week} ${isoWeek(d1).week} · ${range}`;
-        weeks.push({ label, rows: current.rows, subtotal: { label: `${L.subtotal} · ${label}`, duration: timesheetDuration(current.minutes), amount: rate ? money(current.amount) : '' } });
+        const label = `${L.week} ${isoWeek(d1).week}, ${range}`;
+        weeks.push({ label, rows: current.rows, subtotal: { label: `${L.subtotal}${L.colon}${label}`, duration: timesheetDuration(current.minutes), amount: rate ? money(current.amount) : '' } });
         current = null;
     };
     for (const l of rows) {
@@ -328,13 +331,13 @@ function buildTimesheetView(data, options = {}) {
         ...(excluded.length
             ? [{ label: L.excluded(excluded.length === 1 ? `${excluded[0].label} (${dayMonth(excluded[0].date)})` : L.slotsCount(excluded.length)), value: timesheetDuration(-excludedMinutes) }]
             : []),
-        ...adjustments.map((a) => ({ label: `${L.adjustment} · ${a.label}${a.reason ? ` (${a.reason})` : ''}`, value: signed(a.minutes) })),
+        ...adjustments.map((a) => ({ label: `${L.adjustment}${L.colon}${a.label}${a.reason ? ` (${a.reason})` : ''}`, value: signed(a.minutes) })),
     ];
     const distinctDays = new Set(rows.map((l) => l.date)).size;
     const amount = Math.max(0, int(totals?.amountMinor));
     const quantityText = unit === 'day' ? `${number(Number(totals?.quantity) || 0, locale)} ${L.dayUnit}` : unit === 'deliverable' ? L.deliverablesCount(int(totals?.billableLines)) : timesheetDuration(int(totals?.billableMinutes));
     const summary = [
-        { label: `${L.timeEntered} · ${L.daysCount(distinctDays)}`, value: timesheetDuration(int(totals?.totalMinutes)) },
+        { label: `${L.timeEntered} (${L.daysCount(distinctDays)})`, value: timesheetDuration(int(totals?.totalMinutes)) },
         ...(excludedMinutes ? [{ label: L.offBilling, value: timesheetDuration(-excludedMinutes) }] : []),
         ...(int(totals?.adjustmentMinutes) && unit !== 'deliverable' ? [{ label: L.adjustment, value: signed(int(totals?.adjustmentMinutes)) }] : []),
         { label: includedReason ? L.timeBilled : L.quantity, value: rate ? `${quantityText} × ${money(rate)}` : quantityText },
@@ -344,7 +347,7 @@ function buildTimesheetView(data, options = {}) {
     if (rate) {
         if (vat !== null) {
             const tax = Math.round((amount * vat) / 100);
-            summary.push({ label: `${L.preTax} · ${L.vat} ${number(vat, locale)} %`, value: `${money(amount)} · ${money(tax)}` });
+            summary.push({ label: `${L.preTax}, ${L.vat} ${number(vat, locale)} %`, value: `${money(amount)}, ${money(tax)}` });
             grandTotal = { label: L.toInvoice, value: money(amount + tax) };
         }
         else {
@@ -355,7 +358,7 @@ function buildTimesheetView(data, options = {}) {
     const submittedAt = (0, format_1.toDate)(data.submittedAt ?? null);
     const submitter = line(data.submittedBy, 120) || person || providerName;
     const submitted = submittedAt
-        ? { heading: L.submittedBy, tone: 'neutral', name: submitter, lines: [`${providerName} · ${L.contributorOn}`, stamp(data.submittedAt)] }
+        ? { heading: L.submittedBy, tone: 'neutral', name: submitter, lines: [`${providerName}, ${L.contributorOn}`, stamp(data.submittedAt)] }
         : { heading: L.submittedBy, tone: 'neutral', name: person || providerName, lines: [L.notSubmitted] };
     const v = data.validation;
     let decision;
@@ -363,7 +366,7 @@ function buildTimesheetView(data, options = {}) {
         const fp = line(v.fingerprint, 24);
         decision = {
             heading: L.clientDecision[v.decision], tone: v.decision === 'approved' ? 'success' : 'danger', name: line(v.name, 120) || clientName,
-            lines: [L.channel[v.channel === 'account' ? 'account' : 'link'], [stamp(v.decidedAt), fp ? `${L.fingerprint} ${fp}` : ''].filter(Boolean).join(' · ')].filter(Boolean),
+            lines: [L.channel[v.channel === 'account' ? 'account' : 'link'], [stamp(v.decidedAt), fp ? `${L.fingerprint} ${fp}` : ''].filter(Boolean).join(', ')].filter(Boolean),
             ...(v.decision === 'rejected' && line(v.reason, 300) ? { emphasis: `${L.reason} : ${line(v.reason, 300)}` } : {}),
         };
     }
@@ -373,19 +376,19 @@ function buildTimesheetView(data, options = {}) {
     else {
         decision = { heading: L.clientDecision.none, tone: 'neutral', lines: [] };
     }
-    const legal = line(data.legal, 400) || [providerName, providerAddress.join(', '), ...providerIds].filter(Boolean).join(' · ');
+    const legal = line(data.legal, 400) || [providerName, providerAddress.join(', '), ...providerIds].filter(Boolean).join(', ');
     const watermark = status === 'draft' && settings.statusWatermark ? L.draft : undefined;
     const note = [unit === 'day' ? L.referenceDayNote(timesheetDuration(perDay)) : '', includedReason ? `${L.included[includedReason]}.` : L.approvalNote].filter(Boolean).join(' ');
     return {
         variant, language, locale, settings, labels: L,
         title: L.title,
-        subtitle: [providerName, line(provider.city, 80), detailed ? L.detailedVersion : ''].filter(Boolean).join(' · '),
-        shortTitle: `${L.title} · ${periodLong}`,
-        runningRef: [reference, providerName, clientName].filter(Boolean).join(' · '),
+        subtitle: [providerName, line(provider.city, 80), detailed ? L.detailedVersion : ''].filter(Boolean).join(', '),
+        shortTitle: `${L.title}, ${periodLong}`,
+        runningRef: [reference, providerName, clientName].filter(Boolean).join(', '),
         meta,
         status: { label: L.statuses[status], tone: statusTone },
-        provider: { heading: L.provider, name: providerName, lines: detailed ? (providerAddress.length ? [providerAddress.join(', ')] : []) : providerAddress, muted: detailed ? (providerMuted.length ? [providerMuted.join(' · ')] : []) : providerMuted },
-        client: { heading: L.client, name: clientName, lines: detailed ? (clientAddress.length ? [clientAddress.join(', ')] : []) : clientAddress, muted: detailed ? (clientMuted.length ? [clientMuted.join(' · ')] : []) : clientMuted },
+        provider: { heading: L.provider, name: providerName, lines: detailed ? (providerAddress.length ? [providerAddress.join(', ')] : []) : providerAddress, muted: detailed ? (providerMuted.length ? [providerMuted.join(', ')] : []) : providerMuted },
+        client: { heading: L.client, name: clientName, lines: detailed ? (clientAddress.length ? [clientAddress.join(', ')] : []) : clientAddress, muted: detailed ? (clientMuted.length ? [clientMuted.join(', ')] : []) : clientMuted },
         band,
         simple: { columns: simpleColumns, rows: simpleRows, total: simpleTotal },
         detailed: {

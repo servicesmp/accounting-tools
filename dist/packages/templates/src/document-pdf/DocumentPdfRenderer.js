@@ -321,7 +321,7 @@ class DocumentPdfRenderer {
         this.newPage();
         const v = this.v;
         const top = 52;
-        this.text(`${v.title} · ${v.number} · ${v.labels.continuation}`, this.L, top, { size: 9, bold: true, color: C.slate500, ls: 0.1, upper: false });
+        this.text(`${v.title} ${v.number}, ${v.labels.continuation}`, this.L, top, { size: 9, bold: true, color: C.slate500, ls: 0.1, upper: false });
         return top + normalLH(9) + 16;
     }
     pattern() {
@@ -394,7 +394,7 @@ class DocumentPdfRenderer {
             ty = top;
         }
         this.text(v.title, tx, ty, titleS);
-        this.text([v.seller.name, v.seller.city].filter(Boolean).join(' · '), tx, ty + normalLH(34) + 6, subS);
+        this.text([v.seller.name, v.seller.city].filter(Boolean).join(', '), tx, ty + normalLH(34) + 6, subS);
         // Grille N° / émission / échéance, alignée à droite (colonnes auto, écart 18)
         const rows = [
             { l: v.labels.number, val: v.number, bold: true, accent: false },
@@ -459,7 +459,7 @@ class DocumentPdfRenderer {
             this.logoIn(SIDE, ly, 50, 50);
         }
         this.text(v.seller.name, tx, ty, nameS);
-        this.text([v.seller.oneLineNoCountry, v.seller.id].filter(Boolean).join(' · '), tx, ty + normalLH(19) + 4, subS);
+        this.text([v.seller.oneLineNoCountry, v.seller.id].filter(Boolean).join(', '), tx, ty + normalLH(19) + 4, subS);
         this.text(v.title, exports.PAGE_W - SIDE, top, titleS, 'right');
         // Cellules : N°, émission, échéance, Total TTC (cellule accent jusqu'au bord)
         this.hline(SIDE, exports.PAGE_W - SIDE, cellsTop, 1, (0, color_1.blend)(white, this.primary, 0.18));
@@ -559,7 +559,7 @@ class DocumentPdfRenderer {
             nx += 40;
         }
         this.text(v.seller.name, nx, top + (rowH - normalLH(12)) / 2, { size: 12, bold: true, color: C.ink });
-        this.text(`${v.title} · ${v.number}`, this.R, top + (rowH - normalLH(11)) / 2, { size: 11, bold: true, ls: 0.2, color: C.ink }, 'right');
+        this.text(`${v.title} ${v.number}`, this.R, top + (rowH - normalLH(11)) / 2, { size: 11, bold: true, ls: 0.2, color: C.ink }, 'right');
         // Montant à payer en 64 px + échéance, filet noir 2 px
         const bTop = top + rowH + 44;
         const leftH = normalLH(11) + 8 + 64;
@@ -585,7 +585,7 @@ class DocumentPdfRenderer {
         }
         this.text(v.seller.name, cx, y, { size: 17, bold: true, color: C.ink }, 'center');
         y += normalLH(17) + 10;
-        this.text([v.seller.oneLineNoCountry, v.seller.vat].filter(Boolean).join(' · '), cx, y, { size: 10, color: C.slate500 }, 'center');
+        this.text([v.seller.oneLineNoCountry, v.seller.vat].filter(Boolean).join(', '), cx, y, { size: 10, color: C.slate500 }, 'center');
         y += normalLH(10) + 10 + 14;
         const pS = { size: 14, bold: true, ls: 0.14, color: this.accent };
         const pw = this.width(v.title, pS) + 44;
@@ -593,7 +593,7 @@ class DocumentPdfRenderer {
         this.rect(cx - pw / 2, y, pw, ph, { fill: this.v.theme.accentTint, r: ph / 2 });
         this.text(v.title, cx - pw / 2 + 22, y + 8, pS);
         y += ph + 10;
-        const meta = [`${v.labels.number} ${v.number}`, `${v.labels.issue} ${v.issueDate}`, ...(v.due ? [`${v.due.label} ${v.due.value}`] : [])].join(' · ');
+        const meta = [`${v.labels.number} ${v.number}`, `${v.labels.issue} ${v.issueDate}`, ...(v.due ? [`${v.due.label} ${v.due.value}`] : [])].join(', ');
         this.text(meta, cx, y, { size: 11, color: C.slate600 }, 'center');
         return y + normalLH(11);
     }
@@ -837,7 +837,7 @@ class DocumentPdfRenderer {
     }
     taxLine(t) {
         const L = this.v.labels;
-        return `${t.rate} · ${L.taxBase} ${t.base} · ${L.taxAmount} ${t.amount}`;
+        return `${t.rate}, ${L.taxBase} ${t.base}, ${L.taxAmount} ${t.amount}`;
     }
     bottomStd(y0) {
         const v = this.v;
@@ -858,7 +858,8 @@ class DocumentPdfRenderer {
         const plain = v.settings.layout.totals === 'plain';
         const grandH = (plain ? 10 + 2 : 24) + normalLH(16);
         const extraN = v.extraCharges.length;
-        const rightH = (2 + extraN) * normalLH(11) + (2 + extraN) * 7 + 6 + grandH;
+        const baseN = v.vatApplicable ? 2 : 0; // « Sous-total HT » et « Total TVA », absents sans TVA
+        const rightH = (baseN + extraN) * normalLH(11) + (baseN + extraN) * 7 + 6 + grandH;
         const top = this.ensure(y0 + 22, Math.max(leftH, rightH));
         // Colonne gauche
         let y = top;
@@ -898,8 +899,10 @@ class DocumentPdfRenderer {
             this.text(val, this.R, ry, { size: 11 }, 'right');
             ry += normalLH(11) + 7;
         };
-        row(v.labels.subtotal, v.subtotal);
-        row(v.labels.taxTotal, v.taxTotal);
+        if (v.vatApplicable) {
+            row(v.labels.subtotal, v.subtotal);
+            row(v.labels.taxTotal, v.taxTotal);
+        }
         for (const c of v.extraCharges)
             row(c.label, c.value);
         // ry = fin de la dernière rangée + écart 7 ; le bloc total a en plus margin-top 6
@@ -932,12 +935,13 @@ class DocumentPdfRenderer {
         const s = { size: 10, color: C.slate600 };
         const lab = { size: 9, bold: true, ls: 0.1, upper: true, color: this.primary };
         const inner = w1 - 32 - 1;
-        const c1 = v.taxes.flatMap((t) => [`${t.rate} · ${v.labels.taxBase} ${t.base}`, `${v.labels.taxAmount} ${t.amount}`]);
+        const c1 = v.taxes.flatMap((t) => [`${t.rate}, ${v.labels.taxBase} ${t.base}`, `${v.labels.taxAmount} ${t.amount}`]);
         const c2 = v.payment ? [v.payment.iban, v.payment.bic].filter((x) => !!x) : [];
         const colH = (lines) => normalLH(9) + lines.reduce((a, l) => a + 5 + this.paraHeight(l, inner, s), 0);
         const white = C.white;
         const r = { size: 10.5, color: (0, color_1.blend)(white, this.primary, 0.8) };
-        const c3H = (2 + v.extraCharges.length) * normalLH(10.5) + (1 + v.extraCharges.length) * 6 + 6 + 4 + 1 + 8 + Math.max(normalLH(10.5), normalLH(17));
+        const c3N = (v.vatApplicable ? 2 : 0) + v.extraCharges.length;
+        const c3H = c3N * normalLH(10.5) + Math.max(0, c3N - 1) * 6 + 6 + 4 + 1 + 8 + Math.max(normalLH(10.5), normalLH(17));
         const h = 28 + Math.max(colH(c1), colH(c2), c3H - 0);
         const top = this.ensure(y0 + 22, h + 2);
         this.rect(this.L, top, this.R - this.L, h + 2, { stroke: C.line, sw: 1 });
@@ -965,8 +969,10 @@ class DocumentPdfRenderer {
         const rx = x3 + 16;
         const rr = this.R - 1 - 16;
         const row = (l, val) => { this.text(l, rx, y, r); this.text(val, rr, y, r, 'right'); y += normalLH(10.5) + 6; };
-        row(v.labels.subtotal, v.subtotal);
-        row(v.labels.taxTotal, v.taxTotal);
+        if (v.vatApplicable) {
+            row(v.labels.subtotal, v.subtotal);
+            row(v.labels.taxTotal, v.taxTotal);
+        }
         for (const c of v.extraCharges)
             row(c.label, c.value);
         // y = après la dernière rangée + gap 6 ; la ligne total a margin-top 4, border-top 1, padding-top 8
@@ -991,7 +997,7 @@ class DocumentPdfRenderer {
             ...(v.payment?.iban ? [`${v.labels.iban} ${v.payment.iban}`] : []),
             ...(v.payment?.bic ? [`${v.labels.bic} ${v.payment.bic}`] : []),
         ];
-        const taxLines = v.taxes.map((t) => `${v.labels.taxAmount} ${t.rate} · ${t.amount}`);
+        const taxLines = v.taxes.map((t) => `${v.labels.taxAmount} ${t.rate}, ${t.amount}`);
         const inner = w - 36;
         const leftH = 32 + normalLH(9) + lines.reduce((a, l) => a + 6 + this.paraHeight(l, inner, s), 0) + taxLines.reduce((a, l) => a + 6 + 4 + this.paraHeight(l, inner, s), 0);
         const rightH = 36 + normalLH(10.5) + 10 + Math.max(normalLH(12), normalLH(26)) + v.extraCharges.length * (normalLH(10.5) + 6);
@@ -1016,8 +1022,10 @@ class DocumentPdfRenderer {
         const white = C.white;
         const r = { size: 10.5, color: (0, color_1.blend)(white, this.primary, 0.85) };
         let ry = top + 18;
-        this.text(`${v.labels.subtotal} ${v.subtotal}`, x + 20, ry, r);
-        this.text(`${v.labels.taxTotal} ${v.taxTotal}`, x + w - 20, ry, r, 'right');
+        if (v.vatApplicable) {
+            this.text(`${v.labels.subtotal} ${v.subtotal}`, x + 20, ry, r);
+            this.text(`${v.labels.taxTotal} ${v.taxTotal}`, x + w - 20, ry, r, 'right');
+        }
         ry += normalLH(10.5);
         for (const c of v.extraCharges) {
             ry += 6;
