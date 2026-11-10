@@ -124,6 +124,8 @@ export type TimesheetBillingReason = 'fixed_price' | 'schedule' | 'no_rate';
 
 export interface TimesheetLabels {
   readonly title: string;
+  /** Deux-points selon la langue (« : » en français, « : » sans espace ailleurs). */
+  readonly colon: string;
   readonly detailedVersion: string;
   readonly number: string;
   readonly period: string;

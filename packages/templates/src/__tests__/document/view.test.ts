@@ -32,12 +32,12 @@ describe('vue', () => {
     expect(v.labels.number).toBe('N°');
     expect(v.issueDate).toBe('24/09/2026');
     expect(v.due).toEqual({ label: 'Échéance', value: '24/10/2026' });
-    expect(v.legal).toMatch(/^Atelier Vertex SAS au capital de 10 000 € · RCS Paris 123 456 789 · Pénalités de retard/);
+    expect(v.legal).toMatch(/^Atelier Vertex SAS au capital de 10 000 €\. RCS Paris 123 456 789\. Pénalités de retard/);
     expect(v.legal).toMatch(/40 €/);
     expect(v.legal).toMatch(/Pas d'escompte pour paiement anticipé/);
     expect(v.legal).toMatch(/Nature de l'opération : prestation de services\./);
     expect(v.payment).toEqual({ iban: 'FR76 3000 4000 0312 3456 7890 143', bic: undefined, terms: 'Paiement à 30 jours', qrData: 'https://pay.services.ceo/i/abc' });
-    expect(v.badge).toBe('Factur-X · EN 16931');
+    expect(v.badge).toBe('Factur-X EN 16931');
     expect(v.refLine).toBeUndefined();
     expect(v.amountLabel).toBe('Montant à payer');
   });
@@ -47,7 +47,7 @@ describe('vue', () => {
     expect(v.title).toBe('AVOIR');
     expect(v.refLine).toBe('Avoir sur la facture FA-2026-0042 du 01/09/2026. Motif : remise commerciale.');
     expect(v.grandTotal.startsWith('−')).toBe(true);
-    expect(v.badge).toBe('Factur-X · EN 16931');
+    expect(v.badge).toBe('Factur-X EN 16931');
     expect(() => buildDocumentView(sampleData('credit', { precedingInvoice: undefined }))).toThrow(/facture d'origine/);
   });
 
@@ -73,7 +73,7 @@ describe('vue', () => {
     expect(v.title).toBe('BON DE COMMANDE');
     expect(v.payment).toBeUndefined();
     expect(v.due).toEqual({ label: 'Livraison prévue', value: '12/12/2026' });
-    expect(v.refLine).toBe('Commande n° BC-2026-0007 · référence acheteur PO-4471.');
+    expect(v.refLine).toBe('Commande n° BC-2026-0007, référence acheteur PO-4471.');
     expect(v.badge).toBeUndefined();
   });
 

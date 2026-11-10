@@ -18,14 +18,14 @@ describe('buildTimesheetView', () => {
   it('version simple : une ligne par jour facturé, total de la plateforme, aucune somme', () => {
     const v = buildTimesheetView(mayTimesheet(), { settings: full });
     expect(v.title).toBe('Relevé de temps');
-    expect(v.subtitle).toBe('ZIT SAS · Courbevoie');
+    expect(v.subtitle).toBe('ZIT SAS, Courbevoie');
     expect(v.meta).toEqual([{ label: 'Numéro', value: 'RT-2026-05-014' }, { label: 'Période', value: 'Mai 2026' }, { label: 'Émis le', value: '02/06/2026' }]);
     expect(v.status).toEqual({ label: 'Approuvé', tone: 'success' });
     expect(v.simple.columns).toEqual(['Jour', 'Durée', 'Équivalent']);
     expect(v.simple.rows).toHaveLength(13);
     expect(v.simple.rows[0]).toEqual({ day: 'Lundi 4 mai', duration: '8 h', equivalent: '1 j' });
     expect(v.simple.rows[3]).toMatchObject({ day: 'Jeudi 7 mai', duration: '4 h', equivalent: '0,5 j' });
-    expect(v.simple.total).toEqual({ day: 'Total · 13 jours travaillés', duration: '96 h', equivalent: '12 j' });
+    expect(v.simple.total).toEqual({ day: 'Total : 13 jours travaillés', duration: '96 h', equivalent: '12 j' });
     expect(v.band.map((b) => b.label)).toEqual(['Prestation', 'Jours travaillés', 'Journée de référence']);
     // Le titre de prestation n'est jamais tronqué ; aucune somme dans la version simple.
     expect(v.band[0].value).toBe('Développement Web & API — Refonte du portail de réservation');
@@ -34,25 +34,25 @@ describe('buildTimesheetView', () => {
 
   it('version détaillée : semaines ISO, sous-totaux facturables, créneau hors facturation, décompte HT / TVA / TTC', () => {
     const v = buildTimesheetView(mayTimesheet(), { settings: full, variant: 'detailed' });
-    expect(v.subtitle).toBe('ZIT SAS · Courbevoie · version détaillée');
-    expect(v.detailed.weeks.map((w) => w.label)).toEqual(['Semaine 19 · 4 – 7 mai', 'Semaine 20 · 11 – 15 mai', 'Semaine 21 · 18 – 22 mai']);
+    expect(v.subtitle).toBe('ZIT SAS, Courbevoie, version détaillée');
+    expect(v.detailed.weeks.map((w) => w.label)).toEqual(['Semaine 19, 4 – 7 mai', 'Semaine 20, 11 – 15 mai', 'Semaine 21, 18 – 22 mai']);
     const w21 = v.detailed.weeks[2];
-    expect(w21.subtotal).toEqual({ label: 'Sous-total · Semaine 21 · 18 – 22 mai', duration: '40 h', amount: '2 250,00 €' });
+    expect(w21.subtotal).toEqual({ label: 'Sous-total : Semaine 21, 18 – 22 mai', duration: '40 h', amount: '2 250,00 €' });
     expect(w21.rows[w21.rows.length - 1]).toMatchObject({ slot: '18:00 – 19:00', billable: 'Non', amount: '—', excluded: true });
-    expect(v.detailed.notes).toEqual([{ label: "Hors facturation · Point d'avancement interne (22 mai), exclu du décompte.", value: '− 1 h' }]);
+    expect(v.detailed.notes).toEqual([{ label: "Hors facturation : Point d'avancement interne (22 mai), exclu du décompte.", value: '− 1 h' }]);
     expect(v.detailed.summary).toEqual([
-      { label: 'Temps saisi · 13 jours', value: '97 h' },
+      { label: 'Temps saisi (13 jours)', value: '97 h' },
       { label: 'Hors facturation', value: '− 1 h' },
       { label: 'Quantité facturable', value: '12 j × 450,00 €' },
-      { label: 'Hors taxes · TVA 20 %', value: '5 400,00 € · 1 080,00 €' },
+      { label: 'Hors taxes, TVA 20 %', value: '5 400,00 €, 1 080,00 €' },
     ]);
     expect(v.detailed.grandTotal).toEqual({ label: 'À facturer TTC', value: '6 480,00 €' });
   });
 
   it('validation : soumis par, approuvé (canal, horodatage, empreinte), refusé (motif), en attente, brouillon', () => {
     const approved = buildTimesheetView(mayTimesheet(), { settings: full });
-    expect(approved.submitted).toEqual({ heading: 'Soumis par', tone: 'neutral', name: 'Zang N.', lines: ['ZIT SAS · intervenant sur la prestation', 'Le 2 juin 2026 à 09 h 14'] });
-    expect(approved.decision).toEqual({ heading: 'Approuvé par le client', tone: 'success', name: 'Leïla Haddad', lines: ['Lien de validation reçu par e-mail', 'Le 2 juin 2026 à 16 h 38 · empreinte 7F3A C041'] });
+    expect(approved.submitted).toEqual({ heading: 'Soumis par', tone: 'neutral', name: 'Zang N.', lines: ['ZIT SAS, intervenant sur la prestation', 'Le 2 juin 2026 à 09 h 14'] });
+    expect(approved.decision).toEqual({ heading: 'Approuvé par le client', tone: 'success', name: 'Leïla Haddad', lines: ['Lien de validation reçu par e-mail', 'Le 2 juin 2026 à 16 h 38, empreinte 7F3A C041'] });
     const rejected = buildTimesheetView(mayTimesheet({ status: 'rejected', validation: { decision: 'rejected', name: 'L. H.', decidedAt: '2026-06-03T08:00:00Z', channel: 'account', reason: 'Le 22 est en double' } }), { settings: full });
     expect(rejected.decision).toMatchObject({ heading: 'Refusé par le client', tone: 'danger', emphasis: 'Motif : Le 22 est en double' });
     expect(rejected.decision.lines[0]).toBe('Depuis son espace client');

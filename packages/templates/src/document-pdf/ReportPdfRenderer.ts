@@ -102,7 +102,7 @@ export class ReportPdfRenderer {
     this.newPage();
     const top = 52;
     const s: CanvasTextStyle = { size: 9, bold: true, color: C.gray, ls: 0.1, upper: true };
-    this.c.textClip(`${this.v.title} · ${this.v.labels.continuation}`, PAD_X, top, CONTENT_W, s);
+    this.c.textClip(`${this.v.title}, ${this.v.labels.continuation}`, PAD_X, top, CONTENT_W, s);
     return top + this.c.lineHeight(s) + 16;
   }
 

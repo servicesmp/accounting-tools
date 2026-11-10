@@ -11,17 +11,21 @@ const L = 68;
 const R = PdfCanvas_1.CANVAS_PAGE_W - 68; // 726
 const W = R - L; // 658
 const TOP = 64;
-const BAR_Y = 1071;
+/** Largeur du bloc de conditions du pied (maquette : max-width 420). */
+const FOOT_W = 420;
 const COL_W = 305;
 const COL2_X = L + COL_W + 48; // 421
-/** Colonnes du tableau : désignation flexible, puis 44 / 92 / 52 / 100, espacées de 12. */
-const COLS = { qtyR: 446, priceR: 550, vatR: 614, totalR: R, descW: 322 };
+/** Colonnes du tableau : désignation flexible, puis 44 / 88 / 78 / 100, espacées de 12. */
+const COLS = { qtyR: 424, priceR: 524, vatR: 614, totalR: R, descW: 300 };
 const TOTALS_X = R - 300; // 426
 const st = (size, weight = 500, color = platform_invoice_html_1.PLATFORM_COLORS.ink, extra = {}) => ({ size, weight, color, ...extra });
 class PlatformInvoicePdfRenderer {
     constructor(v, options = {}) {
         this.v = v;
         this.options = options;
+        /** Ordonnée du filet de la barre du pied : dépend du nombre de lignes de l'identité légale. */
+        this.barY = 1071;
+        this.legalLines = [];
     }
     async render() {
         const v = this.v;
@@ -42,6 +46,7 @@ class PlatformInvoicePdfRenderer {
         c.doc.setAuthor(v.seller.name);
         c.doc.setProducer('accounting-tools');
         this.logo = (await c.embedImage(this.options.logo)) ?? (await c.embedAsset('brand', 'services-logo-hd.png')) ?? (await c.embedAsset('brand', 'services-logo.png'));
+        this.layoutBar();
         c.newPage();
         let y = this.header();
         y = this.parties(y);
@@ -69,6 +74,25 @@ class PlatformInvoicePdfRenderer {
         const ruleY = y + this.lh(s) + 5;
         this.c.hline(x, x + COL_W, ruleY, 1, platform_invoice_html_1.PLATFORM_COLORS.rule);
         return ruleY + 1 + 8;
+    }
+    // ─── Barre du pied : logo, identité légale (retour à la ligne possible), pagination ──
+    get legalStyle() { return st(8.5, 500, platform_invoice_html_1.PLATFORM_COLORS.text, { lh: 1.5 }); }
+    get pageStyle() { return st(8.5, 600, platform_invoice_html_1.PLATFORM_COLORS.text); }
+    logoWidth() {
+        if (!this.logo)
+            return 0;
+        return this.logo.width * Math.min(120 / this.logo.width, 13 / this.logo.height);
+    }
+    /** Largeur offerte à l'identité légale entre le logo et « Page x sur n » (espacés de 16). */
+    legalWidth() {
+        const label = this.c.width(this.v.pageLabel(1, 1), this.pageStyle);
+        return W - this.logoWidth() - label - (this.logo ? 32 : 16);
+    }
+    layoutBar() {
+        const { c, v } = this;
+        this.legalLines = v.legalBar ? c.lines(v.legalBar, this.legalWidth(), this.legalStyle) : [];
+        const rowH = Math.max(13, this.legalLines.length * this.lh(this.legalStyle));
+        this.barY = PdfCanvas_1.CANVAS_PAGE_H - (1 + 14 + rowH + 24);
     }
     // ─── En-tête ──────────────────────────────────────────────────────────────
     header() {
@@ -105,15 +129,16 @@ class PlatformInvoicePdfRenderer {
         ry += this.lh(numberStyle) + 6 + 6;
         const label = st(10, 500, platform_invoice_html_1.PLATFORM_COLORS.text);
         const value = st(10, 600, platform_invoice_html_1.PLATFORM_COLORS.ink);
+        // Valeurs alignées à gauche dans une colonne qui se termine à la marge, libellés à droite (maquette).
         const valueW = Math.max(...v.meta.map((m) => c.width(m.value, value)));
-        const labelR = R - valueW - 16;
+        const valueX = R - valueW;
         const rowH = this.lh(label);
         v.meta.forEach((m, i) => {
-            const top = ry + i * (rowH + 4);
-            c.text(m.label, labelR, top, label, 'right');
-            c.text(m.value, R, top, value, 'right');
+            const top = ry + i * (rowH + 5);
+            c.text(m.label, valueX - 10, top, label, 'right');
+            c.text(m.value, valueX, top, value, 'left');
         });
-        ry += v.meta.length * rowH + (v.meta.length - 1) * 4;
+        ry += v.meta.length * rowH + (v.meta.length - 1) * 5;
         const ruleY = Math.max(sy, ry) + 26;
         c.hline(L, R, ruleY, 1, platform_invoice_html_1.PLATFORM_COLORS.ink);
         return ruleY + 1;
@@ -137,7 +162,7 @@ class PlatformInvoicePdfRenderer {
         const vw = COL2_X + COL_W - vx;
         v.info.rows.forEach((r, i) => {
             if (i > 0)
-                ry += 4;
+                ry += 6;
             const vs = st(10, r.strong ? 700 : 600, r.color ?? platform_invoice_html_1.PLATFORM_COLORS.ink);
             c.text(r.label, COL2_X, ry, label);
             ry += Math.max(this.lh(label), c.para(r.value, vx, ry, vw, vs));
@@ -165,7 +190,7 @@ class PlatformInvoicePdfRenderer {
         for (const row of v.rows) {
             const lines = c.lines(row.description, COLS.descW, desc);
             const h = 14 + lines.length * this.lh(desc) + 14;
-            if (y + h > BAR_Y - 24) {
+            if (y + h > this.barY - 24) {
                 c.newPage();
                 y = this.tableHeader(TOP);
             }
@@ -185,9 +210,8 @@ class PlatformInvoicePdfRenderer {
     footerHeight() {
         const { c, v } = this;
         const s = st(9, 500, platform_invoice_html_1.PLATFORM_COLORS.text, { lh: 1.75 });
-        const colW = (W - 30) / 2;
-        const cols = v.footer.map((f) => this.lh(s) + 3 + c.paraHeight(f.text, colW, s));
-        return 22 + Math.max(...cols) + 16;
+        const cols = v.footer.map((f) => this.lh(s) + 3 + c.paraHeight(f.text, FOOT_W, s));
+        return 22 + Math.max(0, ...cols) + 16;
     }
     closing(tableBottom) {
         const { c, v } = this;
@@ -197,7 +221,7 @@ class PlatformInvoicePdfRenderer {
         const alertStyle = st(10.5, 500, platform_invoice_html_1.PLATFORM_COLORS.ink, { lh: 1.6 });
         const alertH = v.alert ? 24 + 13 + c.paraHeight(v.alert, W - 32, alertStyle) + 13 + 2 : 0;
         const footH = this.footerHeight();
-        const footTop = BAR_Y - footH;
+        const footTop = this.barY - footH;
         let y = tableBottom;
         if (y + notesH + 28 + totalsH + alertH > footTop - 16) {
             c.newPage();
@@ -241,26 +265,31 @@ class PlatformInvoicePdfRenderer {
         // Conditions et mentions légales, au-dessus de la barre du pied
         c.hline(L, R, footTop, 1, platform_invoice_html_1.PLATFORM_COLORS.rule);
         const fs = st(9, 500, platform_invoice_html_1.PLATFORM_COLORS.text, { lh: 1.75 });
-        const colW = (W - 30) / 2;
-        v.footer.forEach((f, i) => {
-            const x = L + i * (colW + 30);
-            const ty = footTop + 1 + 22;
-            c.text(f.title, x, ty, st(9, 700, platform_invoice_html_1.PLATFORM_COLORS.ink, { lh: 1.75 }));
-            c.para(f.text, x, ty + this.lh(fs) + 3, colW, fs);
-        });
+        let fy = footTop + 1 + 22;
+        for (const f of v.footer) {
+            c.text(f.title, L, fy, st(9, 700, platform_invoice_html_1.PLATFORM_COLORS.ink, { lh: 1.75 }));
+            fy += this.lh(fs) + 3;
+            fy += c.para(f.text, L, fy, FOOT_W, fs);
+        }
     }
     // ─── Barre du pied (chaque page) ─────────────────────────────────────────
     bars() {
         const { c, v } = this;
         const total = c.pages.length;
+        const top = this.barY + 1 + 14;
+        const ls = this.legalStyle;
+        const textH = this.legalLines.length * this.lh(ls);
+        const rowH = Math.max(13, textH);
+        const logoW = this.logoWidth();
         c.pages.forEach((page, i) => {
             c.page = page;
-            c.hline(0, PdfCanvas_1.CANVAS_PAGE_W, BAR_Y, 1, platform_invoice_html_1.PLATFORM_COLORS.ink);
+            c.hline(0, PdfCanvas_1.CANVAS_PAGE_W, this.barY, 1, platform_invoice_html_1.PLATFORM_COLORS.ink);
             if (this.logo)
-                c.imageContain(this.logo, L, BAR_Y + 1 + 14, 120, 13, 'left');
-            c.text(v.pageLabel(i + 1, total), R, BAR_Y + 1 + 14, st(8.5, 600, platform_invoice_html_1.PLATFORM_COLORS.text), 'right');
+                c.imageContain(this.logo, L, top + (rowH - 13) / 2, 120, 13, 'left');
+            const lx = L + logoW + (this.logo ? 16 : 0);
+            this.legalLines.forEach((line, k) => c.text(line, lx, top + (rowH - textH) / 2 + k * this.lh(ls), ls));
+            c.text(v.pageLabel(i + 1, total), R, top + (rowH - this.lh(this.pageStyle)) / 2, this.pageStyle, 'right');
         });
-        void PdfCanvas_1.CANVAS_PAGE_H;
     }
 }
 exports.PlatformInvoicePdfRenderer = PlatformInvoicePdfRenderer;

@@ -18,7 +18,7 @@ describe('renderDocumentHtml', () => {
     expect(t).toContain('Leonce Yopa');
     expect(t).toContain('Atelier de cadrage');
     expect(html).toContain(escapeHtml(v.grandTotal));
-    expect(t).toContain('Factur-X · EN 16931');
+    expect(t).toContain('Factur-X EN 16931');
     expect(html).toMatch(/^<div class="acc-document acc-document--invoice" lang="fr"/);
   });
 

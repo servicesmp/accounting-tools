@@ -18,6 +18,8 @@ export interface DocumentLabels {
   readonly siret: string;
   readonly siren: string;
   readonly columns: Record<ColumnKey, string>;
+  /** Document sans TVA (franchise, exonération) : ni « HT » ni « TTC » (10/11). */
+  readonly noVat: { readonly unitPrice: string; readonly lineTotal: string; readonly grandTotal: string };
   readonly subtotal: string;
   readonly taxTotal: string;
   readonly grandTotal: string;
@@ -57,6 +59,7 @@ const fr: DocumentLabels = {
   number: 'N°', issue: "Date d'émission", due: 'Échéance', valid: "Valable jusqu'au", delivery: 'Livraison prévue',
   seller: 'Vendeur', buyer: 'Client', vat: 'N° TVA', siret: 'SIRET', siren: 'SIREN',
   columns: { ref: 'Réf.', description: 'Description', quantity: 'Qté', unit: 'Unité', unitPrice: 'PU HT', discount: 'Remise', vatRate: 'TVA', lineTotal: 'Total HT' },
+  noVat: { unitPrice: 'Prix unitaire', lineTotal: 'Montant', grandTotal: 'Total' },
   subtotal: 'Sous-total HT', taxTotal: 'Total TVA', grandTotal: 'Total TTC',
   taxBreakdown: 'Détail de la TVA', taxBase: 'Base', taxAmount: 'TVA',
   paymentTerms: 'Paiement', iban: 'IBAN', bic: 'BIC', scanToPay: 'Scannez pour payer',
@@ -80,7 +83,7 @@ const fr: DocumentLabels = {
   amount: { invoice: 'Montant à payer', credit: 'Montant crédité', quote: 'Montant du devis', order: 'Montant de la commande' },
   creditRef: (n, d, r) => `Avoir sur la facture ${n}${d ? ` du ${d}` : ''}.${r ? ` Motif : ${r}.` : ''}`,
   quoteRef: (days, until) => `${days ? `Devis valable ${days} jours. ` : until ? `Devis valable jusqu'au ${until}. ` : ''}Bon pour accord : date, signature et cachet du client.`,
-  orderRef: (n, ref) => `Commande n° ${n}${ref ? ` · référence acheteur ${ref}` : ''}.`,
+  orderRef: (n, ref) => `Commande n° ${n}${ref ? `, référence acheteur ${ref}` : ''}.`,
   capital: (name, cap) => `${name} au capital de ${cap}`,
   mentions: {
     latePenalties: "Pénalités de retard : 3 fois le taux d'intérêt légal",
@@ -100,6 +103,7 @@ const en: DocumentLabels = {
   number: 'No.', issue: 'Issue date', due: 'Due date', valid: 'Valid until', delivery: 'Expected delivery',
   seller: 'Seller', buyer: 'Buyer', vat: 'VAT No.', siret: 'SIRET', siren: 'SIREN',
   columns: { ref: 'Ref.', description: 'Description', quantity: 'Qty', unit: 'Unit', unitPrice: 'Unit price', discount: 'Discount', vatRate: 'VAT', lineTotal: 'Total' },
+  noVat: { unitPrice: 'Unit price', lineTotal: 'Amount', grandTotal: 'Total' },
   subtotal: 'Subtotal', taxTotal: 'Total VAT', grandTotal: 'Grand total',
   taxBreakdown: 'Tax breakdown', taxBase: 'Base', taxAmount: 'VAT',
   paymentTerms: 'Payment', iban: 'IBAN', bic: 'BIC', scanToPay: 'Scan to pay',
@@ -112,7 +116,7 @@ const en: DocumentLabels = {
   amount: { invoice: 'Amount due', credit: 'Amount credited', quote: 'Quote amount', order: 'Order amount' },
   creditRef: (n, d, r) => `Credit note for invoice ${n}${d ? ` dated ${d}` : ''}.${r ? ` Reason: ${r}.` : ''}`,
   quoteRef: (days, until) => `${days ? `Quote valid for ${days} days. ` : until ? `Quote valid until ${until}. ` : ''}Approval: date, signature and stamp.`,
-  orderRef: (n, ref) => `Order no. ${n}${ref ? ` · buyer reference ${ref}` : ''}.`,
+  orderRef: (n, ref) => `Order no. ${n}${ref ? `, buyer reference ${ref}` : ''}.`,
   capital: (name, cap) => `${name}, share capital ${cap}`,
   mentions: {
     latePenalties: 'Late payment penalties: 3× the legal interest rate',
@@ -132,6 +136,7 @@ const de: DocumentLabels = {
   number: 'Nr.', issue: 'Ausstellungsdatum', due: 'Fälligkeitsdatum', valid: 'Gültig bis', delivery: 'Liefertermin',
   seller: 'Verkäufer', buyer: 'Käufer', vat: 'USt-IdNr.', siret: 'SIRET', siren: 'SIREN',
   columns: { ref: 'Art.-Nr.', description: 'Beschreibung', quantity: 'Menge', unit: 'Einheit', unitPrice: 'Einzelpreis', discount: 'Rabatt', vatRate: 'MwSt', lineTotal: 'Gesamt' },
+  noVat: { unitPrice: 'Einzelpreis', lineTotal: 'Betrag', grandTotal: 'Gesamtbetrag' },
   subtotal: 'Zwischensumme', taxTotal: 'MwSt Gesamt', grandTotal: 'Endsumme',
   taxBreakdown: 'Steueraufschlüsselung', taxBase: 'Basis', taxAmount: 'MwSt',
   paymentTerms: 'Zahlung', iban: 'IBAN', bic: 'BIC', scanToPay: 'Scannen zum Bezahlen',
@@ -144,7 +149,7 @@ const de: DocumentLabels = {
   amount: { invoice: 'Zu zahlender Betrag', credit: 'Gutgeschriebener Betrag', quote: 'Angebotsbetrag', order: 'Bestellbetrag' },
   creditRef: (n, d, r) => `Gutschrift zur Rechnung ${n}${d ? ` vom ${d}` : ''}.${r ? ` Grund: ${r}.` : ''}`,
   quoteRef: (days, until) => `${days ? `Angebot ${days} Tage gültig. ` : until ? `Angebot gültig bis ${until}. ` : ''}Auftragsbestätigung: Datum, Unterschrift, Stempel.`,
-  orderRef: (n, ref) => `Bestellung Nr. ${n}${ref ? ` · Käuferreferenz ${ref}` : ''}.`,
+  orderRef: (n, ref) => `Bestellung Nr. ${n}${ref ? `, Käuferreferenz ${ref}` : ''}.`,
   capital: (name, cap) => `${name}, Stammkapital ${cap}`,
   mentions: {
     latePenalties: 'Verzugszinsen: 3-facher gesetzlicher Zinssatz',
@@ -164,6 +169,7 @@ const es: DocumentLabels = {
   number: 'N.º', issue: 'Fecha de emisión', due: 'Vencimiento', valid: 'Válido hasta', delivery: 'Entrega prevista',
   seller: 'Vendedor', buyer: 'Cliente', vat: 'NIF-IVA', siret: 'SIRET', siren: 'SIREN',
   columns: { ref: 'Ref.', description: 'Descripción', quantity: 'Cant.', unit: 'Unidad', unitPrice: 'Precio unit.', discount: 'Dto.', vatRate: 'IVA', lineTotal: 'Importe' },
+  noVat: { unitPrice: 'Precio unit.', lineTotal: 'Importe', grandTotal: 'Total' },
   subtotal: 'Base imponible', taxTotal: 'Total IVA', grandTotal: 'Total',
   taxBreakdown: 'Desglose del IVA', taxBase: 'Base', taxAmount: 'IVA',
   paymentTerms: 'Pago', iban: 'IBAN', bic: 'BIC', scanToPay: 'Escanee para pagar',
@@ -187,7 +193,7 @@ const es: DocumentLabels = {
   amount: { invoice: 'Importe a pagar', credit: 'Importe abonado', quote: 'Importe del presupuesto', order: 'Importe del pedido' },
   creditRef: (n, d, r) => `Rectifica la factura ${n}${d ? ` del ${d}` : ''}.${r ? ` Motivo: ${r}.` : ''}`,
   quoteRef: (days, until) => `${days ? `Presupuesto válido ${days} días. ` : until ? `Presupuesto válido hasta el ${until}. ` : ''}Conforme: fecha, firma y sello del cliente.`,
-  orderRef: (n, ref) => `Pedido n.º ${n}${ref ? ` · referencia del comprador ${ref}` : ''}.`,
+  orderRef: (n, ref) => `Pedido n.º ${n}${ref ? `, referencia del comprador ${ref}` : ''}.`,
   capital: (name, cap) => `${name}, capital social ${cap}`,
   mentions: {
     latePenalties: 'Intereses de demora: 3 veces el tipo de interés legal',

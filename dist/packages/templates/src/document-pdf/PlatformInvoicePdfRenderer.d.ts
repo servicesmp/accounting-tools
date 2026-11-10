@@ -16,12 +16,21 @@ export declare class PlatformInvoicePdfRenderer {
     private readonly options;
     private c;
     private logo?;
+    /** Ordonnée du filet de la barre du pied : dépend du nombre de lignes de l'identité légale. */
+    private barY;
+    private legalLines;
     constructor(v: PlatformInvoiceView, options?: RenderPlatformInvoicePdfOptions);
     render(): Promise<RenderedPlatformInvoicePdf>;
     private lh;
     /** Texte aligné sur la ligne de base d'un autre style (alignement « baseline » de la maquette). */
     private onBaseline;
     private sectionTitle;
+    private get legalStyle();
+    private get pageStyle();
+    private logoWidth;
+    /** Largeur offerte à l'identité légale entre le logo et « Page x sur n » (espacés de 16). */
+    private legalWidth;
+    private layoutBar;
     private header;
     private parties;
     private tableHeader;

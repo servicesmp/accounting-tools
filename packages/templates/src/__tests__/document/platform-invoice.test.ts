@@ -103,36 +103,33 @@ describe('enregistrement mu-billing → facture de la plateforme', () => {
 describe('vue de la facture d\'abonnement', () => {
   const v = buildPlatformInvoiceView(billingRecordToPlatformInvoiceData(planRecord()));
 
-  it('en-tête : émetteur complet, titre, dates, devise', () => {
+  it('en-tête : émetteur (adresse, e-mail), titre, dates, devise ; identité légale dans la barre du pied', () => {
     expect(v.title).toBe('Facture d’abonnement');
     expect(v.number).toBe('PLAN-20261101-0001');
     expect(v.seller.name).toBe('SERVICES CEO');
-    expect(n(v.seller.firstLineRest)).toBe(', SAS au capital de 1 000 €');
-    expect(v.seller.lines).toEqual([
-      '95 rue du Capitaine Guynemer, 92400 Courbevoie, France',
-      'SIRET 929 101 426 00013',
-      'TVA intracommunautaire FR75 929 101 426',
-      'RCS Nanterre 929 101 426',
-    ]);
+    expect(v.seller.lines).toEqual(['95 rue du Capitaine Guynemer', '92400 Courbevoie, France', 'billing@services.ceo']);
+    expect(n(v.legalBar)).toBe('SERVICES CEO, SAS au capital de 1 000 € — SIRET 929 101 426 00013 — TVA intracommunautaire FR75 929 101 426 — RCS Nanterre 929 101 426');
     expect(v.meta).toEqual([
       { label: 'Date d’émission', value: '01/11/2026' },
-      { label: 'Période facturée', value: '01/11/2026 au 01/12/2026' },
+      { label: 'Période', value: '01/11/2026 au 01/12/2026' },
       { label: 'Échéance', value: '01/11/2026' },
       { label: 'Devise', value: 'Euro' },
     ]);
   });
 
-  it('client et bloc Abonnement', () => {
+  it('client et bloc Règlement', () => {
     expect(v.buyer).toEqual({ name: 'Camille Roux', lines: ['12 rue des Capucins', '69001 Lyon, France', 'camille.roux@mailbox.fr'] });
-    expect(v.info.title).toBe('Abonnement');
-    expect(v.info.rows.map((r) => r.label)).toEqual(['Formule', 'Compte', 'N° d’abonnement', 'Règlement', 'Statut']);
-    expect(v.info.rows[0].value).toBe('Plan Pro, facturation mensuelle');
-    expect(v.info.rows[4]).toEqual(expect.objectContaining({ value: 'Réglée le 01/11/2026', strong: true }));
+    expect(v.info.title).toBe('Règlement');
+    expect(v.info.rows.map((r) => r.label)).toEqual(['Moyen', 'N° d’abonnement', 'Statut']);
+    expect(v.info.rows[0].value).toBe('Carte bancaire, prélèvement automatique');
+    expect(v.info.rows[2]).toEqual(expect.objectContaining({ value: 'Réglée le 01/11/2026', strong: true }));
   });
 
   it('tableau, remise, totaux, reste à payer', () => {
-    expect(v.rows).toEqual([{ description: 'Plan Pro, abonnement mensuel du 01/11/2026 au 01/12/2026', quantity: '1', unitPrice: expect.any(String), vat: expect.any(String), total: expect.any(String) }]);
-    expect(n(v.rows[0].total)).toBe('49,00 €');
+    // Ligne montrée après remise, TVA et TTC en montants ; sous-total et remise détaillés dans les totaux.
+    expect({ ...v.columns, vat: n(v.columns.vat) }).toEqual({ description: 'Désignation', quantity: 'Qté', unitPrice: 'Prix HT', vat: 'TVA 20 %', total: 'Montant TTC' });
+    expect(v.rows.map((r) => [r.description, r.quantity, n(r.unitPrice), n(r.vat), n(r.total)]))
+      .toEqual([['Plan Pro, abonnement mensuel du 01/11/2026 au 01/12/2026', '1', '44,10 €', '8,82 €', '52,92 €']]);
     expect(v.notes.map(n)).toEqual(['Remise appliquée : 4,90 € HT, prix avant remise 49,00 € HT.']);
     expect(v.totals.map((t) => [n(t.label), n(t.value)])).toEqual([
       ['Sous-total HT', '49,00 €'], ['Remise', '− 4,90 €'], ['Total HT', '44,10 €'], ['TVA 20 %', '8,82 €'],
@@ -143,16 +140,15 @@ describe('vue de la facture d\'abonnement', () => {
     expect(v.alert).toBeUndefined();
   });
 
-  it('pied : conditions de l\'abonnement et mentions légales, sans prestataire de paiement', () => {
-    expect(v.footer.map((f) => f.title)).toEqual(['Abonnement', 'Mentions légales']);
-    expect(n(v.footer[1].text)).toContain('Factur-X');
-    expect(n(v.footer[1].text)).toContain('40 €');
+  it('pied : conditions de l\'abonnement seules, sans prestataire de paiement', () => {
+    expect(v.footer.map((f) => f.title)).toEqual(['Abonnement']);
+    expect(n(v.footer[0].text)).toContain('Abonnement sans engagement');
     expect(JSON.stringify(v).toLowerCase()).not.toContain('stripe');
   });
 
   it('prélèvement refusé : statut rouge, montant dû, encadré de relance', () => {
     const f = buildPlatformInvoiceView(billingRecordToPlatformInvoiceData(planRecord(false)));
-    expect(f.info.rows[4]).toEqual(expect.objectContaining({ value: 'Prélèvement refusé', color: '#C1123C' }));
+    expect(f.info.rows[2]).toEqual(expect.objectContaining({ value: 'Prélèvement refusé', color: '#C1123C' }));
     expect(f.rest.label).toBe('Montant dû');
     expect(n(f.rest.value)).toBe('52,92 €');
     expect(f.alert).toBe('Le prélèvement du 01/11/2026 a été refusé. Une nouvelle tentative sera effectuée le 08/11/2026. Mettez votre moyen de paiement à jour pour éviter la suspension du plan.');
@@ -162,17 +158,17 @@ describe('vue de la facture d\'abonnement', () => {
 describe('vue de la facture de frais de service', () => {
   const v = buildPlatformInvoiceView(billingRecordToPlatformInvoiceData(feesRecord()));
 
-  it('client complet (forme, capital, SIRET, TVA, e-mail) et opération concernée', () => {
+  it('client complet (adresse, e-mail, SIRET, TVA) et bloc Règlement', () => {
     expect(v.title).toBe('Facture de frais de service');
     expect(v.meta.map((m) => m.label)).toEqual(['Date d’émission', 'Échéance', 'Date de règlement', 'Devise']);
     expect(v.buyer.lines.map(n)).toEqual([
-      'SASU au capital de 5 000 €', '14 rue Mercière, 69002 Lyon, France', 'SIRET 912 345 678 00021', 'TVA intracommunautaire FR12 912 345 678', 'camille@studio-lumen.fr',
+      '14 rue Mercière', '69002 Lyon, France', 'camille@studio-lumen.fr', 'SIRET 912 345 678 00021', 'TVA intracommunautaire FR12 912 345 678',
     ]);
-    expect(v.info.title).toBe('Opération concernée');
+    expect(v.info.title).toBe('Règlement');
     expect(v.info.rows.map((r) => [r.label, n(r.value)])).toEqual([
-      ['Facture', 'INV-20261101-0012'], ['Client final', 'Maison Pradel'], ['Montant encaissé', '1 200,00 € HT'],
-      ['Règlement', 'Prélèvement sur le wallet'], ['Statut', 'Réglée le 01/11/2026'],
+      ['Moyen', 'Prélèvement sur le wallet'], ['Facture concernée', 'INV-20261101-0012'], ['Statut', 'Réglée le 01/11/2026'],
     ]);
+    expect(v.rows.map((r) => [n(r.unitPrice), n(r.vat), n(r.total)])).toEqual([['80,00 €', '16,00 €', '96,00 €']]);
   });
 
   it('commission : mention sous le tableau et conditions du pied', () => {
@@ -190,6 +186,10 @@ describe('vue de la facture de frais de service', () => {
     ] });
     const f = buildPlatformInvoiceView(billingRecordToPlatformInvoiceData(rec));
     expect(f.rows).toHaveLength(2);
+    // Les lignes s'additionnent exactement aux totaux (TVA reportée sur la dernière ligne du groupe).
+    const cents = (x: string) => Number(n(x).replace(/[^\d]/g, ''));
+    expect(f.rows.reduce((t, r) => t + cents(r.total), 0)).toBe(f.totalsRaw.total);
+    expect(f.rows.reduce((t, r) => t + cents(r.vat), 0)).toBe(f.totalsRaw.tax);
     expect(f.notes.some((x) => x.includes('frais de paiement par carte'))).toBe(true);
   });
 });
@@ -211,7 +211,8 @@ describe('HTML', () => {
     expect(html).not.toContain('<script>');
     expect(html).toContain('&lt;script&gt;');
     expect(html).not.toContain('javascript:');
-    expect(html).toContain('Opération concernée');
+    expect(html).toContain('Règlement');
+    expect(n(html)).toContain('SERVICES CEO, SAS au capital');
     expect(html).toContain('#FF3864');
   });
 });
@@ -257,7 +258,7 @@ describe('PDF et XML Factur-X', () => {
     expect(r.warnings.some((w) => w.includes('montant prélevé'))).toBe(true);
   });
 
-  it('beaucoup de lignes : pagination, pied légal sur la dernière page', async () => {
+  it('beaucoup de lignes : pagination, conditions sur la dernière page', async () => {
     const lines = Array.from({ length: 40 }, (_, i) => ({ description: `Commission sur l'encaissement n° ${i + 1}`, quantity: 1, unitPrice: 100, vatRate: 0.2 }));
     const r = await generatePlatformInvoicePdf({ data: billingRecordToPlatformInvoiceData(feesRecord({ lines, totalAmount: 4800 })) });
     expect(r.pageCount).toBeGreaterThan(1);

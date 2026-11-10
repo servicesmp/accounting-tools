@@ -142,7 +142,7 @@ export function renderTimesheetHtml(view: TimesheetView, options: RenderTimeshee
     ? `<span style="display:flex;align-items:center;gap:6px;padding-right:10px;border-right:1px solid ${C.line}"><span style="${F(400, 8)};color:${C.slate500};white-space:nowrap">${e(L.poweredBy)}</span>${servicesLogo ? `<img src="${e(servicesLogo)}" alt="Services" style="height:11px;display:block">` : `<b style="font-size:9px;color:${C.ink}">Services</b>`}</span>`
     : '';
   const footer = `<div style="position:absolute;left:${TIMESHEET_SIDE}px;right:${TIMESHEET_SIDE}px;bottom:34px;padding-top:12px;border-top:1px solid ${C.line};display:flex;justify-content:space-between;align-items:flex-end;gap:20px;font-size:8.5px;color:${C.slate500}">
-<span style="max-width:500px;line-height:1.5;${wrap}">${e([v.legal, v.closing].filter(Boolean).join(' · '))}</span>
+<span style="max-width:500px;line-height:1.5;${wrap}">${e([v.legal, v.closing].filter(Boolean).map((t) => (/[.!?]$/.test(String(t).trim()) ? String(t).trim() : `${String(t).trim()}.`)).join(' '))}</span>
 <div style="display:flex;align-items:center;gap:10px;flex:none">${powered}<span style="white-space:nowrap">${e(`${L.page} 1 ${L.of} 1`)}</span></div>
 </div>`;
   const watermark = v.watermark

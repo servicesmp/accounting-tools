@@ -33,7 +33,7 @@ function renderPlatformInvoiceHtml(view, options = {}) {
     const font = fontStack(options.fontFamily);
     const logo = (0, html_1.safeImageUrl)(options.logoUrl);
     const num = 'font-variant-numeric:tabular-nums';
-    const grid = 'display:grid;grid-template-columns:minmax(0,1fr) 44px 92px 52px 100px;gap:12px';
+    const grid = 'display:grid;grid-template-columns:minmax(0,1fr) 44px 88px 78px 100px;gap:12px';
     const section = (title) => `<div style="font-size:8.5px;font-weight:600;letter-spacing:.22em;text-transform:uppercase;color:${C.accentText};padding-bottom:5px;border-bottom:1px solid ${C.rule}">${e(title)}</div>`;
     const logoImg = (h) => (logo
         ? `<img src="${e(logo)}" alt="Services" style="height:${h}px;width:auto;object-fit:contain;object-position:left center;display:block;flex:none">`
@@ -48,8 +48,8 @@ function renderPlatformInvoiceHtml(view, options = {}) {
     <span style="width:26px;height:2px;background:${C.accent};display:block;margin-bottom:2px"></span>
     <div style="font-size:8.5px;font-weight:600;letter-spacing:.26em;text-transform:uppercase;color:${C.accentText}">${e(v.title)}</div>
     <div style="font-size:19px;font-weight:700;letter-spacing:-.01em;${num}">${e(v.number)}</div>
-    <div style="margin-top:6px;display:grid;grid-template-columns:auto auto;gap:4px 16px;font-size:10px;color:${C.text};text-align:right">
-      ${v.meta.map((m) => `<span>${e(m.label)}</span><span style="font-weight:600;color:${C.ink};${num}">${e(m.value)}</span>`).join('')}
+    <div style="margin-top:6px;display:grid;grid-template-columns:auto auto;gap:5px 10px;font-size:10px;color:${C.text};text-align:right;white-space:nowrap;align-items:baseline">
+      ${v.meta.map((m) => `<span>${e(m.label)}</span><span style="font-weight:600;color:${C.ink};text-align:left;${num}">${e(m.value)}</span>`).join('')}
     </div>
   </div>
 </div>
@@ -63,8 +63,8 @@ function renderPlatformInvoiceHtml(view, options = {}) {
   </div>
   <div style="display:flex;flex-direction:column;gap:8px">
     ${section(v.info.title)}
-    <div style="display:grid;grid-template-columns:auto minmax(0,1fr);gap:4px 14px;font-size:10px;color:${C.text}">
-      ${v.info.rows.map((r) => `<span>${e(r.label)}</span><span style="font-weight:${r.strong ? 700 : 600};color:${r.color ?? C.ink};overflow-wrap:anywhere">${e(r.value)}</span>`).join('')}
+    <div style="display:grid;grid-template-columns:auto minmax(0,1fr);gap:6px 14px;font-size:10px;color:${C.text};align-items:baseline">
+      ${v.info.rows.map((r) => `<span style="white-space:nowrap">${e(r.label)}</span><span style="font-weight:${r.strong ? 700 : 600};color:${r.color ?? C.ink};overflow-wrap:anywhere">${e(r.value)}</span>`).join('')}
     </div>
   </div>
 </div>`;
@@ -74,7 +74,7 @@ function renderPlatformInvoiceHtml(view, options = {}) {
     <span>${e(v.columns.description)}</span><span style="text-align:right">${e(v.columns.quantity)}</span><span style="text-align:right">${e(v.columns.unitPrice)}</span><span style="text-align:right">${e(v.columns.vat)}</span><span style="text-align:right">${e(v.columns.total)}</span>
   </div>
   ${v.rows.map((r) => `<div style="${grid};padding:14px 0;border-bottom:1px solid ${C.rule};align-items:baseline;font-size:11.5px">
-    <span style="font-weight:600;min-width:0;overflow-wrap:anywhere">${e(r.description)}</span><span style="text-align:right;${num}">${e(r.quantity)}</span><span style="text-align:right;${num}">${e(r.unitPrice)}</span><span style="text-align:right;color:${C.text}">${e(r.vat)}</span><span style="text-align:right;font-weight:600;${num}">${e(r.total)}</span>
+    <span style="font-weight:600;min-width:0;overflow-wrap:anywhere">${e(r.description)}</span><span style="text-align:right;${num}">${e(r.quantity)}</span><span style="text-align:right;${num}">${e(r.unitPrice)}</span><span style="text-align:right;${num}">${e(r.vat)}</span><span style="text-align:right;font-weight:600;${num}">${e(r.total)}</span>
   </div>`).join('')}
   ${v.notes.length ? `<div style="padding-top:12px;font-size:9.5px;line-height:1.7;color:${C.text}">${v.notes.map(e).join('<br>')}</div>` : ''}
 </div>`;
@@ -90,12 +90,12 @@ function renderPlatformInvoiceHtml(view, options = {}) {
         ? `<div style="margin-top:24px;padding:13px 15px;border:1px solid ${C.ink};font-size:10.5px;line-height:1.6">${e(v.alert)}</div>`
         : '';
     const footer = `
-<div style="margin-top:auto;padding:22px 0 16px;border-top:1px solid ${C.rule};display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:30px;font-size:9px;line-height:1.75;color:${C.text}">
+<div style="margin-top:auto;padding:22px 0 16px;border-top:1px solid ${C.rule};font-size:9px;line-height:1.75;color:${C.text};max-width:420px">
   ${v.footer.map((f) => `<div><span style="display:block;font-weight:700;color:${C.ink};margin-bottom:3px">${e(f.title)}</span>${e(f.text)}</div>`).join('')}
 </div>`;
     const bar = `
 <div style="flex:none;padding:14px 68px 24px;border-top:1px solid ${C.ink};display:flex;align-items:center;gap:16px">
-  ${logoImg(13)}<span style="flex:1"></span>
+  ${logoImg(13)}<span style="flex:1;min-width:0;font-size:8.5px;line-height:1.5;color:${C.text}">${e(v.legalBar)}</span>
   <span style="font-size:8.5px;font-weight:600;color:${C.text};${num};white-space:nowrap">${e(v.pageLabel(1, 1))}</span>
 </div>`;
     return `<div${options.id ? ` id="${e(options.id)}"` : ''} class="smp-platform-invoice" style="width:${exports.PLATFORM_PAGE_W}px;min-height:${exports.PLATFORM_PAGE_H}px;box-sizing:border-box;background:${C.white};display:flex;flex-direction:column;position:relative;overflow:hidden;font-family:${font};font-weight:500;color:${C.ink}">

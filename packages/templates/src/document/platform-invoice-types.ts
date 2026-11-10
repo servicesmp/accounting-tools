@@ -118,13 +118,13 @@ export interface PlatformInvoiceView {
   /** « FACTURE D'ABONNEMENT », « FACTURE DE FRAIS DE SERVICE » (capitales au rendu). */
   readonly title: string;
   readonly number: string;
-  /** Émetteur : nom en gras, suite de la première ligne (forme, capital), lignes suivantes. */
+  /** Émetteur : nom en gras, lignes suivantes (adresse, e-mail). L'identité légale est dans la barre du pied. */
   readonly seller: { readonly name: string; readonly firstLineRest: string; readonly lines: readonly string[] };
   /** Dates et devise, à droite de l'en-tête. */
   readonly meta: readonly { readonly label: string; readonly value: string }[];
   readonly buyerTitle: string;
   readonly buyer: { readonly name: string; readonly lines: readonly string[] };
-  /** Bloc de droite : « Abonnement » ou « Opération concernée ». */
+  /** Bloc de droite : « Règlement » (moyen, référence, statut). */
   readonly info: { readonly title: string; readonly rows: readonly PlatformInfoRow[] };
   readonly columns: { readonly description: string; readonly quantity: string; readonly unitPrice: string; readonly vat: string; readonly total: string };
   readonly rows: readonly PlatformInvoiceRow[];
@@ -136,8 +136,10 @@ export interface PlatformInvoiceView {
   readonly rest: { readonly label: string; readonly value: string };
   /** Encadré du prélèvement refusé. */
   readonly alert?: string;
-  /** Deux colonnes du pied : conditions (abonnement / frais de service) et mentions légales. */
+  /** Bloc de conditions au-dessus de la barre du pied (abonnement / frais de service). */
   readonly footer: readonly { readonly title: string; readonly text: string }[];
+  /** Identité légale de l'émetteur, imprimée dans la barre du pied : « SERVICES CEO, SAS au capital de 1 000 € — SIRET … ». */
+  readonly legalBar: string;
   readonly pageLabel: (page: number, total: number) => string;
   /** Totaux en unités mineures (contrôles, XML). */
   readonly totalsRaw: {

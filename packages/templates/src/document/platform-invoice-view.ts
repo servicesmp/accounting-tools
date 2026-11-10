@@ -13,7 +13,6 @@ const LOCALE = 'fr-FR';
 export const PLATFORM_ALERT_COLOR = '#C1123C';
 
 const PLAN_INTERVAL = { monthly: 'mensuel', annual: 'annuel' } as const;
-const PLAN_BILLING = { monthly: 'facturation mensuelle', annual: 'facturation annuelle' } as const;
 
 // ─── Mise en forme des identifiants ──────────────────────────────────────────
 
@@ -98,6 +97,23 @@ export function computePlatformTotals(data: PlatformInvoiceData): DocumentTotals
   return { subtotal, taxTotal, total: subtotal - discount + taxTotal, taxBreakdown, ...(discount ? { allowanceTotal: discount } : {}) };
 }
 
+/**
+ * TVA de chaque ligne (unités mineures), arrondie par ligne ; l'écart d'arrondi avec la TVA du
+ * groupe de même taux (arrondie sur la base cumulée, comme les totaux) est reporté sur la dernière
+ * ligne du groupe, pour que les lignes s'additionnent exactement aux totaux.
+ */
+function lineTaxes(lines: PlatformInvoiceData['lines'], bases: readonly number[]): number[] {
+  const taxes = lines.map((l, i) => Math.round((bases[i] * (Number(l.vatRate) || 0)) / 100));
+  const groups = new Map<number, number[]>();
+  lines.forEach((l, i) => groups.set(Number(l.vatRate) || 0, [...(groups.get(Number(l.vatRate) || 0) ?? []), i]));
+  for (const [rate, idx] of groups) {
+    const target = Math.round((idx.reduce((s, i) => s + bases[i], 0) * rate) / 100);
+    const gap = target - idx.reduce((s, i) => s + taxes[i], 0);
+    taxes[idx[idx.length - 1]] += gap;
+  }
+  return taxes;
+}
+
 // ─── Données → XML Factur-X ──────────────────────────────────────────────────
 
 function infoAsText(view: Pick<PlatformInvoiceView, 'info'>): string {
@@ -114,7 +130,7 @@ export function platformInvoiceToDocumentData(data: PlatformInvoiceData, view: P
   const due = toDate(data.dueDate) ?? issue;
   const discount = Math.max(0, Math.round(Number(data.discount?.amount) || 0));
   const subscription = data.kind === 'subscription';
-  const notes = [infoAsText(view), ...view.notes, ...(view.alert ? [view.alert] : []), ...view.footer.filter((f) => f.title !== 'Mentions légales').map((f) => `${f.title} : ${f.text}`)];
+  const notes = [infoAsText(view), ...view.notes, ...(view.alert ? [view.alert] : []), ...view.footer.map((f) => `${f.title} : ${f.text}`)];
   return {
     kind: 'invoice',
     number: data.number,
@@ -162,13 +178,17 @@ export function buildPlatformInvoiceView(data: PlatformInvoiceData, options: Bui
   const sellerLegal = legalLine(s);
   const seller = {
     name: s.name.toLocaleUpperCase('fr-FR'),
-    firstLineRest: sellerLegal ? `, ${sellerLegal}` : '',
-    lines: [[sAddr.street, sAddr.city].filter(Boolean).join(', '), ...idLines(s), ...(s.registration ? [s.registration] : [])].filter(Boolean),
+    firstLineRest: '',
+    lines: [sAddr.street, sAddr.city, s.email].filter((l): l is string => !!l),
   };
+  // Barre du pied : « SERVICES CEO, SAS au capital de 1 000 € — SIRET … — TVA … — RCS … ».
+  // Espaces insécables dans chaque mention : un retour à la ligne ne coupe qu'entre deux mentions.
+  const legalBar = [`${seller.name}${sellerLegal ? `, ${sellerLegal}` : ''}`, ...idLines(s), ...(s.registration ? [s.registration] : [])]
+    .map((part) => part.replace(/ /g, '\u00a0')).join(' — ');
 
   // En-tête
   const meta: { label: string; value: string }[] = [{ label: 'Date d’émission', value: date(issue) }];
-  if (data.period) meta.push({ label: 'Période facturée', value: `${date(data.period.start)} au ${date(data.period.end)}` });
+  if (data.period) meta.push({ label: 'Période', value: `${date(data.period.start)} au ${date(data.period.end)}` });
   meta.push({ label: 'Échéance', value: date(dueDate < issue ? issue : dueDate) });
   if (!subscription && paidAt) meta.push({ label: 'Date de règlement', value: date(paidAt) });
   meta.push({ label: 'Devise', value: currencyDisplayName(cur) });
@@ -176,9 +196,7 @@ export function buildPlatformInvoiceView(data: PlatformInvoiceData, options: Bui
   // Client
   const b = data.buyer;
   const bAddr = addressParts(b);
-  const buyerLines = subscription
-    ? [bAddr.street, bAddr.city, b.email]
-    : [legalLine(b), [bAddr.street, bAddr.city].filter(Boolean).join(', '), ...idLines(b), b.email];
+  const buyerLines = [bAddr.street, bAddr.city, b.email, ...(subscription ? [] : idLines(b))];
   const buyer = { name: b.legalName && !subscription ? b.legalName : b.name, lines: buyerLines.filter((l): l is string => !!l) };
 
   // Statut
@@ -196,36 +214,35 @@ export function buildPlatformInvoiceView(data: PlatformInvoiceData, options: Bui
   const op = data.operation ?? {};
   const sub = data.subscription;
   const rate = op.commissionRate !== undefined ? formatPercent(op.commissionRate, LOCALE) : undefined;
-  const info = subscription
-    ? {
-      title: 'Abonnement',
-      rows: [
-        ...(sub ? [{ label: 'Formule', value: `Plan ${sub.planName}, ${PLAN_BILLING[sub.interval]}${sub.planChange ? ' (changement de plan)' : ''}` }] : []),
-        ...(sub?.account ?? b.email ? [{ label: 'Compte', value: (sub?.account ?? b.email)! }] : []),
+  // Bloc « Règlement » : moyen, référence propre à Services (abonnement ou facture concernée), statut.
+  const info = {
+    title: 'Règlement',
+    rows: subscription
+      ? [
+        { label: 'Moyen', value: 'Carte bancaire, prélèvement automatique' },
         ...(sub?.reference ? [{ label: 'N° d’abonnement', value: sub.reference }] : []),
-        { label: 'Règlement', value: 'Carte bancaire, prélèvement automatique' },
+        statusRow(),
+      ]
+      : [
+        { label: 'Moyen', value: 'Prélèvement sur le wallet' },
+        ...(op.invoiceNumber ? [{ label: 'Facture concernée', value: op.invoiceNumber }] : []),
         statusRow(),
       ],
-    }
-    : {
-      title: 'Opération concernée',
-      rows: [
-        ...(op.invoiceNumber ? [{ label: 'Facture', value: op.invoiceNumber }] : []),
-        ...(op.clientName ? [{ label: 'Client final', value: op.clientName }] : []),
-        ...(op.collectedAmount !== undefined ? [{ label: 'Montant encaissé', value: `${money(op.collectedAmount)} HT` }] : []),
-        { label: 'Règlement', value: 'Prélèvement sur le wallet' },
-        statusRow(),
-      ],
-    };
+  };
 
-  // Lignes
-  const rows = data.lines.map((l) => ({
+  // Lignes : montants affichés TVA et TTC comprises. Avec une remise de document sur une ligne
+  // unique, la ligne est montrée après remise (les totaux détaillent sous-total et remise).
+  const netLine = discount > 0 && data.lines.length === 1 && Number(data.lines[0].quantity) === 1;
+  const baseOf = data.lines.map((l) => (netLine ? computeLineTotal(l) - discount : computeLineTotal(l)));
+  const taxOf = lineTaxes(data.lines, baseOf);
+  const rows = data.lines.map((l, i) => ({
     description: [l.description, l.details].filter(Boolean).join(' — '),
     quantity: formatQuantity(l.quantity, LOCALE),
-    unitPrice: money(l.unitPrice),
-    vat: formatPercent(Number(l.vatRate) || 0, LOCALE),
-    total: money(computeLineTotal(l)),
+    unitPrice: money(netLine ? baseOf[i] : l.unitPrice),
+    vat: money(taxOf[i]),
+    total: money(baseOf[i] + taxOf[i]),
   }));
+  const lineRates = [...new Set(data.lines.map((l) => Number(l.vatRate) || 0))];
 
   // Mentions sous le tableau
   const notes: string[] = [];
@@ -260,10 +277,7 @@ export function buildPlatformInvoiceView(data: PlatformInvoiceData, options: Bui
       : `Le prélèvement${failed} a été refusé. Mettez votre moyen de paiement à jour pour régler cette facture et éviter la suspension du plan.`;
   }
 
-  // Pied
-  const rates = [...new Set(data.lines.map((l) => Number(l.vatRate) || 0))].map((r) => formatPercent(r, LOCALE));
-  const vatText = rates.length === 1 ? `TVA française au taux de ${rates[0]}.` : `TVA française aux taux de ${rates.join(', ')}.`;
-  const legal = `${vatText} Facture émise au format Factur-X (PDF/A-3, norme EN 16931). En cas de retard de paiement : pénalités au taux de 3\u00a0fois le taux d’intérêt légal et indemnité forfaitaire de 40\u00a0€ pour frais de recouvrement, article L441-10 du Code de commerce. Pas d’escompte pour paiement anticipé.`;
+  // Pied : conditions de l'abonnement ou des frais de service.
   const conditions = subscription
     ? { title: 'Abonnement', text: 'Abonnement sans engagement, renouvelé automatiquement à chaque échéance. Résiliable à tout moment, l’arrêt prenant effet à la fin de la période en cours.' }
     : {
@@ -281,14 +295,15 @@ export function buildPlatformInvoiceView(data: PlatformInvoiceData, options: Bui
     buyerTitle: 'Facturé à',
     buyer,
     info,
-    columns: { description: 'Désignation', quantity: 'Qté', unitPrice: 'Prix HT', vat: 'TVA', total: 'Montant HT' },
+    columns: { description: 'Désignation', quantity: 'Qté', unitPrice: 'Prix HT', vat: lineRates.length === 1 ? `TVA ${formatPercent(lineRates[0], LOCALE)}` : 'TVA', total: 'Montant TTC' },
     rows,
     notes,
     totals: totalRows,
     grandTotal: { label: 'Total TTC', value: money(totals.total) },
     rest: data.state === 'paid' ? { label: 'Reste à payer', value: money(0) } : { label: 'Montant dû', value: money(due) },
     alert,
-    footer: [conditions, { title: 'Mentions légales', text: legal }],
+    footer: [conditions],
+    legalBar,
     pageLabel: (page, total) => `Page ${page} sur ${total}`,
     totalsRaw: { lines: totals.subtotal, discount, taxBasis, tax: totals.taxTotal, total: totals.total, paid, due },
   };
