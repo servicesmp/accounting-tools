@@ -39,6 +39,11 @@ export interface BuildDocumentViewOptions {
  */
 export declare function watermarkFontSize(text: string): number;
 export declare function buildDocumentView(data: DocumentData, options?: BuildDocumentViewOptions): DocumentView;
+/**
+ * Client entreprise : raison sociale, SIRET ou SIREN connus — même définition pour les mentions de
+ * règlement et pour les identifiants imprimés (`buyerIdentity`). Sans aucun d'eux : un particulier.
+ */
+export declare function isProfessionalParty(party: Pick<DocumentParty, 'siren' | 'siret' | 'legalName'> | undefined): boolean;
 /** Raison sociale suivie de la forme juridique si elle n'y figure pas déjà. */
 export declare function sellerIdentity(seller: Pick<DocumentParty, 'name' | 'legalName' | 'legalForm'>): string;
 /**

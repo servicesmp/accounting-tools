@@ -265,3 +265,18 @@ describe('PDF et XML Factur-X', () => {
     expect(r.view.rows).toHaveLength(40);
   });
 });
+
+describe('conditions de règlement : factures de la plateforme à un professionnel seulement', () => {
+  it('frais de service à une organisation (SIRET) : pénalités, 40 € et escompte', () => {
+    const v = buildPlatformInvoiceView(billingRecordToPlatformInvoiceData(feesRecord()));
+    const text = v.footer.map((f) => `${f.title} : ${f.text}`).join(' ');
+    expect(text).toMatch(/Pénalités de retard/);
+    expect(text).toMatch(/40 €/);
+    expect(text).toMatch(/escompte/);
+  });
+
+  it('abonnement d’un particulier : pas de conditions de règlement B2B', () => {
+    const v = buildPlatformInvoiceView(billingRecordToPlatformInvoiceData(planRecord()));
+    expect(v.footer.map((f) => f.text).join(' ')).not.toMatch(/Pénalités de retard|40 €|escompte/);
+  });
+});

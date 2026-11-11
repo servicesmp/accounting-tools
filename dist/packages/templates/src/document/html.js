@@ -83,7 +83,7 @@ function renderDocumentHtml(view, options = {}) {
             v.due ? `<span style="color:${C.slate500}">${e(v.due.label)}</span><span style="text-align:right;font-weight:700;color:${accent}">${e(v.due.value)}</span>` : '',
         ].join('');
         return `<div style="padding:52px 0 0;display:flex;justify-content:space-between;align-items:flex-start">
-<div style="${logoWrap}">${logoBox(50, 50, null, '0')}<div style="display:flex;flex-direction:column;gap:6px"><span style="${F(700, 34)};letter-spacing:-.01em;color:${C.ink}">${e(v.title)}</span><span style="${F(400, 11)};color:${C.slate500}">${e([v.seller.name, v.seller.city].filter(Boolean).join(', '))}</span></div></div>
+<div style="${logoWrap}">${logoBox(50, 50, null, '0')}<div style="display:flex;flex-direction:column;gap:6px"><span style="${F(700, 34)};letter-spacing:-.01em;color:${C.ink}">${e(v.title)}</span></div></div>
 <div style="display:grid;grid-template-columns:auto auto;gap:6px 18px;font-size:11px">${meta}</div>
 </div><div style="margin-top:26px;height:1px;background:${C.line}"></div>`;
     };
@@ -125,15 +125,15 @@ ${logoBox(60, 42, primary, '9999px')}
     const partyBox = (p, heading, buyer) => {
         const bg = buyer && bandBuyer ? (0, color_1.mix)(accent, 0.10) : partyBg;
         const border = buyer && bandBuyer ? `1px solid ${(0, color_1.mix)(accent, 0.40)}` : partyBorder;
-        return `<div style="padding:${partyPad};border-radius:${partyRad};background:${bg};border:${border};display:flex;flex-direction:column;gap:4px;font-size:11px"><span style="${lab(labelC)};margin-bottom:4px">${e(heading)}</span><span style="font-weight:700;font-size:12px;color:${C.ink}">${e(p.name)}</span>${[...p.street, p.cityLine].filter(Boolean).map((l) => `<span>${e(l)}</span>`).join('')}${p.vat ? `<span style="color:${C.slate500};font-size:10px;margin-top:4px">${e(p.vat)}</span>` : ''}${buyer && p.id ? `<span style="color:${C.slate500};font-size:10px">${e(p.id)}</span>` : ''}</div>`;
+        return `<div style="padding:${partyPad};border-radius:${partyRad};background:${bg};border:${border};display:flex;flex-direction:column;gap:4px;font-size:11px"><span style="${lab(labelC)};margin-bottom:4px">${e(heading)}</span><span style="font-weight:700;font-size:12px;color:${C.ink}">${e(p.name)}</span>${buyer && p.contact ? `<span style="color:${C.slate600}">${e(p.contact)}</span>` : ''}${[...p.street, p.cityLine].filter(Boolean).map((l) => `<span>${e(l)}</span>`).join('')}${p.vat ? `<span style="color:${C.slate500};font-size:10px;margin-top:4px">${e(p.vat)}</span>` : ''}${buyer && p.id ? `<span style="color:${C.slate500};font-size:10px">${e(p.id)}</span>` : ''}</div>`;
     };
     const partiesTwo = () => `<div style="padding-top:28px;display:grid;grid-template-columns:1fr 1fr;gap:18px">${partyBox(v.seller, L.seller, false)}${partyBox(v.buyer, L.buyer, true)}</div>`;
-    const partiesBuyer = () => `<div style="padding-top:34px;display:flex;flex-direction:column;gap:4px;font-size:11px"><span style="${lab(labelC)};margin-bottom:6px">${e(L.buyer)}</span><span style="font-weight:700;font-size:16px;color:${C.ink}">${e(v.buyer.name)}</span><span>${e(v.buyer.oneLine)}</span>${v.buyer.vat ? `<span style="color:${C.slate500};font-size:10px">${e(v.buyer.vat)}</span>` : ''}${v.buyer.id ? `<span style="color:${C.slate500};font-size:10px">${e(v.buyer.id)}</span>` : ''}</div>`;
+    const partiesBuyer = () => `<div style="padding-top:34px;display:flex;flex-direction:column;gap:4px;font-size:11px"><span style="${lab(labelC)};margin-bottom:6px">${e(L.buyer)}</span><span style="font-weight:700;font-size:16px;color:${C.ink}">${e(v.buyer.name)}</span>${v.buyer.contact ? `<span style="color:${C.slate600}">${e(v.buyer.contact)}</span>` : ''}<span>${e(v.buyer.oneLine)}</span>${v.buyer.vat ? `<span style="color:${C.slate500};font-size:10px">${e(v.buyer.vat)}</span>` : ''}${v.buyer.id ? `<span style="color:${C.slate500};font-size:10px">${e(v.buyer.id)}</span>` : ''}</div>`;
     const partiesRow = () => {
         const small = `font-size:8px;letter-spacing:.12em;text-transform:uppercase;color:${C.gray}`;
-        const col = (heading, p) => `<div style="display:flex;flex-direction:column"><span style="${small};margin-bottom:6px">${e(heading)}</span><b>${e(p.name)}</b><span>${e(p.oneLineNoCountry)}</span>${p.vat ? `<span style="color:${C.gray}">${e(p.vat)}</span>` : ''}</div>`;
+        const col = (heading, p, buyer = false) => `<div style="display:flex;flex-direction:column"><span style="${small};margin-bottom:6px">${e(heading)}</span><b>${e(p.name)}</b>${buyer && p.contact ? `<span>${e(p.contact)}</span>` : ''}<span>${e(p.oneLineNoCountry)}</span>${p.vat ? `<span style="color:${C.gray}">${e(p.vat)}</span>` : ''}${buyer && p.id ? `<span style="color:${C.gray}">${e(p.id)}</span>` : ''}</div>`;
         return `<div style="padding-top:24px;display:grid;grid-template-columns:1fr 1fr 1fr;gap:20px;font-size:10.5px;line-height:1.55">
-${col(L.seller, v.seller)}${col(L.buyer, v.buyer)}
+${col(L.seller, v.seller)}${col(L.buyer, v.buyer, true)}
 <div style="display:flex;flex-direction:column"><span style="${small};margin-bottom:6px">${e(L.issue)}</span><b>${e(v.issueDate)}</b><span style="${small};margin:8px 0 2px">${e(L.number)}</span><b>${e(v.number)}</b></div>
 </div>`;
     };

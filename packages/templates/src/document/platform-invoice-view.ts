@@ -6,7 +6,7 @@ import type { DocumentData, DocumentParty, DocumentTotals } from './types';
 import type { PlatformInvoiceData, PlatformInvoiceView, PlatformInfoRow, PlatformTotalRow } from './platform-invoice-types';
 import { formatDate, formatMoney, formatPercent, formatQuantity, toDate } from './format';
 import { countryDisplayName } from './country';
-import { computeLineTotal } from './view';
+import { computeLineTotal, isProfessionalParty } from './view';
 
 const LOCALE = 'fr-FR';
 /** Statut refusé (maquette). */
@@ -302,7 +302,11 @@ export function buildPlatformInvoiceView(data: PlatformInvoiceData, options: Bui
     grandTotal: { label: 'Total TTC', value: money(totals.total) },
     rest: data.state === 'paid' ? { label: 'Reste à payer', value: money(0) } : { label: 'Montant dû', value: money(due) },
     alert,
-    footer: [conditions],
+    // Conditions de règlement : obligatoires sur une facture entre professionnels (art. L441-9 et
+    // L441-10 C. com.) — frais de service, abonnement d'une organisation ; pas envers un particulier.
+    footer: isProfessionalParty(b)
+      ? [conditions, { title: 'Conditions de règlement', text: 'Pénalités de retard : 3 fois le taux d’intérêt légal. Indemnité forfaitaire pour frais de recouvrement : 40 €. Pas d’escompte pour paiement anticipé.' }]
+      : [conditions],
     legalBar,
     pageLabel: (page, total) => `Page ${page} sur ${total}`,
     totalsRaw: { lines: totals.subtotal, discount, taxBasis, tax: totals.taxTotal, total: totals.total, paid, due },

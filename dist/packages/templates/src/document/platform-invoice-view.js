@@ -287,7 +287,11 @@ function buildPlatformInvoiceView(data, options = {}) {
         grandTotal: { label: 'Total TTC', value: money(totals.total) },
         rest: data.state === 'paid' ? { label: 'Reste à payer', value: money(0) } : { label: 'Montant dû', value: money(due) },
         alert,
-        footer: [conditions],
+        // Conditions de règlement : obligatoires sur une facture entre professionnels (art. L441-9 et
+        // L441-10 C. com.) — frais de service, abonnement d'une organisation ; pas envers un particulier.
+        footer: (0, view_1.isProfessionalParty)(b)
+            ? [conditions, { title: 'Conditions de règlement', text: 'Pénalités de retard : 3 fois le taux d’intérêt légal. Indemnité forfaitaire pour frais de recouvrement : 40 €. Pas d’escompte pour paiement anticipé.' }]
+            : [conditions],
         legalBar,
         pageLabel: (page, total) => `Page ${page} sur ${total}`,
         totalsRaw: { lines: totals.subtotal, discount, taxBasis, tax: totals.taxTotal, total: totals.total, paid, due },

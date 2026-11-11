@@ -371,8 +371,8 @@ class DocumentPdfRenderer {
         const above = v.settings.logo === 'above';
         const logo = this.hasLogo;
         const titleS = { size: 34, bold: true, ls: -0.01, color: C.ink };
-        const subS = { size: 11, color: C.slate500 };
-        const textColH = normalLH(34) + 6 + normalLH(11);
+        // Titre seul : le nom et la ville du vendeur sont déjà dans le bloc « Vendeur » juste dessous.
+        const textColH = normalLH(34);
         let leftH;
         let tx;
         let ty;
@@ -394,7 +394,6 @@ class DocumentPdfRenderer {
             ty = top;
         }
         this.text(v.title, tx, ty, titleS);
-        this.text([v.seller.name, v.seller.city].filter(Boolean).join(', '), tx, ty + normalLH(34) + 6, subS);
         // Grille N° / émission / échéance, alignée à droite (colonnes auto, écart 18)
         const rows = [
             { l: v.labels.number, val: v.number, bold: true, accent: false },
@@ -619,6 +618,8 @@ class DocumentPdfRenderer {
         const content = (p) => {
             const lines = [...p.street, p.cityLine].filter(Boolean);
             let h = normalLH(9) + 4 + 4 + normalLH(12);
+            if (p.contact && p !== v.seller)
+                h += 4 + this.paraHeight(p.contact, inner, { size: 11 });
             for (const l of lines)
                 h += 4 + this.paraHeight(l, inner, { size: 11 });
             if (p.vat)
@@ -643,6 +644,11 @@ class DocumentPdfRenderer {
             y += normalLH(9) + 4 + 4;
             this.text(p.name, cx, y, { size: 12, bold: true, color: C.ink });
             y += normalLH(12);
+            // Client entreprise : « À l'attention de … » sous la raison sociale.
+            if (buyer && p.contact) {
+                y += 4;
+                y += this.para(p.contact, cx, y, inner, { size: 11, color: C.slate600 });
+            }
             for (const l of [...p.street, p.cityLine].filter(Boolean)) {
                 y += 4;
                 y += this.para(l, cx, y, inner, { size: 11 });
@@ -668,6 +674,10 @@ class DocumentPdfRenderer {
         y += normalLH(9) + 6 + 4;
         this.text(v.buyer.name, this.L, y, { size: 16, bold: true, color: C.ink });
         y += normalLH(16) + 4;
+        if (v.buyer.contact) {
+            y += this.para(v.buyer.contact, this.L, y, this.R - this.L, { size: 11, color: C.slate600 });
+            y += 4;
+        }
         y += this.para(v.buyer.oneLine, this.L, y, this.R - this.L, { size: 11 });
         if (v.buyer.vat) {
             y += 4;
@@ -688,21 +698,28 @@ class DocumentPdfRenderer {
         const colW = (this.R - this.L - 2 * gap) / 3;
         const base = { size: 10.5, lh: 1.55 };
         const lab = { size: 8, lh: 1.55, ls: 0.12, upper: true, color: C.gray };
-        const col = (x, heading, p) => {
+        const col = (x, heading, p, buyer = false) => {
             let y = top;
             this.text(heading, x, y, lab);
             y += 8 * 1.55 + 6;
             this.text(p.name, x, y, { ...base, bold: true });
             y += 10.5 * 1.55;
+            if (buyer && p.contact)
+                y += this.para(p.contact, x, y, colW, base);
             y += this.para(p.oneLineNoCountry, x, y, colW, base);
             if (p.vat) {
                 this.text(p.vat, x, y, { ...base, color: C.gray });
                 y += 10.5 * 1.55;
             }
+            // SIRET du client : imprimé dans les trois mises en page (absent de celle-ci avant le 11/11).
+            if (buyer && p.id) {
+                this.text(p.id, x, y, { ...base, color: C.gray });
+                y += 10.5 * 1.55;
+            }
             return y - top;
         };
         const h1 = col(this.L, v.labels.seller, v.seller);
-        const h2 = col(this.L + colW + gap, v.labels.buyer, v.buyer);
+        const h2 = col(this.L + colW + gap, v.labels.buyer, v.buyer, true);
         let y = top;
         const x = this.L + 2 * (colW + gap);
         this.text(v.labels.issue, x, y, lab);

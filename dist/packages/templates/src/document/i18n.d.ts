@@ -15,6 +15,8 @@ export interface DocumentLabels {
     readonly buyer: string;
     readonly vat: string;
     readonly siret: string;
+    /** Interlocuteur d'un client entreprise : « À l'attention de Jean Martin ». */
+    readonly attention: string;
     readonly siren: string;
     readonly columns: Record<ColumnKey, string>;
     /** Document sans TVA (franchise, exonération) : ni « HT » ni « TTC » (10/11). */

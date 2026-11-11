@@ -7,6 +7,7 @@ exports.buyerIdentity = buyerIdentity;
 exports.isFacturXDocument = isFacturXDocument;
 exports.watermarkFontSize = watermarkFontSize;
 exports.buildDocumentView = buildDocumentView;
+exports.isProfessionalParty = isProfessionalParty;
 exports.sellerIdentity = sellerIdentity;
 exports.sellerLegalInformation = sellerLegalInformation;
 const i18n_1 = require("./i18n");
@@ -56,7 +57,7 @@ exports.COLUMN_SPEC = {
     lineTotal: { width: 72, align: 'right', bold: true, primary: true },
 };
 // ─── Aides ───────────────────────────────────────────────────────────────────
-function partyView(party, vatLabel, idLabels) {
+function partyView(party, vatLabel, idLabels, withContact = false) {
     const a = party.address ?? {};
     const cc = (0, country_1.toIsoCountryCode)(a.country) ?? (a.country ?? '');
     const street = [a.street, a.additionalStreet].filter((x) => !!x && !!x.trim());
@@ -71,6 +72,10 @@ function partyView(party, vatLabel, idLabels) {
         city: a.city ?? '',
         vat: party.vatId ? `${vatLabel} ${party.vatId}` : undefined,
         id: party.siret ? `${idLabels.siret} ${party.siret}` : party.siren ? `${idLabels.siren} ${party.siren}` : undefined,
+        // Client entreprise : son interlocuteur, s'il diffère de la raison sociale.
+        contact: withContact && idLabels.attention && party.contactName?.trim() && party.contactName.trim() !== (party.name || '').trim()
+            ? `${idLabels.attention} ${party.contactName.trim()}`
+            : undefined,
     };
 }
 /**
@@ -81,7 +86,7 @@ function partyView(party, vatLabel, idLabels) {
  */
 function buyerIdentity(buyer, seller) {
     const norm = (v) => (v ?? '').replace(/[\s.\-]/g, '').toUpperCase();
-    const isCompany = !!(buyer.legalName?.trim() || norm(buyer.siret) || norm(buyer.siren));
+    const isCompany = isProfessionalParty(buyer);
     const sameAsSeller = (a, b) => !!norm(a) && norm(a) === norm(b);
     return {
         ...buyer,
@@ -194,18 +199,26 @@ function buildDocumentView(data, options = {}) {
     // sociale la contient déjà (« Atelier Demo SAS »).
     const identity = sellerIdentity(seller);
     const head = [];
+    // SIREN / SIRET du vendeur : mention obligatoire. Repris du RCS s'il y figure, sinon imprimé — avant,
+    // un vendeur avec un capital mais sans RCS n'avait aucun identifiant sur sa facture.
+    const sellerId = seller.siret ? `${L.siret} ${seller.siret}` : seller.siren ? `${L.siren} ${seller.siren}` : undefined;
+    const sirenDigits = (seller.siren || seller.siret || '').replace(/\D/g, '').slice(0, 9);
+    const registrationHasSiren = !!sirenDigits && (seller.registration ?? '').replace(/\D/g, '').includes(sirenDigits);
     if (seller.capital)
         head.push(L.capital(identity, seller.capital));
     if (seller.registration)
         head.push(seller.registration);
-    else if (!seller.capital && seller.siret)
-        head.push(`${identity}, ${L.siret} ${seller.siret}`);
-    else if (!seller.capital && identity !== (seller.legalName || seller.name))
+    if (sellerId && !registrationHasSiren)
+        head.push(seller.capital ? sellerId : `${identity}, ${sellerId}`);
+    else if (!seller.capital && !seller.registration && identity !== (seller.legalName || seller.name))
         head.push(identity);
-    // Conditions de règlement : sur tous les documents, comme dans la maquette
-    // (obligatoires sur facture et avoir, informatives sur devis et commande).
-    head.push(L.mentions.latePenalties, L.mentions.recoveryIndemnity);
-    const tail = [L.mentions.noDiscount];
+    // Conditions de règlement (pénalités de retard, indemnité de 40 €, escompte) : obligatoires sur une
+    // FACTURE entre professionnels seulement (art. L441-9 et L441-10 C. com.). Ni sur un devis, un bon
+    // de commande ou un avoir, ni envers un particulier, à qui l'indemnité de 40 € ne s'applique pas.
+    if (kind === 'invoice' && isProfessionalParty(data.buyer)) {
+        head.push(L.mentions.latePenalties, L.mentions.recoveryIndemnity);
+    }
+    const tail = kind === 'invoice' && isProfessionalParty(data.buyer) ? [L.mentions.noDiscount] : [];
     const exemptions = new Set();
     if (data.vatExemptionReason)
         exemptions.add(data.vatExemptionReason);
@@ -227,7 +240,8 @@ function buildDocumentView(data, options = {}) {
     const sentence = (t) => (/[.!?]$/.test(t.trim()) ? t.trim() : `${t.trim()}.`);
     const legal = [head.map(sentence).join(' '), tail.join(' '), settings.footerNote?.trim()].filter(Boolean).join(' ');
     const payment = kind !== 'order' && settings.showPaymentBlock && data.payment && (data.payment.iban || data.payment.bic || data.payment.link)
-        ? { iban: data.payment.iban, bic: data.payment.bic, terms: data.payment.terms, qrData: data.payment.link || undefined }
+        // IBAN par groupes de 4 (« FR76 3000 6000 … »), lisible et recopiable comme sur un RIB.
+        ? { iban: data.payment.iban ? data.payment.iban.replace(/\s+/g, '').toUpperCase().replace(/(.{4})(?=.)/g, '$1 ') : undefined, bic: data.payment.bic, terms: data.payment.terms, qrData: data.payment.link || undefined }
         : undefined;
     const status = data.status;
     const watermark = settings.statusWatermark && status ? L.watermark(kind, status) : undefined;
@@ -254,7 +268,7 @@ function buildDocumentView(data, options = {}) {
         issueDate: (0, format_1.formatDate)(data.issueDate, locale),
         due,
         seller: partyView(seller, L.vat, L),
-        buyer: partyView(buyerIdentity(data.buyer, seller), L.vat, L),
+        buyer: partyView(buyerIdentity(data.buyer, seller), L.vat, L, isProfessionalParty(data.buyer)),
         delivery: data.delivery?.address ? partyView({ name: data.delivery.name ?? '', address: data.delivery.address }, L.vat, L) : undefined,
         refLine,
         columns,
@@ -282,6 +296,15 @@ function buildDocumentView(data, options = {}) {
     };
 }
 const escapeRegExp = (v) => v.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+/**
+ * Client entreprise : raison sociale, SIRET ou SIREN connus — même définition pour les mentions de
+ * règlement et pour les identifiants imprimés (`buyerIdentity`). Sans aucun d'eux : un particulier.
+ */
+function isProfessionalParty(party) {
+    if (!party)
+        return false;
+    return [party.siren, party.siret, party.legalName].some((v) => typeof v === 'string' && v.replace(/[\s.\-]/g, '').length > 0);
+}
 /** Raison sociale suivie de la forme juridique si elle n'y figure pas déjà. */
 function sellerIdentity(seller) {
     const legalName = seller.legalName || seller.name;

@@ -5,7 +5,7 @@ exports.getDocumentLabels = getDocumentLabels;
 const fr = {
     titles: { invoice: 'FACTURE', credit: 'AVOIR', quote: 'DEVIS', order: 'BON DE COMMANDE' },
     number: 'N°', issue: "Date d'émission", due: 'Échéance', valid: "Valable jusqu'au", delivery: 'Livraison prévue',
-    seller: 'Vendeur', buyer: 'Client', vat: 'N° TVA', siret: 'SIRET', siren: 'SIREN',
+    seller: 'Vendeur', buyer: 'Client', vat: 'N° TVA', siret: 'SIRET', siren: 'SIREN', attention: "À l'attention de",
     columns: { ref: 'Réf.', description: 'Description', quantity: 'Qté', unit: 'Unité', unitPrice: 'PU HT', discount: 'Remise', vatRate: 'TVA', lineTotal: 'Total TTC' },
     noVat: { unitPrice: 'Prix unitaire', lineTotal: 'Montant', grandTotal: 'Total' },
     subtotal: 'Sous-total HT', taxTotal: 'Total TVA', grandTotal: 'Total TTC',
@@ -48,7 +48,7 @@ const fr = {
 const en = {
     titles: { invoice: 'INVOICE', credit: 'CREDIT NOTE', quote: 'QUOTE', order: 'PURCHASE ORDER' },
     number: 'No.', issue: 'Issue date', due: 'Due date', valid: 'Valid until', delivery: 'Expected delivery',
-    seller: 'Seller', buyer: 'Buyer', vat: 'VAT No.', siret: 'SIRET', siren: 'SIREN',
+    seller: 'Seller', buyer: 'Buyer', vat: 'VAT No.', siret: 'SIRET', siren: 'SIREN', attention: 'Attn.',
     columns: { ref: 'Ref.', description: 'Description', quantity: 'Qty', unit: 'Unit', unitPrice: 'Unit price', discount: 'Discount', vatRate: 'VAT', lineTotal: 'Total incl. VAT' },
     noVat: { unitPrice: 'Unit price', lineTotal: 'Amount', grandTotal: 'Total' },
     subtotal: 'Subtotal', taxTotal: 'Total VAT', grandTotal: 'Grand total',
@@ -80,7 +80,7 @@ const en = {
 const de = {
     titles: { invoice: 'RECHNUNG', credit: 'GUTSCHRIFT', quote: 'ANGEBOT', order: 'BESTELLUNG' },
     number: 'Nr.', issue: 'Ausstellungsdatum', due: 'Fälligkeitsdatum', valid: 'Gültig bis', delivery: 'Liefertermin',
-    seller: 'Verkäufer', buyer: 'Käufer', vat: 'USt-IdNr.', siret: 'SIRET', siren: 'SIREN',
+    seller: 'Verkäufer', buyer: 'Käufer', vat: 'USt-IdNr.', siret: 'SIRET', siren: 'SIREN', attention: 'z. Hd.',
     columns: { ref: 'Art.-Nr.', description: 'Beschreibung', quantity: 'Menge', unit: 'Einheit', unitPrice: 'Einzelpreis', discount: 'Rabatt', vatRate: 'MwSt', lineTotal: 'Gesamt (brutto)' },
     noVat: { unitPrice: 'Einzelpreis', lineTotal: 'Betrag', grandTotal: 'Gesamtbetrag' },
     subtotal: 'Zwischensumme', taxTotal: 'MwSt Gesamt', grandTotal: 'Endsumme',
@@ -112,7 +112,7 @@ const de = {
 const es = {
     titles: { invoice: 'FACTURA', credit: 'FACTURA RECTIFICATIVA', quote: 'PRESUPUESTO', order: 'PEDIDO' },
     number: 'N.º', issue: 'Fecha de emisión', due: 'Vencimiento', valid: 'Válido hasta', delivery: 'Entrega prevista',
-    seller: 'Vendedor', buyer: 'Cliente', vat: 'NIF-IVA', siret: 'SIRET', siren: 'SIREN',
+    seller: 'Vendedor', buyer: 'Cliente', vat: 'NIF-IVA', siret: 'SIRET', siren: 'SIREN', attention: 'A la atención de',
     columns: { ref: 'Ref.', description: 'Descripción', quantity: 'Cant.', unit: 'Unidad', unitPrice: 'Precio unit.', discount: 'Dto.', vatRate: 'IVA', lineTotal: 'Total (IVA incl.)' },
     noVat: { unitPrice: 'Precio unit.', lineTotal: 'Importe', grandTotal: 'Total' },
     subtotal: 'Base imponible', taxTotal: 'Total IVA', grandTotal: 'Total',

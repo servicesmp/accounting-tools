@@ -284,6 +284,8 @@ export interface ViewParty {
   readonly vat?: string;
   /** « SIRET 812 456 789 00021 » (ou SIREN) */
   readonly id?: string;
+  /** Client entreprise : « À l'attention de Jean Martin » (interlocuteur). */
+  readonly contact?: string;
 }
 
 export interface DocumentView {

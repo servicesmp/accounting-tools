@@ -39,3 +39,11 @@ describe('détail de la TVA : seulement avec plusieurs taux', () => {
     expect(v.labels.taxTotal).toBe('Total TVA');
   });
 });
+
+describe('en-tête standard : titre seul', () => {
+  it('pas de « vendeur, ville » sous FACTURE (déjà dans le bloc Vendeur)', () => {
+    const html = norm(renderDocumentHtml(buildDocumentView(billingInvoiceToDocumentData(invoice([{ description: 'MVP', quantity: 1, unitPrice: 30000, vatRate: 0.2 }])), {})));
+    expect(html).not.toContain('ZIT, Courbevoie');
+    expect(html).toContain('95 rue du Capitaine Guynemer');
+  });
+});

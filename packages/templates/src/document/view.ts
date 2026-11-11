@@ -60,7 +60,7 @@ export const COLUMN_SPEC: Record<ColumnKey, { width: number | null; align: 'left
 
 // ─── Aides ───────────────────────────────────────────────────────────────────
 
-function partyView(party: DocumentParty, vatLabel: string, idLabels: { siret: string; siren: string }): ViewParty {
+function partyView(party: DocumentParty, vatLabel: string, idLabels: { siret: string; siren: string; attention?: string }, withContact = false): ViewParty {
   const a: DocumentAddress = party.address ?? {};
   const cc = toIsoCountryCode(a.country) ?? (a.country ?? '');
   const street = [a.street, a.additionalStreet].filter((x): x is string => !!x && !!x.trim());
@@ -75,6 +75,10 @@ function partyView(party: DocumentParty, vatLabel: string, idLabels: { siret: st
     city: a.city ?? '',
     vat: party.vatId ? `${vatLabel} ${party.vatId}` : undefined,
     id: party.siret ? `${idLabels.siret} ${party.siret}` : party.siren ? `${idLabels.siren} ${party.siren}` : undefined,
+    // Client entreprise : son interlocuteur, s'il diffère de la raison sociale.
+    contact: withContact && idLabels.attention && party.contactName?.trim() && party.contactName.trim() !== (party.name || '').trim()
+      ? `${idLabels.attention} ${party.contactName.trim()}`
+      : undefined,
   };
 }
 
@@ -86,7 +90,7 @@ function partyView(party: DocumentParty, vatLabel: string, idLabels: { siret: st
  */
 export function buyerIdentity(buyer: DocumentParty, seller: Pick<DocumentParty, 'vatId' | 'siret' | 'siren'>): DocumentParty {
   const norm = (v?: string) => (v ?? '').replace(/[\s.\-]/g, '').toUpperCase();
-  const isCompany = !!(buyer.legalName?.trim() || norm(buyer.siret) || norm(buyer.siren));
+  const isCompany = isProfessionalParty(buyer);
   const sameAsSeller = (a?: string, b?: string) => !!norm(a) && norm(a) === norm(b);
   return {
     ...buyer,
@@ -210,14 +214,22 @@ export function buildDocumentView(data: DocumentData, options: BuildDocumentView
   // sociale la contient déjà (« Atelier Demo SAS »).
   const identity = sellerIdentity(seller);
   const head: string[] = [];
+  // SIREN / SIRET du vendeur : mention obligatoire. Repris du RCS s'il y figure, sinon imprimé — avant,
+  // un vendeur avec un capital mais sans RCS n'avait aucun identifiant sur sa facture.
+  const sellerId = seller.siret ? `${L.siret} ${seller.siret}` : seller.siren ? `${L.siren} ${seller.siren}` : undefined;
+  const sirenDigits = (seller.siren || seller.siret || '').replace(/\D/g, '').slice(0, 9);
+  const registrationHasSiren = !!sirenDigits && (seller.registration ?? '').replace(/\D/g, '').includes(sirenDigits);
   if (seller.capital) head.push(L.capital(identity, seller.capital));
   if (seller.registration) head.push(seller.registration);
-  else if (!seller.capital && seller.siret) head.push(`${identity}, ${L.siret} ${seller.siret}`);
-  else if (!seller.capital && identity !== (seller.legalName || seller.name)) head.push(identity);
-  // Conditions de règlement : sur tous les documents, comme dans la maquette
-  // (obligatoires sur facture et avoir, informatives sur devis et commande).
-  head.push(L.mentions.latePenalties, L.mentions.recoveryIndemnity);
-  const tail: string[] = [L.mentions.noDiscount];
+  if (sellerId && !registrationHasSiren) head.push(seller.capital ? sellerId : `${identity}, ${sellerId}`);
+  else if (!seller.capital && !seller.registration && identity !== (seller.legalName || seller.name)) head.push(identity);
+  // Conditions de règlement (pénalités de retard, indemnité de 40 €, escompte) : obligatoires sur une
+  // FACTURE entre professionnels seulement (art. L441-9 et L441-10 C. com.). Ni sur un devis, un bon
+  // de commande ou un avoir, ni envers un particulier, à qui l'indemnité de 40 € ne s'applique pas.
+  if (kind === 'invoice' && isProfessionalParty(data.buyer)) {
+    head.push(L.mentions.latePenalties, L.mentions.recoveryIndemnity);
+  }
+  const tail: string[] = kind === 'invoice' && isProfessionalParty(data.buyer) ? [L.mentions.noDiscount] : [];
   const exemptions = new Set<string>();
   if (data.vatExemptionReason) exemptions.add(data.vatExemptionReason);
   for (const t of totals.taxBreakdown) if (t.exemptionReason) exemptions.add(t.exemptionReason);
@@ -234,7 +246,8 @@ export function buildDocumentView(data: DocumentData, options: BuildDocumentView
   const legal = [head.map(sentence).join(' '), tail.join(' '), settings.footerNote?.trim()].filter(Boolean).join(' ');
 
   const payment = kind !== 'order' && settings.showPaymentBlock && data.payment && (data.payment.iban || data.payment.bic || data.payment.link)
-    ? { iban: data.payment.iban, bic: data.payment.bic, terms: data.payment.terms, qrData: data.payment.link || undefined }
+    // IBAN par groupes de 4 (« FR76 3000 6000 … »), lisible et recopiable comme sur un RIB.
+    ? { iban: data.payment.iban ? data.payment.iban.replace(/\s+/g, '').toUpperCase().replace(/(.{4})(?=.)/g, '$1 ') : undefined, bic: data.payment.bic, terms: data.payment.terms, qrData: data.payment.link || undefined }
     : undefined;
 
   const status = data.status;
@@ -263,7 +276,7 @@ export function buildDocumentView(data: DocumentData, options: BuildDocumentView
     issueDate: formatDate(data.issueDate, locale),
     due,
     seller: partyView(seller, L.vat, L),
-    buyer: partyView(buyerIdentity(data.buyer, seller), L.vat, L),
+    buyer: partyView(buyerIdentity(data.buyer, seller), L.vat, L, isProfessionalParty(data.buyer)),
     delivery: data.delivery?.address ? partyView({ name: data.delivery.name ?? '', address: data.delivery.address }, L.vat, L) : undefined,
     refLine,
     columns,
@@ -292,6 +305,15 @@ export function buildDocumentView(data: DocumentData, options: BuildDocumentView
 }
 
 const escapeRegExp = (v: string) => v.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+
+/**
+ * Client entreprise : raison sociale, SIRET ou SIREN connus — même définition pour les mentions de
+ * règlement et pour les identifiants imprimés (`buyerIdentity`). Sans aucun d'eux : un particulier.
+ */
+export function isProfessionalParty(party: Pick<DocumentParty, 'siren' | 'siret' | 'legalName'> | undefined): boolean {
+  if (!party) return false;
+  return [party.siren, party.siret, party.legalName].some((v) => typeof v === 'string' && v.replace(/[\s.\-]/g, '').length > 0);
+}
 
 /** Raison sociale suivie de la forme juridique si elle n'y figure pas déjà. */
 export function sellerIdentity(seller: Pick<DocumentParty, 'name' | 'legalName' | 'legalForm'>): string {

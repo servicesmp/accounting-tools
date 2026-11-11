@@ -24,6 +24,48 @@ describe('totaux', () => {
   });
 });
 
+describe('mentions de règlement : factures entre professionnels seulement', () => {
+  const pro = { name: 'Studio Lumen', legalName: 'Studio Lumen SAS', siret: '81245678900021', address: { street: '4 quai de la Fosse', postalCode: '44000', city: 'Nantes', country: 'FR' } };
+
+  it('facture à un professionnel : pénalités, indemnité de 40 € et escompte', () => {
+    const v = buildDocumentView(sampleData('invoice', { buyer: pro }), { settings: settings() });
+    expect(v.legal).toMatch(/^Atelier Vertex SAS au capital de 10 000 €\. RCS Paris 123 456 789\. Pénalités de retard/);
+    expect(v.legal).toMatch(/40 €/);
+    expect(v.legal).toMatch(/Pas d'escompte pour paiement anticipé/);
+    expect(v.legal).toMatch(/Nature de l'opération : prestation de services\./);
+  });
+
+  it('entreprise étrangère (raison sociale + TVA) : mentions présentes, TVA imprimée', () => {
+    const v = buildDocumentView(sampleData('invoice', { buyer: { name: 'Muster GmbH', legalName: 'Muster GmbH', vatId: 'DE123456789' } }), { settings: settings() });
+    expect(v.legal).toMatch(/escompte/);
+    expect(v.buyer.vat).toMatch(/DE123456789/);
+  });
+
+  it('client entreprise : interlocuteur « À l’attention de » ; particulier : rien de plus', () => {
+    const company = buildDocumentView(sampleData('invoice', { buyer: { ...pro, contactName: 'Jean Martin' } }), { settings: settings() });
+    expect(company.buyer.name).toBe('Studio Lumen');
+    expect(company.buyer.contact).toBe("À l'attention de Jean Martin");
+    expect(company.buyer.id).toBe('SIRET 81245678900021');
+    const person = buildDocumentView(sampleData('invoice', { buyer: { name: 'Awa Diallo', contactName: 'Awa Diallo', vatId: 'FR00000000000' } }), { settings: settings() });
+    expect(person.buyer.contact).toBeUndefined();
+    expect(person.buyer.vat).toBeUndefined();
+    expect(person.buyer.id).toBeUndefined();
+  });
+
+  it('SIRET du vendeur toujours au pied, sauf s’il figure déjà dans le RCS', () => {
+    const noRcs = buildDocumentView(sampleData('invoice', { seller: { name: 'Services CEO', legalName: 'Services CEO', legalForm: 'SAS', capital: '10 000 €', siret: '91533551700024' } as any }), { settings: settings() });
+    expect(noRcs.legal).toMatch(/au capital de 10 000 €\. SIRET 91533551700024\./);
+    const withRcs = buildDocumentView(sampleData('invoice', { seller: { name: 'ZIT', legalName: 'ZIT SAS', capital: '10 000 €', siret: '91533551700024', registration: 'RCS Nanterre 915335517' } as any }), { settings: settings() });
+    expect(withRcs.legal).not.toMatch(/SIRET/);
+    expect(withRcs.legal).toMatch(/RCS Nanterre 915335517/);
+  });
+
+  it.each(['quote', 'order', 'credit'] as const)('« %s » à un professionnel : pas de mentions de règlement', (kind) => {
+    const legal = buildDocumentView(sampleData(kind, { buyer: pro }), { settings: settings() }).legal ?? '';
+    expect(legal).not.toMatch(/Pénalités de retard|40 €|escompte/);
+  });
+});
+
 describe('vue', () => {
   it('facture : titre, numéro, dates, mentions légales, paiement, badge', () => {
     const v = buildDocumentView(sampleData('invoice'), { settings: settings() });
@@ -32,10 +74,8 @@ describe('vue', () => {
     expect(v.labels.number).toBe('N°');
     expect(v.issueDate).toBe('24/09/2026');
     expect(v.due).toEqual({ label: 'Échéance', value: '24/10/2026' });
-    expect(v.legal).toMatch(/^Atelier Vertex SAS au capital de 10 000 €\. RCS Paris 123 456 789\. Pénalités de retard/);
-    expect(v.legal).toMatch(/40 €/);
-    expect(v.legal).toMatch(/Pas d'escompte pour paiement anticipé/);
-    expect(v.legal).toMatch(/Nature de l'opération : prestation de services\./);
+    // Client particulier : ni pénalités de retard, ni indemnité de 40 €, ni escompte (B2B seulement).
+    expect(v.legal).toBe("Atelier Vertex SAS au capital de 10 000 €. RCS Paris 123 456 789. Nature de l'opération : prestation de services.");
     expect(v.payment).toEqual({ iban: 'FR76 3000 4000 0312 3456 7890 143', bic: undefined, terms: 'Paiement à 30 jours', qrData: 'https://pay.services.ceo/i/abc' });
     expect(v.badge).toBe('Factur-X EN 16931');
     expect(v.refLine).toBeUndefined();
