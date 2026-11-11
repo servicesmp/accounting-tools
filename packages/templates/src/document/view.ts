@@ -242,6 +242,9 @@ export function buildDocumentView(data: DocumentData, options: BuildDocumentView
   const primary = settings.colors.primary;
   const accent = settings.colors.accent;
 
+  // Un seul taux de TVA (hors exonération) : le taux est porté par la ligne de total de TVA.
+  const taxedRates = [...new Set(totals.taxBreakdown.filter((t) => t.rate > 0).map((t) => t.rate))];
+  const singleRate = taxedRates.length === 1 && totals.taxBreakdown.length === 1 ? taxedRates[0] : null;
   return {
     kind,
     language,
@@ -252,7 +255,7 @@ export function buildDocumentView(data: DocumentData, options: BuildDocumentView
     number: data.number,
     labels: {
       number: L.number, issue: L.issue, seller: L.seller, buyer: L.buyer,
-      subtotal: L.subtotal, taxTotal: L.taxTotal, grandTotal: vatApplicable ? L.grandTotal : L.noVat.grandTotal,
+      subtotal: L.subtotal, taxTotal: singleRate !== null ? `${L.taxAmount} ${formatPercent(singleRate, locale)}` : L.taxTotal, grandTotal: vatApplicable ? L.grandTotal : L.noVat.grandTotal,
       taxBreakdown: L.taxBreakdown, taxBase: L.taxBase, taxAmount: L.taxAmount,
       paymentTerms: L.paymentTerms, iban: L.iban, bic: L.bic, scanToPay: L.scanToPay,
       poweredBy: L.poweredBy, page: L.page, of: L.of, continuation: L.continuation,
@@ -266,7 +269,9 @@ export function buildDocumentView(data: DocumentData, options: BuildDocumentView
     columns,
     rows,
     vatApplicable,
-    taxes: vatApplicable && settings.showTaxBreakdown
+    // Détail par taux seulement s'il y a PLUSIEURS taux (art. 242 nonies A, ann. II CGI) : avec un seul
+    // taux, il répétait mot pour mot les totaux ; le taux figure alors dans la ligne « TVA 20 % ».
+    taxes: vatApplicable && settings.showTaxBreakdown && singleRate === null
       ? totals.taxBreakdown.map((t) => ({ rate: formatPercent(t.rate, locale), base: money(t.base), amount: money(t.amount) }))
       : [],
     subtotal: money(totals.subtotal),
