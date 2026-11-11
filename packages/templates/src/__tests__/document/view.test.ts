@@ -104,16 +104,30 @@ describe('vue', () => {
   it('colonnes choisies, cellules formatées, groupes avec sous-total', () => {
     const v = buildDocumentView(sampleData('invoice'), { settings: settings({ columns: ['description', 'quantity', 'unit', 'discount', 'lineTotal'] }) });
     expect(v.columns.map((c) => c.key)).toEqual(['description', 'quantity', 'unit', 'discount', 'lineTotal']);
-    expect(v.columns.map((c) => c.label)).toEqual(['Description', 'Qté', 'Unité', 'Remise', 'Total HT']);
+    expect(v.columns.map((c) => c.label)).toEqual(['Description', 'Qté', 'Unité', 'Remise', 'Total TTC']);
     const groups = v.rows.filter((r) => r.kind === 'group');
     expect(groups.map((g) => g.title)).toEqual(['Intelligence artificielle', 'Infrastructure']);
-    expect(norm(groups[0].subtotal!)).toBe('1 670,00');
+    // Total de ligne TVA comprise : 500 × 1,2 + (2 × 650 − 10 %) × 1,2 = 600 + 1 404.
+    expect(norm(groups[0].subtotal!)).toBe('2 004,00');
+    const hebergement = v.rows.find((r) => r.cells.description === 'Hébergement')!;
+    expect(norm(hebergement.cells.lineTotal ?? '')).toBe('98,97'); // 3 × 29,99 HT à 10 %
     const atelier = v.rows.find((r) => r.cells.description === 'Atelier de cadrage')!;
     expect(norm(atelier.cells.discount ?? '')).toBe('10 %');
     expect(atelier.cells.unit).toBe('jour');
     const audit = v.rows.find((r) => r.cells.description === 'Audit RAG')!;
     expect(audit.cells.discount).toBe('—');
     expect(audit.details).toBe('Analyse de la chaîne de récupération');
+  });
+
+  it('sans TVA (franchise) : la colonne de ligne reste « Montant », en HT', () => {
+    const data = sampleData('invoice', {
+      vatExemptionReason: 'TVA non applicable, art. 293 B du CGI',
+      lines: [{ description: 'Audit', quantity: 2, unitPrice: 50000, vatRate: 0 }],
+    });
+    const v = buildDocumentView(data, { settings: settings({ columns: ['description', 'quantity', 'unitPrice', 'lineTotal'] }) });
+    expect(v.vatApplicable).toBe(false);
+    expect(v.columns.map((c) => c.label)).toEqual(['Description', 'Qté', 'Prix unitaire', 'Montant']);
+    expect(norm(v.rows[0].cells.lineTotal ?? '')).toBe('1 000,00');
   });
 
   it('mention libre de l’organisation imprimée en fin de pied légal', () => {

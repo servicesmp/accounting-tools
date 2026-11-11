@@ -139,9 +139,16 @@ function buildDocumentView(data, options = {}) {
     // Lignes (regroupées par service quand il y en a plusieurs)
     const rows = [];
     const groupTotals = new Map();
+    // Colonne « Total TTC » : montant de la ligne TVA comprise (11/11, Leonce : un « Total HT » de ligne ne
+    // fait que répéter PU HT × quantité). Sans TVA, HT = TTC : la colonne reste « Montant ». Affichage seul :
+    // le Factur-X garde les montants HT par ligne (EN 16931, BT-131).
+    const lineAmount = (line) => {
+        const ht = computeLineTotal(line);
+        return vatApplicable ? Math.round(ht * (1 + (Number(line.vatRate) || 0) / 100)) : ht;
+    };
     for (const line of data.lines)
         if (line.group)
-            groupTotals.set(line.group, (groupTotals.get(line.group) ?? 0) + computeLineTotal(line));
+            groupTotals.set(line.group, (groupTotals.get(line.group) ?? 0) + lineAmount(line));
     const grouped = groupTotals.size > 1;
     let currentGroup;
     for (const line of data.lines) {
@@ -161,7 +168,7 @@ function buildDocumentView(data, options = {}) {
                 unitPrice: amount(line.unitPrice),
                 discount: discount > 0 ? (0, format_1.formatPercent)(discount, locale) : '—',
                 vatRate: (0, format_1.formatPercent)(line.vatRate, locale),
-                lineTotal: amount(computeLineTotal(line)),
+                lineTotal: amount(lineAmount(line)),
             },
         });
     }
