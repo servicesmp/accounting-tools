@@ -16,6 +16,17 @@ export declare const FR_FRANCHISE_MENTION = "TVA non applicable, art. 293 B du C
 export declare function normalizeVatId(value: unknown): string | undefined;
 /** Partie (vendeur / acheteur) au format JSON de mu-billing. */
 export declare function billingPartyToDocumentParty(raw: unknown, currency?: string): DocumentParty;
+/**
+ * Conditions de paiement déduites de l'échéance : la seule formulation qui ne peut pas contredire
+ * la date d'échéance imprimée et portée dans le XML (BT-9 / BT-20).
+ */
+export declare function paymentTermsForDueDate(issue: Date, due: Date): string;
+/**
+ * Conditions affichées : un texte libre du vendeur est conservé ; un texte de forme automatique
+ * (« Paiement à 30 jours » écrit en dur à la création, ou une échéance modifiée depuis) qui contredit
+ * l'échéance réelle est reformulé depuis celle-ci. « Paiement à N jours » exact reste tel quel.
+ */
+export declare function coherentPaymentTerms(terms: string | undefined, issue: Date, due: Date): string;
 export interface BillingInvoiceOptions {
     /**
      * Force l'aperçu provisoire (filigrane BROUILLON) — éditeur de brouillon.

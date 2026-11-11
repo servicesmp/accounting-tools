@@ -109,6 +109,55 @@ function paymentMeans(payment: any): NonNullable<DocumentData['payment']>['means
   return undefined;
 }
 
+/** Jours calendaires (UTC) entre l'émission et l'échéance. */
+function calendarDaysBetween(from: Date, to: Date): number {
+  const day = (d: Date) => Date.UTC(d.getUTCFullYear(), d.getUTCMonth(), d.getUTCDate());
+  return Math.round((day(to) - day(from)) / 86_400_000);
+}
+
+const pad2 = (n: number) => String(n).padStart(2, '0');
+
+/**
+ * Conditions de paiement déduites de l'échéance : la seule formulation qui ne peut pas contredire
+ * la date d'échéance imprimée et portée dans le XML (BT-9 / BT-20).
+ */
+export function paymentTermsForDueDate(issue: Date, due: Date): string {
+  const days = calendarDaysBetween(issue, due);
+  if (days <= 0) return 'Paiement à réception';
+  const date = `${pad2(due.getUTCDate())}/${pad2(due.getUTCMonth() + 1)}/${due.getUTCFullYear()}`;
+  return `Paiement à ${days} jour${days > 1 ? 's' : ''}, au plus tard le ${date}`;
+}
+
+/** Conditions de forme automatique (« Paiement à réception », « Paiement à N jours[, au plus tard le …] »). */
+const GENERATED_TERMS = /^\s*paiement\s+à\s+(réception|\d+\s+jours?)(\s*,\s*au\s+plus\s+tard\s+le\s+\d{2}\/\d{2}\/\d{4})?\s*\.?\s*$/i;
+
+/**
+ * Conditions affichées : un texte libre du vendeur est conservé ; un texte de forme automatique
+ * (« Paiement à 30 jours » écrit en dur à la création, ou une échéance modifiée depuis) qui contredit
+ * l'échéance réelle est reformulé depuis celle-ci. « Paiement à N jours » exact reste tel quel.
+ */
+export function coherentPaymentTerms(terms: string | undefined, issue: Date, due: Date): string {
+  if (!terms?.trim()) return paymentTermsForDueDate(issue, due);
+  const generated = terms.match(GENERATED_TERMS);
+  if (!generated) return terms;
+  const days = calendarDaysBetween(issue, due);
+  const nDays = generated[1].match(/^(\d+)/);
+  if (nDays && !generated[2] && Number(nDays[1]) === days) return terms;
+  return paymentTermsForDueDate(issue, due);
+}
+
+/**
+ * Virement ou prélèvement sans IBAN : moyen de paiement inutilisable (BR-50 / BR-61). Ces factures se
+ * règlent par le lien de paiement en ligne (carte), c'est donc ce moyen qui est déclaré.
+ */
+function coherentMeans(
+  means: NonNullable<DocumentData['payment']>['means'],
+  iban: string | undefined,
+): NonNullable<DocumentData['payment']>['means'] {
+  if ((means === 'transfer' || means === 'direct_debit') && !iban) return 'card';
+  return means;
+}
+
 export interface BillingInvoiceOptions {
   /**
    * Force l'aperçu provisoire (filigrane BROUILLON) — éditeur de brouillon.
@@ -216,12 +265,18 @@ export function billingInvoiceToDocumentData(record: any, options: BillingInvoic
     buyer: billingPartyToDocumentParty(inv.buyer, currency),
     lines,
     vatExemptionReason: exempt ? FR_FRANCHISE_MENTION : undefined,
+    // BT-23 : les factures mu-billing portent sur des prestations de services, sauf mention contraire.
+    operationNature: (['goods', 'services', 'mixed'] as const).find((n) => n === header.operationNature) ?? 'services',
     payment: {
-      terms: str(payment.paymentTermsText ?? inv.paymentTerms),
+      // Facture payée : ses conditions restent celles de l'émission (« Réglée par carte à la commande »,
+      // « Paiement à réception ») ; les reformuler l'afficherait comme encore payable à N jours.
+      terms: status === 'paid'
+        ? str(payment.paymentTermsText ?? inv.paymentTerms) ?? 'Facture réglée'
+        : coherentPaymentTerms(str(payment.paymentTermsText ?? inv.paymentTerms), issue, due),
       iban: str(payment.iban),
       bic: str(payment.bic),
       link: payable ? options.paymentLink : undefined,
-      means: paymentMeans(payment),
+      means: coherentMeans(paymentMeans(payment), str(payment.iban)),
     },
     ...(isCredit ? { precedingInvoice: { number: precedingNumber!, issueDate: parseDate(preceding.issueDate) } } : {}),
     notes: [...customNotes, str(inv.notes)].filter(Boolean).join('\n') || undefined,

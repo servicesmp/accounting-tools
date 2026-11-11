@@ -51,7 +51,13 @@ function address(a, fallbackCountry, warnings, who) {
         warnings.push(`Adresse ${who} incomplète (ville ou code postal manquant).`);
     return new core_1.PostalAddressImpl(city || '-', postal || '-', country, a?.street?.trim() || undefined, a?.additionalStreet?.trim() || undefined);
 }
-function means(data) {
+function means(data, warnings) {
+    // BR-50 / BR-61 : un virement ou un prélèvement exige le compte (IBAN) ; sans lui, la facture
+    // se règle par le lien de paiement en ligne — carte.
+    if ((data.payment?.means === 'transfer' || data.payment?.means === 'direct_debit') && !data.payment?.iban) {
+        warnings.push('Virement ou prélèvement sans IBAN : moyen de paiement déclaré « carte » (BR-50).');
+        return core_1.PaymentMeansCode.BANK_CARD;
+    }
     switch (data.payment?.means) {
         case 'transfer': return core_1.PaymentMeansCode.SEPA_CREDIT_TRANSFER;
         case 'direct_debit': return core_1.PaymentMeansCode.SEPA_DIRECT_DEBIT;
@@ -98,9 +104,12 @@ function buildFacturXInvoice(data, options = {}) {
         hb.addNoteWithCode(n.content, n.subjectCode);
     if (data.notes?.trim())
         hb.addNote(data.notes.trim());
-    if (data.operationNature) {
-        const nature = { goods: core_1.OperationNature.GOODS, services: core_1.OperationNature.SERVICES, mixed: core_1.OperationNature.MIXED }[data.operationNature];
-        hb.businessProcessType((0, core_1.buildBusinessProcessType)(nature, 1));
+    // BT-23 (BR-FR-08) : cadre de facturation obligatoire. Nature : services par défaut. Cadre : 2
+    // (facture déjà payée) pour une facture réglée, sinon 1 (dépôt d'une facture à payer).
+    {
+        const nature = { goods: core_1.OperationNature.GOODS, services: core_1.OperationNature.SERVICES, mixed: core_1.OperationNature.MIXED }[data.operationNature ?? 'services'];
+        const fullyPaid = data.status === 'paid';
+        hb.businessProcessType((0, core_1.buildBusinessProcessType)(nature, fullyPaid ? 2 : 1));
     }
     if (data.vatOnDebits)
         hb.vatDueDateTypeCode(core_1.VatDueDateTypeCode.INVOICE_DATE);
@@ -119,8 +128,10 @@ function buildFacturXInvoice(data, options = {}) {
     if (data.precedingInvoice?.number) {
         hb.precedingInvoice(data.precedingInvoice.number, (0, format_1.toDate)(data.precedingInvoice.issueDate) ?? undefined);
     }
-    const payment = new core_1.PaymentDetailsImpl(means(data), data.payment?.iban?.replace(/\s+/g, '') || undefined, data.payment?.bic || undefined, data.payment?.iban ? undefined : data.number, // BR-CO-27 : ProprietaryID à défaut d'IBAN
-    dueDate, data.payment?.terms || 'Paiement à réception');
+    const meansCode = means(data, warnings);
+    const payment = new core_1.PaymentDetailsImpl(meansCode, data.payment?.iban?.replace(/\s+/g, '') || undefined, data.payment?.bic || undefined, 
+    // Identifiant de compte (BT-84) : l'IBAN seul, jamais le numéro de facture déguisé en compte.
+    undefined, dueDate, data.payment?.terms || 'Paiement à réception');
     const invoice = new core_1.FacturXInvoice(options.profile ?? core_1.FacturxProfile.EN16931, hb.build(), sellerParty, buyerParty, payment, [], [], data.currency.toUpperCase());
     const lineTotals = [];
     data.lines.forEach((line, i) => {
