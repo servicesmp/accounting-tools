@@ -194,7 +194,8 @@ export function buildDocumentView(data: DocumentData, options: BuildDocumentView
   }
 
   // Échéance / validité / livraison
-  const due = (kind === 'invoice' || kind === 'credit') && data.dueDate
+  // Un avoir ne s'encaisse pas : pas d'échéance (12/11).
+  const due = kind === 'invoice' && data.dueDate
     ? { label: L.due, value: formatDate(data.dueDate, locale) }
     : kind === 'quote' && data.validUntil
       ? { label: L.valid, value: formatDate(data.validUntil, locale) }
@@ -251,7 +252,8 @@ export function buildDocumentView(data: DocumentData, options: BuildDocumentView
     : undefined;
 
   const status = data.status;
-  const watermark = settings.statusWatermark && status ? L.watermark(kind, status) : undefined;
+  // Un avoir soldé ne porte pas « PAYÉ » : il n'est pas payé, il annule (12/11).
+  const watermark = settings.statusWatermark && status && !(kind === 'credit' && status === 'paid') ? L.watermark(kind, status) : undefined;
   const primary = settings.colors.primary;
   const accent = settings.colors.accent;
 

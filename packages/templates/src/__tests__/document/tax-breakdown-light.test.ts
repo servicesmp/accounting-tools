@@ -47,3 +47,17 @@ describe('en-tête standard : titre seul', () => {
     expect(html).toContain('95 rue du Capitaine Guynemer');
   });
 });
+
+describe('avoir : ni échéance, ni filigrane « PAYÉ »', () => {
+  it('un avoir soldé cite la facture d’origine, sans échéance ni « PAYÉ »', () => {
+    const record = invoice([{ description: 'MVP', quantity: 1, unitPrice: 30000, vatRate: 0.2 }]);
+    const avoir = { ...record, slug: 'AVO-20261112-0001', paymentStatus: 'PAID', header: { invoiceNumber: 'AVO-20261112-0001', typeCode: '381', issueDate: '2026-11-12T10:00:00Z', precedingInvoice: { number: 'INV-20261111-0001', issueDate: '2026-11-11T12:00:00Z' } } };
+    const v = buildDocumentView(billingInvoiceToDocumentData(avoir), {});
+    // Témoin : une facture payée porte bien le filigrane (réglage par défaut).
+    expect(buildDocumentView(billingInvoiceToDocumentData({ ...record, paymentStatus: 'PAID' }), {}).watermark).toBeTruthy();
+    expect(v.title).toBe('AVOIR');
+    expect(v.due).toBeUndefined();
+    expect(v.watermark).toBeUndefined();
+    expect(v.refLine).toMatch(/INV-20261111-0001/);
+  });
+});

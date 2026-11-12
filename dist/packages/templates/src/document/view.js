@@ -178,7 +178,8 @@ function buildDocumentView(data, options = {}) {
         });
     }
     // Échéance / validité / livraison
-    const due = (kind === 'invoice' || kind === 'credit') && data.dueDate
+    // Un avoir ne s'encaisse pas : pas d'échéance (12/11).
+    const due = kind === 'invoice' && data.dueDate
         ? { label: L.due, value: (0, format_1.formatDate)(data.dueDate, locale) }
         : kind === 'quote' && data.validUntil
             ? { label: L.valid, value: (0, format_1.formatDate)(data.validUntil, locale) }
@@ -244,7 +245,8 @@ function buildDocumentView(data, options = {}) {
         ? { iban: data.payment.iban ? data.payment.iban.replace(/\s+/g, '').toUpperCase().replace(/(.{4})(?=.)/g, '$1 ') : undefined, bic: data.payment.bic, terms: data.payment.terms, qrData: data.payment.link || undefined }
         : undefined;
     const status = data.status;
-    const watermark = settings.statusWatermark && status ? L.watermark(kind, status) : undefined;
+    // Un avoir soldé ne porte pas « PAYÉ » : il n'est pas payé, il annule (12/11).
+    const watermark = settings.statusWatermark && status && !(kind === 'credit' && status === 'paid') ? L.watermark(kind, status) : undefined;
     const primary = settings.colors.primary;
     const accent = settings.colors.accent;
     // Un seul taux de TVA (hors exonération) : le taux est porté par la ligne de total de TVA.
