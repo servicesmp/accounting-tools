@@ -1,6 +1,6 @@
 {
   "name": "accounting-tools",
-  "version": "1.5.5",
+  "version": "1.5.6",
   "description": "Unified Factur-X/ZUGFeRD invoice generation, PDF templates & compliance library. Single-package install.",
   "main": "dist/src/index.js",
   "types": "dist/src/index.d.ts",

@@ -45,6 +45,10 @@ export declare function buildDocumentView(data: DocumentData, options?: BuildDoc
  */
 export declare function isProfessionalParty(party: Pick<DocumentParty, 'siren' | 'siret' | 'legalName'> | undefined): boolean;
 /** Raison sociale suivie de la forme juridique si elle n'y figure pas déjà. */
+/** Entreprise individuelle (EI, EIRL, micro-entrepreneur) : pas de capital social. */
+export declare function isIndividualEnterprise(legalForm?: string | null): boolean;
+/** Capital imprimable : une somme non nulle, et jamais pour une entreprise individuelle. */
+export declare function meaningfulCapital(seller: Pick<DocumentParty, 'capital' | 'legalForm'>): string | undefined;
 export declare function sellerIdentity(seller: Pick<DocumentParty, 'name' | 'legalName' | 'legalForm'>): string;
 /**
  * Mentions légales complémentaires du vendeur pour le Factur-X (BT-33) :

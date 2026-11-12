@@ -98,6 +98,8 @@ export declare class DocumentPdfRenderer {
     private grandBox;
     private bottomBand;
     private bottomCard;
+    /** Conditions de paiement (mentions obligatoires d'une facture), dans le corps, avant les notes. */
+    private conditions;
     private notes;
     private legalWidth;
     /** Hauteur du groupe de droite du pied (flex align-items:center) : badge, mention Services, pagination. */

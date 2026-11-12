@@ -281,6 +281,7 @@ class DocumentPdfRenderer {
         y = this.refLine(y);
         y = this.table(y);
         y = this.bottom(y);
+        y = this.conditions(y);
         this.notes(y);
         this.footers();
         if (this.options.facturXml) {
@@ -624,7 +625,8 @@ class DocumentPdfRenderer {
                 h += 4 + this.paraHeight(l, inner, { size: 11 });
             if (p.vat)
                 h += 4 + 4 + normalLH(10);
-            if (p.id && p !== v.seller)
+            // SIRET du vendeur : mention obligatoire, imprimé comme celui du client (12/11).
+            if (p.id)
                 h += 4 + normalLH(10);
             return h;
         };
@@ -658,7 +660,7 @@ class DocumentPdfRenderer {
                 this.text(p.vat, cx, y, { size: 10, color: C.slate500 });
                 y += normalLH(10);
             }
-            if (p.id && buyer) {
+            if (p.id) {
                 y += 4;
                 this.text(p.id, cx, y, { size: 10, color: C.slate500 });
             }
@@ -712,7 +714,7 @@ class DocumentPdfRenderer {
                 y += 10.5 * 1.55;
             }
             // SIRET du client : imprimé dans les trois mises en page (absent de celle-ci avant le 11/11).
-            if (buyer && p.id) {
+            if (p.id) {
                 this.text(p.id, x, y, { ...base, color: C.gray });
                 y += 10.5 * 1.55;
             }
@@ -1059,6 +1061,24 @@ class DocumentPdfRenderer {
         this.text(v.labels.grandTotal, x + 20, base - baselineOffset(lb), lb);
         this.text(v.grandTotal, x + w - 20, base - baselineOffset(gv), gv, 'right');
         return top + h;
+    }
+    /** Conditions de paiement (mentions obligatoires d'une facture), dans le corps, avant les notes. */
+    conditions(y0) {
+        const v = this.v;
+        if (!v.paymentConditions?.length)
+            return y0;
+        const W = this.R - this.L;
+        const title = { size: 10, bold: true, color: C.ink };
+        const s = { size: 10, color: C.slate600 };
+        const h = normalLH(10) + v.paymentConditions.reduce((acc, c) => acc + 3 + this.paraHeight(c, W, s), 0);
+        let y = this.ensure(y0 + 22, h);
+        this.text(v.labels.paymentConditions, this.L, y, title);
+        y += normalLH(10);
+        for (const c of v.paymentConditions) {
+            y += 3;
+            y += this.para(c, this.L, y, W, s);
+        }
+        return y;
     }
     notes(y0) {
         const v = this.v;

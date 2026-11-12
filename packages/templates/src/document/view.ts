@@ -214,23 +214,36 @@ export function buildDocumentView(data: DocumentData, options: BuildDocumentView
   // « Atelier Demo, SAS » : la forme juridique n'est pas répétée si la raison
   // sociale la contient déjà (« Atelier Demo SAS »).
   const identity = sellerIdentity(seller);
+  // Capital social : seulement s'il est positif, et jamais pour une entreprise individuelle, qui n'en a
+  // pas (INV-20261112-0002 : « Entrepreneur Individuel au capital de 0 € », 12/11).
+  const sellerCapital = meaningfulCapital(seller);
   const head: string[] = [];
   // SIREN / SIRET du vendeur : mention obligatoire. Repris du RCS s'il y figure, sinon imprimé — avant,
   // un vendeur avec un capital mais sans RCS n'avait aucun identifiant sur sa facture.
   const sellerId = seller.siret ? `${L.siret} ${seller.siret}` : seller.siren ? `${L.siren} ${seller.siren}` : undefined;
   const sirenDigits = (seller.siren || seller.siret || '').replace(/\D/g, '').slice(0, 9);
   const registrationHasSiren = !!sirenDigits && (seller.registration ?? '').replace(/\D/g, '').includes(sirenDigits);
-  if (seller.capital) head.push(L.capital(identity, seller.capital));
+  if (sellerCapital) head.push(L.capital(identity, sellerCapital));
   if (seller.registration) head.push(seller.registration);
-  if (sellerId && !registrationHasSiren) head.push(seller.capital ? sellerId : `${identity}, ${sellerId}`);
-  else if (!seller.capital && !seller.registration && identity !== (seller.legalName || seller.name)) head.push(identity);
+  if (sellerId && !registrationHasSiren) head.push(sellerCapital ? sellerId : `${identity}, ${sellerId}`);
+  else if (!sellerCapital && !seller.registration && identity !== (seller.legalName || seller.name)) head.push(identity);
+  // Sans capital mais avec un RCS : la forme juridique disparaissait du pied (INV-20261112-0002 : ni
+  // « Entrepreneur individuel » ni « EI », mention obligatoire à côté du nom d'un entrepreneur individuel).
+  if (!sellerCapital && seller.registration && identity !== (seller.legalName || seller.name)) head.unshift(identity);
   // Conditions de règlement (pénalités de retard, indemnité de 40 €, escompte) : obligatoires sur une
   // FACTURE entre professionnels seulement (art. L441-9 et L441-10 C. com.). Ni sur un devis, un bon
   // de commande ou un avoir, ni envers un particulier, à qui l'indemnité de 40 € ne s'applique pas.
-  if (kind === 'invoice' && isProfessionalParty(data.buyer)) {
-    head.push(L.mentions.latePenalties, L.mentions.recoveryIndemnity);
-  }
-  const tail: string[] = kind === 'invoice' && isProfessionalParty(data.buyer) ? [L.mentions.noDiscount] : [];
+  // Elles forment, avec l'échéance, le bloc « Conditions de paiement » du CORPS de la facture et non
+  // une ligne du pied (12/11, demande de l'expert-comptable : mention obligatoire, pas une note).
+  const tail: string[] = [];
+  const sentence = (t: string) => (/[.!?]$/.test(t.trim()) ? t.trim() : `${t.trim()}.`);
+  const professional = isProfessionalParty(data.buyer);
+  const paymentConditions: string[] = kind === 'invoice'
+    ? [
+      ...(data.payment?.terms?.trim() ? [sentence(data.payment.terms)] : data.dueDate ? [sentence(`${L.due} ${formatDate(data.dueDate, locale)}`)] : []),
+      ...(professional ? [sentence(L.mentions.latePenalties), sentence(L.mentions.recoveryIndemnity), sentence(L.mentions.noDiscount)] : []),
+    ]
+    : [];
   const exemptions = new Set<string>();
   if (data.vatExemptionReason) exemptions.add(data.vatExemptionReason);
   for (const t of totals.taxBreakdown) if (t.exemptionReason) exemptions.add(t.exemptionReason);
@@ -243,7 +256,6 @@ export function buildDocumentView(data: DocumentData, options: BuildDocumentView
   }
   // Mention libre de l'organisation (réglage « footerNote ») en fin de pied légal.
   // Mentions en phrases (10/11) : plus de « · » entre elles.
-  const sentence = (t: string) => (/[.!?]$/.test(t.trim()) ? t.trim() : `${t.trim()}.`);
   const legal = [head.map(sentence).join(' '), tail.join(' '), settings.footerNote?.trim()].filter(Boolean).join(' ');
 
   const payment = kind !== 'order' && settings.showPaymentBlock && data.payment && (data.payment.iban || data.payment.bic || data.payment.link)
@@ -272,7 +284,7 @@ export function buildDocumentView(data: DocumentData, options: BuildDocumentView
       number: L.number, issue: L.issue, seller: L.seller, buyer: L.buyer,
       subtotal: L.subtotal, taxTotal: singleRate !== null ? `${L.taxAmount} ${formatPercent(singleRate, locale)}` : L.taxTotal, grandTotal: vatApplicable ? L.grandTotal : L.noVat.grandTotal,
       taxBreakdown: L.taxBreakdown, taxBase: L.taxBase, taxAmount: L.taxAmount,
-      paymentTerms: L.paymentTerms, iban: L.iban, bic: L.bic, scanToPay: L.scanToPay,
+      paymentTerms: L.paymentTerms, paymentConditions: L.paymentConditions, iban: L.iban, bic: L.bic, scanToPay: L.scanToPay,
       poweredBy: L.poweredBy, page: L.page, of: L.of, continuation: L.continuation,
     },
     issueDate: formatDate(data.issueDate, locale),
@@ -284,6 +296,7 @@ export function buildDocumentView(data: DocumentData, options: BuildDocumentView
     columns,
     rows,
     vatApplicable,
+    ...(paymentConditions.length ? { paymentConditions } : {}),
     // Détail par taux seulement s'il y a PLUSIEURS taux (art. 242 nonies A, ann. II CGI) : avec un seul
     // taux, il répétait mot pour mot les totaux ; le taux figure alors dans la ligne « TVA 20 % ».
     taxes: vatApplicable && settings.showTaxBreakdown && singleRate === null
@@ -318,6 +331,20 @@ export function isProfessionalParty(party: Pick<DocumentParty, 'siren' | 'siret'
 }
 
 /** Raison sociale suivie de la forme juridique si elle n'y figure pas déjà. */
+/** Entreprise individuelle (EI, EIRL, micro-entrepreneur) : pas de capital social. */
+export function isIndividualEnterprise(legalForm?: string | null): boolean {
+  const f = (legalForm ?? '').normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase().trim();
+  return /^(ei|eirl)$/.test(f) || /(entrepreneur|entreprise)\s+individuel/.test(f) || /micro[- ]?entrepr|auto[- ]?entrepr/.test(f);
+}
+
+/** Capital imprimable : une somme non nulle, et jamais pour une entreprise individuelle. */
+export function meaningfulCapital(seller: Pick<DocumentParty, 'capital' | 'legalForm'>): string | undefined {
+  const c = (seller.capital ?? '').trim();
+  if (!c || isIndividualEnterprise(seller.legalForm)) return undefined;
+  const digits = c.replace(/[^\d,.]/g, '').replace(',', '.');
+  return digits && Number(digits) === 0 ? undefined : c;
+}
+
 export function sellerIdentity(seller: Pick<DocumentParty, 'name' | 'legalName' | 'legalForm'>): string {
   const legalName = seller.legalName || seller.name;
   const form = seller.legalForm?.trim();
@@ -332,7 +359,7 @@ export function sellerIdentity(seller: Pick<DocumentParty, 'name' | 'legalName' 
  */
 export function sellerLegalInformation(seller: Pick<DocumentParty, 'legalForm' | 'capital' | 'registration'>): string | undefined {
   const parts = [
-    seller.legalForm?.trim() && seller.capital ? `${seller.legalForm.trim()} au capital de ${seller.capital}` : seller.legalForm?.trim() || (seller.capital ? `Capital ${seller.capital}` : undefined),
+    seller.legalForm?.trim() && meaningfulCapital(seller) ? `${seller.legalForm.trim()} au capital de ${meaningfulCapital(seller)}` : seller.legalForm?.trim() || (meaningfulCapital(seller) ? `Capital ${meaningfulCapital(seller)}` : undefined),
     seller.registration?.trim(),
   ].filter(Boolean);
   return parts.length ? parts.join(', ') : undefined;

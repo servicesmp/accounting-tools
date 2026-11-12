@@ -125,13 +125,13 @@ ${logoBox(60, 42, primary, '9999px')}
     const partyBox = (p, heading, buyer) => {
         const bg = buyer && bandBuyer ? (0, color_1.mix)(accent, 0.10) : partyBg;
         const border = buyer && bandBuyer ? `1px solid ${(0, color_1.mix)(accent, 0.40)}` : partyBorder;
-        return `<div style="padding:${partyPad};border-radius:${partyRad};background:${bg};border:${border};display:flex;flex-direction:column;gap:4px;font-size:11px"><span style="${lab(labelC)};margin-bottom:4px">${e(heading)}</span><span style="font-weight:700;font-size:12px;color:${C.ink}">${e(p.name)}</span>${buyer && p.contact ? `<span style="color:${C.slate600}">${e(p.contact)}</span>` : ''}${[...p.street, p.cityLine].filter(Boolean).map((l) => `<span>${e(l)}</span>`).join('')}${p.vat ? `<span style="color:${C.slate500};font-size:10px;margin-top:4px">${e(p.vat)}</span>` : ''}${buyer && p.id ? `<span style="color:${C.slate500};font-size:10px">${e(p.id)}</span>` : ''}</div>`;
+        return `<div style="padding:${partyPad};border-radius:${partyRad};background:${bg};border:${border};display:flex;flex-direction:column;gap:4px;font-size:11px"><span style="${lab(labelC)};margin-bottom:4px">${e(heading)}</span><span style="font-weight:700;font-size:12px;color:${C.ink}">${e(p.name)}</span>${buyer && p.contact ? `<span style="color:${C.slate600}">${e(p.contact)}</span>` : ''}${[...p.street, p.cityLine].filter(Boolean).map((l) => `<span>${e(l)}</span>`).join('')}${p.vat ? `<span style="color:${C.slate500};font-size:10px;margin-top:4px">${e(p.vat)}</span>` : ''}${p.id ? `<span style="color:${C.slate500};font-size:10px">${e(p.id)}</span>` : ''}</div>`;
     };
     const partiesTwo = () => `<div style="padding-top:28px;display:grid;grid-template-columns:1fr 1fr;gap:18px">${partyBox(v.seller, L.seller, false)}${partyBox(v.buyer, L.buyer, true)}</div>`;
     const partiesBuyer = () => `<div style="padding-top:34px;display:flex;flex-direction:column;gap:4px;font-size:11px"><span style="${lab(labelC)};margin-bottom:6px">${e(L.buyer)}</span><span style="font-weight:700;font-size:16px;color:${C.ink}">${e(v.buyer.name)}</span>${v.buyer.contact ? `<span style="color:${C.slate600}">${e(v.buyer.contact)}</span>` : ''}<span>${e(v.buyer.oneLine)}</span>${v.buyer.vat ? `<span style="color:${C.slate500};font-size:10px">${e(v.buyer.vat)}</span>` : ''}${v.buyer.id ? `<span style="color:${C.slate500};font-size:10px">${e(v.buyer.id)}</span>` : ''}</div>`;
     const partiesRow = () => {
         const small = `font-size:8px;letter-spacing:.12em;text-transform:uppercase;color:${C.gray}`;
-        const col = (heading, p, buyer = false) => `<div style="display:flex;flex-direction:column"><span style="${small};margin-bottom:6px">${e(heading)}</span><b>${e(p.name)}</b>${buyer && p.contact ? `<span>${e(p.contact)}</span>` : ''}<span>${e(p.oneLineNoCountry)}</span>${p.vat ? `<span style="color:${C.gray}">${e(p.vat)}</span>` : ''}${buyer && p.id ? `<span style="color:${C.gray}">${e(p.id)}</span>` : ''}</div>`;
+        const col = (heading, p, buyer = false) => `<div style="display:flex;flex-direction:column"><span style="${small};margin-bottom:6px">${e(heading)}</span><b>${e(p.name)}</b>${buyer && p.contact ? `<span>${e(p.contact)}</span>` : ''}<span>${e(p.oneLineNoCountry)}</span>${p.vat ? `<span style="color:${C.gray}">${e(p.vat)}</span>` : ''}${p.id ? `<span style="color:${C.gray}">${e(p.id)}</span>` : ''}</div>`;
         return `<div style="padding-top:24px;display:grid;grid-template-columns:1fr 1fr 1fr;gap:20px;font-size:10.5px;line-height:1.55">
 ${col(L.seller, v.seller)}${col(L.buyer, v.buyer, true)}
 <div style="display:flex;flex-direction:column"><span style="${small};margin-bottom:6px">${e(L.issue)}</span><b>${e(v.issueDate)}</b><span style="${small};margin:8px 0 2px">${e(L.number)}</span><b>${e(v.number)}</b></div>
@@ -218,6 +218,9 @@ ${col(v.taxes.length ? L.taxBreakdown : '', c1)}${col(v.payment ? L.paymentTerms
 <div style="padding:18px 20px;border-radius:14px;background:${primary};color:#fff;display:flex;flex-direction:column;justify-content:space-between;gap:10px"><div style="display:flex;flex-direction:column;gap:6px"><div style="display:flex;justify-content:space-between;gap:12px;font-size:10.5px;color:${(0, color_1.blend)(white, primary, 0.85)}"><span>${v.vatApplicable ? e(`${L.subtotal} ${v.subtotal}`) : ''}</span><span>${v.vatApplicable ? e(`${L.taxTotal} ${v.taxTotal}`) : ''}</span></div>${extra}</div><div style="display:flex;justify-content:space-between;align-items:baseline"><span style="font-weight:700;font-size:12px">${e(L.grandTotal)}</span><span style="${F(700, 26)};white-space:nowrap">${e(v.grandTotal)}</span></div></div>
 </div>`;
     };
+    const conditions = () => (v.paymentConditions?.length
+        ? `<div style="margin-top:22px;display:flex;flex-direction:column;gap:3px;font-size:10px;color:${C.slate600}"><span style="font-weight:700;color:${C.ink}">${e(L.paymentConditions)}</span>${v.paymentConditions.map((c) => `<span>${e(c)}</span>`).join('')}</div>`
+        : '');
     const notes = () => (v.notes
         ? `<div style="margin-top:22px;font-size:10px;color:${C.slate600};white-space:pre-line">${e(v.notes)}</div>`
         : '');
@@ -274,6 +277,7 @@ ${parties}
 ${refLine()}
 ${table()}
 ${bottom}
+${conditions()}
 ${notes()}
 ${footer()}
 </div>

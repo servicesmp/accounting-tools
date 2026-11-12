@@ -32,6 +32,8 @@ export interface DocumentLabels {
     readonly taxBase: string;
     readonly taxAmount: string;
     readonly paymentTerms: string;
+    /** Titre du bloc des conditions de paiement, dans le corps de la facture (12/11). */
+    readonly paymentConditions: string;
     readonly iban: string;
     readonly bic: string;
     readonly scanToPay: string;

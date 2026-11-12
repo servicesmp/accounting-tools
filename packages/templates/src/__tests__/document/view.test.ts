@@ -29,15 +29,19 @@ describe('mentions de règlement : factures entre professionnels seulement', () 
 
   it('facture à un professionnel : pénalités, indemnité de 40 € et escompte', () => {
     const v = buildDocumentView(sampleData('invoice', { buyer: pro }), { settings: settings() });
-    expect(v.legal).toMatch(/^Atelier Vertex SAS au capital de 10 000 €\. RCS Paris 123 456 789\. Pénalités de retard/);
-    expect(v.legal).toMatch(/40 €/);
-    expect(v.legal).toMatch(/Pas d'escompte pour paiement anticipé/);
+    // Conditions de règlement dans le CORPS (bloc « Conditions de paiement »), plus dans le pied (12/11).
+    const c = (v.paymentConditions ?? []).join(' ');
+    expect(c).toMatch(/Pénalités de retard/);
+    expect(c).toMatch(/40 €/);
+    expect(c).toMatch(/Pas d'escompte pour paiement anticipé/);
+    expect(v.legal).not.toMatch(/Pénalités de retard|40 €|escompte/);
+    expect(v.legal).toMatch(/^Atelier Vertex SAS au capital de 10 000 €\. RCS Paris 123 456 789\./);
     expect(v.legal).toMatch(/Nature de l'opération : prestation de services\./);
   });
 
   it('entreprise étrangère (raison sociale + TVA) : mentions présentes, TVA imprimée', () => {
     const v = buildDocumentView(sampleData('invoice', { buyer: { name: 'Muster GmbH', legalName: 'Muster GmbH', vatId: 'DE123456789' } }), { settings: settings() });
-    expect(v.legal).toMatch(/escompte/);
+    expect((v.paymentConditions ?? []).join(' ')).toMatch(/escompte/);
     expect(v.buyer.vat).toMatch(/DE123456789/);
   });
 

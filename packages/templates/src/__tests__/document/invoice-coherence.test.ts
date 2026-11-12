@@ -1,4 +1,5 @@
-import { buildDocumentView, buyerIdentity } from '../../document/view';
+import { buildDocumentView, buyerIdentity, isIndividualEnterprise } from '../../document/view';
+import { renderDocumentHtml } from '../../document/html';
 import { normalizeDocumentSettings, FULL_DOCUMENT_ENTITLEMENTS } from '../../document/settings';
 import { sampleData } from './fixtures';
 
@@ -53,5 +54,37 @@ describe('cohérence des factures', () => {
     expect(v.vatApplicable).toBe(true);
     expect(v.labels.grandTotal).toBe('Total TTC');
     expect(v.taxes.length).toBeGreaterThan(0);
+  });
+
+  it('SIRET du vendeur imprimé dans son bloc (mention obligatoire, 12/11)', () => {
+    const data = sampleData('invoice');
+    const v = buildDocumentView(data, { settings: settings() });
+    expect(v.seller.id).toContain(data.seller.siret!);
+    expect(renderDocumentHtml(v)).toContain(v.seller.id!);
+  });
+
+  it('conditions de paiement dans le corps : échéance pour tous, pénalités et 40 € pour un client professionnel', () => {
+    const pro = buildDocumentView(sampleData('invoice', { buyer: { name: 'ADIFEP', legalName: 'ADIFEP', siret: '81245678900021', address: {} } }), { settings: settings() });
+    expect(pro.paymentConditions?.[0]).toMatch(/Échéance|Paiement/);
+    expect(pro.paymentConditions?.join(' ')).toMatch(/Pénalités de retard.*40 €/s);
+    expect(renderDocumentHtml(pro)).toContain('Conditions de paiement');
+    const particulier = buildDocumentView(sampleData('invoice'), { settings: settings() });
+    expect(particulier.paymentConditions?.join(' ') ?? '').not.toMatch(/Pénalités|40 €/);
+  });
+
+  it('entreprise individuelle ou capital nul : jamais « au capital de 0 € » (INV-20261112-0002)', () => {
+    const data = sampleData('invoice');
+    const ei = { ...data, seller: { ...data.seller, name: 'YOPA NANA LEONCE', legalName: 'YOPA NANA LEONCE', legalForm: 'Entrepreneur Individuel', capital: '0 €', registration: undefined } };
+    expect(buildDocumentView(ei, { settings: settings() }).legal).not.toMatch(/capital/i);
+    const zero = { ...data, seller: { ...data.seller, capital: '0 €' } };
+    expect(buildDocumentView(zero, { settings: settings() }).legal).not.toMatch(/capital de 0/);
+    expect(isIndividualEnterprise('Micro-entrepreneur')).toBe(true);
+    expect(isIndividualEnterprise('SAS')).toBe(false);
+  });
+
+  it('entreprise individuelle avec RCS : la forme juridique reste dans le pied, en tête', () => {
+    const data = sampleData('invoice');
+    const ei = { ...data, seller: { ...data.seller, name: 'YOPA NANA LEONCE', legalName: 'YOPA NANA LEONCE', legalForm: 'Entrepreneur individuel', capital: undefined, registration: 'RCS Nanterre 915335517', siret: '91533551700024' } };
+    expect(buildDocumentView(ei, { settings: settings() }).legal).toMatch(/^YOPA NANA LEONCE, Entrepreneur individuel\. RCS Nanterre 915335517\./);
   });
 });

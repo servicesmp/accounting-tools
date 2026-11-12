@@ -10,7 +10,7 @@ const fr = {
     noVat: { unitPrice: 'Prix unitaire', lineTotal: 'Montant', grandTotal: 'Total' },
     subtotal: 'Sous-total HT', taxTotal: 'Total TVA', grandTotal: 'Total TTC',
     taxBreakdown: 'Détail de la TVA', taxBase: 'Base', taxAmount: 'TVA',
-    paymentTerms: 'Paiement', iban: 'IBAN', bic: 'BIC', scanToPay: 'Scannez pour payer',
+    paymentTerms: 'Paiement', paymentConditions: 'Conditions de paiement', iban: 'IBAN', bic: 'BIC', scanToPay: 'Scannez pour payer',
     poweredBy: 'Document émis avec', page: 'Page', of: 'sur',
     watermark: (kind, status) => {
         // Facture : féminin ; avoir, devis, bon de commande : masculin.
@@ -53,7 +53,7 @@ const en = {
     noVat: { unitPrice: 'Unit price', lineTotal: 'Amount', grandTotal: 'Total' },
     subtotal: 'Subtotal', taxTotal: 'Total VAT', grandTotal: 'Grand total',
     taxBreakdown: 'Tax breakdown', taxBase: 'Base', taxAmount: 'VAT',
-    paymentTerms: 'Payment', iban: 'IBAN', bic: 'BIC', scanToPay: 'Scan to pay',
+    paymentTerms: 'Payment', paymentConditions: 'Payment terms', iban: 'IBAN', bic: 'BIC', scanToPay: 'Scan to pay',
     poweredBy: 'Issued with', page: 'Page', of: 'of',
     watermark: (_kind, status) => ({
         draft: 'DRAFT', paid: 'PAID', cancelled: 'CANCELLED', refunded: 'REFUNDED', overdue: 'OVERDUE',
@@ -85,7 +85,7 @@ const de = {
     noVat: { unitPrice: 'Einzelpreis', lineTotal: 'Betrag', grandTotal: 'Gesamtbetrag' },
     subtotal: 'Zwischensumme', taxTotal: 'MwSt Gesamt', grandTotal: 'Endsumme',
     taxBreakdown: 'Steueraufschlüsselung', taxBase: 'Basis', taxAmount: 'MwSt',
-    paymentTerms: 'Zahlung', iban: 'IBAN', bic: 'BIC', scanToPay: 'Scannen zum Bezahlen',
+    paymentTerms: 'Zahlung', paymentConditions: 'Zahlungsbedingungen', iban: 'IBAN', bic: 'BIC', scanToPay: 'Scannen zum Bezahlen',
     poweredBy: 'Erstellt mit', page: 'Seite', of: 'von',
     watermark: (_kind, status) => ({
         draft: 'ENTWURF', paid: 'BEZAHLT', cancelled: 'STORNIERT', refunded: 'ERSTATTET', overdue: 'ÜBERFÄLLIG',
@@ -117,7 +117,7 @@ const es = {
     noVat: { unitPrice: 'Precio unit.', lineTotal: 'Importe', grandTotal: 'Total' },
     subtotal: 'Base imponible', taxTotal: 'Total IVA', grandTotal: 'Total',
     taxBreakdown: 'Desglose del IVA', taxBase: 'Base', taxAmount: 'IVA',
-    paymentTerms: 'Pago', iban: 'IBAN', bic: 'BIC', scanToPay: 'Escanee para pagar',
+    paymentTerms: 'Pago', paymentConditions: 'Condiciones de pago', iban: 'IBAN', bic: 'BIC', scanToPay: 'Escanee para pagar',
     poweredBy: 'Documento emitido con', page: 'Página', of: 'de',
     watermark: (kind, status) => {
         // Factura y factura rectificativa: femenino; presupuesto y pedido: masculino.

@@ -286,6 +286,7 @@ export interface DocumentView {
         readonly taxBase: string;
         readonly taxAmount: string;
         readonly paymentTerms: string;
+        readonly paymentConditions: string;
         readonly iban: string;
         readonly bic: string;
         readonly scanToPay: string;
@@ -313,6 +314,11 @@ export interface DocumentView {
         readonly base: string;
         readonly amount: string;
     }[];
+    /**
+     * Conditions de paiement d'une facture (échéance, pénalités de retard, indemnité forfaitaire,
+     * escompte) : mentions obligatoires, imprimées dans le corps du document, pas dans le pied (12/11).
+     */
+    readonly paymentConditions?: readonly string[];
     /**
      * Faux pour un document sans TVA (toutes les lignes à 0 % avec une mention d'exonération,
      * ex. franchise art. 293 B) : ni lignes « Sous-total HT » / « Total TVA », ni détail de TVA,

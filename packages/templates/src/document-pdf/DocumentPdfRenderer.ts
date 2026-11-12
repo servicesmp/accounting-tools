@@ -312,6 +312,7 @@ export class DocumentPdfRenderer {
     y = this.refLine(y);
     y = this.table(y);
     y = this.bottom(y);
+    y = this.conditions(y);
     this.notes(y);
     this.footers();
 
@@ -619,7 +620,8 @@ export class DocumentPdfRenderer {
       if (p.contact && p !== v.seller) h += 4 + this.paraHeight(p.contact, inner, { size: 11 });
       for (const l of lines) h += 4 + this.paraHeight(l, inner, { size: 11 });
       if (p.vat) h += 4 + 4 + normalLH(10);
-      if (p.id && p !== v.seller) h += 4 + normalLH(10);
+      // SIRET du vendeur : mention obligatoire, imprimé comme celui du client (12/11).
+      if (p.id) h += 4 + normalLH(10);
       return h;
     };
     const h = Math.max(content(v.seller), content(v.buyer)) + 2 * pad.y + 2 * border;
@@ -640,7 +642,7 @@ export class DocumentPdfRenderer {
       if (buyer && p.contact) { y += 4; y += this.para(p.contact, cx, y, inner, { size: 11, color: C.slate600 }); }
       for (const l of [...p.street, p.cityLine].filter(Boolean)) { y += 4; y += this.para(l, cx, y, inner, { size: 11 }); }
       if (p.vat) { y += 4 + 4; this.text(p.vat, cx, y, { size: 10, color: C.slate500 }); y += normalLH(10); }
-      if (p.id && buyer) { y += 4; this.text(p.id, cx, y, { size: 10, color: C.slate500 }); }
+      if (p.id) { y += 4; this.text(p.id, cx, y, { size: 10, color: C.slate500 }); }
     };
     draw(v.seller, v.labels.seller, this.L, false);
     draw(v.buyer, v.labels.buyer, this.L + colW + gap, true);
@@ -676,7 +678,7 @@ export class DocumentPdfRenderer {
       y += this.para(p.oneLineNoCountry, x, y, colW, base);
       if (p.vat) { this.text(p.vat, x, y, { ...base, color: C.gray }); y += 10.5 * 1.55; }
       // SIRET du client : imprimé dans les trois mises en page (absent de celle-ci avant le 11/11).
-      if (buyer && p.id) { this.text(p.id, x, y, { ...base, color: C.gray }); y += 10.5 * 1.55; }
+      if (p.id) { this.text(p.id, x, y, { ...base, color: C.gray }); y += 10.5 * 1.55; }
       return y - top;
     };
     const h1 = col(this.L, v.labels.seller, v.seller);
@@ -963,6 +965,21 @@ export class DocumentPdfRenderer {
     this.text(v.labels.grandTotal, x + 20, base - baselineOffset(lb), lb);
     this.text(v.grandTotal, x + w - 20, base - baselineOffset(gv), gv, 'right');
     return top + h;
+  }
+
+  /** Conditions de paiement (mentions obligatoires d'une facture), dans le corps, avant les notes. */
+  private conditions(y0: number): number {
+    const v = this.v;
+    if (!v.paymentConditions?.length) return y0;
+    const W = this.R - this.L;
+    const title: TextStyle = { size: 10, bold: true, color: C.ink };
+    const s: TextStyle = { size: 10, color: C.slate600 };
+    const h = normalLH(10) + v.paymentConditions.reduce((acc, c) => acc + 3 + this.paraHeight(c, W, s), 0);
+    let y = this.ensure(y0 + 22, h);
+    this.text(v.labels.paymentConditions, this.L, y, title);
+    y += normalLH(10);
+    for (const c of v.paymentConditions) { y += 3; y += this.para(c, this.L, y, W, s); }
+    return y;
   }
 
   private notes(y0: number) {
