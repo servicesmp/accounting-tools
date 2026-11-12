@@ -621,6 +621,8 @@ class DocumentPdfRenderer {
             let h = normalLH(9) + 4 + 4 + normalLH(12);
             if (p.contact && p !== v.seller)
                 h += 4 + this.paraHeight(p.contact, inner, { size: 11 });
+            if (p.tradeName)
+                h += 4 + this.paraHeight(p.tradeName, inner, { size: 11 });
             for (const l of lines)
                 h += 4 + this.paraHeight(l, inner, { size: 11 });
             if (p.vat)
@@ -646,6 +648,11 @@ class DocumentPdfRenderer {
             y += normalLH(9) + 4 + 4;
             this.text(p.name, cx, y, { size: 12, bold: true, color: C.ink });
             y += normalLH(12);
+            // Vendeur : nom commercial sous la raison sociale (12/11).
+            if (p.tradeName) {
+                y += 4;
+                y += this.para(p.tradeName, cx, y, inner, { size: 11, color: C.slate600 });
+            }
             // Client entreprise : « À l'attention de … » sous la raison sociale.
             if (buyer && p.contact) {
                 y += 4;
@@ -706,6 +713,8 @@ class DocumentPdfRenderer {
             y += 8 * 1.55 + 6;
             this.text(p.name, x, y, { ...base, bold: true });
             y += 10.5 * 1.55;
+            if (p.tradeName)
+                y += this.para(p.tradeName, x, y, colW, { ...base, color: C.gray });
             if (buyer && p.contact)
                 y += this.para(p.contact, x, y, colW, base);
             y += this.para(p.oneLineNoCountry, x, y, colW, base);

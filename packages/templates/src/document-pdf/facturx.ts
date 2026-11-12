@@ -14,7 +14,7 @@ import {
 import type { DocumentData, DocumentParty, DocumentAddress, DocumentTotals } from '../document/types';
 import { toIsoCountryCode } from '../document/country';
 import { currencyDecimals, toDate } from '../document/format';
-import { computeLineTotal, sellerLegalInformation } from '../document/view';
+import { computeLineTotal, sellerLegalInformation, streetWithoutLocality } from '../document/view';
 
 /** Notes obligatoires françaises portées dans le XML (BR-FR-05). */
 export const FR_MANDATORY_NOTES: ReadonlyArray<{ subjectCode: string; content: string }> = [
@@ -62,7 +62,7 @@ function address(a: DocumentAddress | undefined, fallbackCountry: string, warnin
   const city = a?.city?.trim() || '';
   const postal = a?.postalCode?.trim() || '';
   if (!city || !postal) warnings.push(`Adresse ${who} incomplète (ville ou code postal manquant).`);
-  return new PostalAddressImpl(city || '-', postal || '-', country, a?.street?.trim() || undefined, a?.additionalStreet?.trim() || undefined);
+  return new PostalAddressImpl(city || '-', postal || '-', country, streetWithoutLocality(a?.street, a?.postalCode, a?.city), a?.additionalStreet?.trim() || undefined);
 }
 
 function means(data: DocumentData, warnings: string[]): PaymentMeansCode {

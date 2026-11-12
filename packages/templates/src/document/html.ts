@@ -166,7 +166,7 @@ ${logoBox(60, 42, primary, '9999px')}
   const partyBox = (p: ViewParty, heading: string, buyer: boolean) => {
     const bg = buyer && bandBuyer ? mix(accent, 0.10) : partyBg;
     const border = buyer && bandBuyer ? `1px solid ${mix(accent, 0.40)}` : partyBorder;
-    return `<div style="padding:${partyPad};border-radius:${partyRad};background:${bg};border:${border};display:flex;flex-direction:column;gap:4px;font-size:11px"><span style="${lab(labelC)};margin-bottom:4px">${e(heading)}</span><span style="font-weight:700;font-size:12px;color:${C.ink}">${e(p.name)}</span>${buyer && p.contact ? `<span style="color:${C.slate600}">${e(p.contact)}</span>` : ''}${[...p.street, p.cityLine].filter(Boolean).map((l) => `<span>${e(l)}</span>`).join('')}${p.vat ? `<span style="color:${C.slate500};font-size:10px;margin-top:4px">${e(p.vat)}</span>` : ''}${p.id ? `<span style="color:${C.slate500};font-size:10px">${e(p.id)}</span>` : ''}</div>`;
+    return `<div style="padding:${partyPad};border-radius:${partyRad};background:${bg};border:${border};display:flex;flex-direction:column;gap:4px;font-size:11px"><span style="${lab(labelC)};margin-bottom:4px">${e(heading)}</span><span style="font-weight:700;font-size:12px;color:${C.ink}">${e(p.name)}</span>${p.tradeName ? `<span style="color:${C.slate600}">${e(p.tradeName)}</span>` : ''}${buyer && p.contact ? `<span style="color:${C.slate600}">${e(p.contact)}</span>` : ''}${[...p.street, p.cityLine].filter(Boolean).map((l) => `<span>${e(l)}</span>`).join('')}${p.vat ? `<span style="color:${C.slate500};font-size:10px;margin-top:4px">${e(p.vat)}</span>` : ''}${p.id ? `<span style="color:${C.slate500};font-size:10px">${e(p.id)}</span>` : ''}</div>`;
   };
 
   const partiesTwo = () =>
@@ -178,7 +178,7 @@ ${logoBox(60, 42, primary, '9999px')}
   const partiesRow = () => {
     const small = `font-size:8px;letter-spacing:.12em;text-transform:uppercase;color:${C.gray}`;
     const col = (heading: string, p: ViewParty, buyer = false) =>
-      `<div style="display:flex;flex-direction:column"><span style="${small};margin-bottom:6px">${e(heading)}</span><b>${e(p.name)}</b>${buyer && p.contact ? `<span>${e(p.contact)}</span>` : ''}<span>${e(p.oneLineNoCountry)}</span>${p.vat ? `<span style="color:${C.gray}">${e(p.vat)}</span>` : ''}${p.id ? `<span style="color:${C.gray}">${e(p.id)}</span>` : ''}</div>`;
+      `<div style="display:flex;flex-direction:column"><span style="${small};margin-bottom:6px">${e(heading)}</span><b>${e(p.name)}</b>${p.tradeName ? `<span style="color:${C.gray}">${e(p.tradeName)}</span>` : ''}${buyer && p.contact ? `<span>${e(p.contact)}</span>` : ''}<span>${e(p.oneLineNoCountry)}</span>${p.vat ? `<span style="color:${C.gray}">${e(p.vat)}</span>` : ''}${p.id ? `<span style="color:${C.gray}">${e(p.id)}</span>` : ''}</div>`;
     return `<div style="padding-top:24px;display:grid;grid-template-columns:1fr 1fr 1fr;gap:20px;font-size:10.5px;line-height:1.55">
 ${col(L.seller, v.seller)}${col(L.buyer, v.buyer, true)}
 <div style="display:flex;flex-direction:column"><span style="${small};margin-bottom:6px">${e(L.issue)}</span><b>${e(v.issueDate)}</b><span style="${small};margin:8px 0 2px">${e(L.number)}</span><b>${e(v.number)}</b></div>

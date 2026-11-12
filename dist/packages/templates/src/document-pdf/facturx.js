@@ -49,7 +49,7 @@ function address(a, fallbackCountry, warnings, who) {
     const postal = a?.postalCode?.trim() || '';
     if (!city || !postal)
         warnings.push(`Adresse ${who} incomplète (ville ou code postal manquant).`);
-    return new core_1.PostalAddressImpl(city || '-', postal || '-', country, a?.street?.trim() || undefined, a?.additionalStreet?.trim() || undefined);
+    return new core_1.PostalAddressImpl(city || '-', postal || '-', country, (0, view_1.streetWithoutLocality)(a?.street, a?.postalCode, a?.city), a?.additionalStreet?.trim() || undefined);
 }
 function means(data, warnings) {
     // BR-50 / BR-61 : un virement ou un prélèvement exige le compte (IBAN) ; sans lui, la facture

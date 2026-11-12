@@ -40,6 +40,22 @@ export interface BuildDocumentViewOptions {
 export declare function watermarkFontSize(text: string): number;
 export declare function buildDocumentView(data: DocumentData, options?: BuildDocumentViewOptions): DocumentView;
 /**
+ * Vendeur affiché (12/11) : sa raison sociale, comme le XML Factur-X (BT-27), et son nom commercial
+ * en dessous (BT-28) s'il apporte quelque chose. Avant, le PDF imprimait le nom commercial
+ * (« SMP-DEMO ») et le XML la raison sociale (« Services CEO ») : deux vendeurs différents.
+ */
+export declare function sellerDisplayParty(seller: DocumentParty): DocumentParty & {
+    tradeName?: string;
+};
+/**
+ * Rue sans la localité recopiée (12/11) : « 95 RUE DU CAPITAINE GUYNEMER 92400 COURBEVOIE » avec le
+ * code postal 92400 et la ville COURBEVOIE donne « 95 RUE DU CAPITAINE GUYNEMER ». Certaines fiches
+ * (contacts du CRM, adresses saisies d'un bloc) ont l'adresse complète en première ligne : elle
+ * s'imprimait deux fois. Ne retire rien sans le code postal (une rue peut porter le nom de la ville :
+ * « 12 rue de Paris, 75001 Paris »), ni quand il ne resterait rien ; aucun format de pays supposé.
+ */
+export declare function streetWithoutLocality(street?: string, postalCode?: string, city?: string): string | undefined;
+/**
  * Client entreprise : raison sociale, SIRET ou SIREN connus — même définition pour les mentions de
  * règlement et pour les identifiants imprimés (`buyerIdentity`). Sans aucun d'eux : un particulier.
  */

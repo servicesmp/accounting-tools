@@ -60,14 +60,15 @@ export const COLUMN_SPEC: Record<ColumnKey, { width: number | null; align: 'left
 
 // ─── Aides ───────────────────────────────────────────────────────────────────
 
-function partyView(party: DocumentParty, vatLabel: string, idLabels: { siret: string; siren: string; attention?: string }, withContact = false): ViewParty {
+function partyView(party: DocumentParty & { tradeName?: string }, vatLabel: string, idLabels: { siret: string; siren: string; attention?: string }, withContact = false): ViewParty {
   const a: DocumentAddress = party.address ?? {};
   const cc = toIsoCountryCode(a.country) ?? (a.country ?? '');
-  const street = [a.street, a.additionalStreet].filter((x): x is string => !!x && !!x.trim());
+  const street = [streetWithoutLocality(a.street, a.postalCode, a.city), a.additionalStreet].filter((x): x is string => !!x && !!x.trim());
   const city = [a.postalCode, a.city].filter(Boolean).join(' ');
   const cityLine = [city, cc].filter(Boolean).join(', ');
   return {
     name: party.name || '—',
+    ...(party.tradeName ? { tradeName: party.tradeName } : {}),
     street,
     cityLine,
     oneLine: [...street, city, cc].filter(Boolean).join(', '),
@@ -289,7 +290,7 @@ export function buildDocumentView(data: DocumentData, options: BuildDocumentView
     },
     issueDate: formatDate(data.issueDate, locale),
     due,
-    seller: partyView(seller, L.vat, L),
+    seller: partyView(sellerDisplayParty(seller), L.vat, L),
     buyer: partyView(buyerIdentity(data.buyer, seller), L.vat, L, isProfessionalParty(data.buyer)),
     delivery: data.delivery?.address ? partyView({ name: data.delivery.name ?? '', address: data.delivery.address }, L.vat, L) : undefined,
     refLine,
@@ -320,6 +321,45 @@ export function buildDocumentView(data: DocumentData, options: BuildDocumentView
 }
 
 const escapeRegExp = (v: string) => v.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+
+/**
+ * Vendeur affiché (12/11) : sa raison sociale, comme le XML Factur-X (BT-27), et son nom commercial
+ * en dessous (BT-28) s'il apporte quelque chose. Avant, le PDF imprimait le nom commercial
+ * (« SMP-DEMO ») et le XML la raison sociale (« Services CEO ») : deux vendeurs différents.
+ */
+export function sellerDisplayParty(seller: DocumentParty): DocumentParty & { tradeName?: string } {
+  const legalName = seller.legalName?.trim();
+  const name = seller.name?.trim();
+  if (!legalName || !name || name === '—') return { ...seller, name: legalName || seller.name };
+  const norm = (v: string) => v.toLocaleLowerCase('fr').replace(/[^\p{L}\p{N}]+/gu, ' ').trim();
+  const tradeName = norm(legalName).includes(norm(name)) ? undefined : name;
+  return { ...seller, name: legalName, ...(tradeName ? { tradeName } : {}) };
+}
+
+/**
+ * Rue sans la localité recopiée (12/11) : « 95 RUE DU CAPITAINE GUYNEMER 92400 COURBEVOIE » avec le
+ * code postal 92400 et la ville COURBEVOIE donne « 95 RUE DU CAPITAINE GUYNEMER ». Certaines fiches
+ * (contacts du CRM, adresses saisies d'un bloc) ont l'adresse complète en première ligne : elle
+ * s'imprimait deux fois. Ne retire rien sans le code postal (une rue peut porter le nom de la ville :
+ * « 12 rue de Paris, 75001 Paris »), ni quand il ne resterait rien ; aucun format de pays supposé.
+ */
+export function streetWithoutLocality(street?: string, postalCode?: string, city?: string): string | undefined {
+  const s = street?.trim();
+  const pc = postalCode?.trim();
+  if (!s || !pc) return s || undefined;
+  const c = city?.trim();
+  const P = escapeRegExp(pc);
+  const C = c ? escapeRegExp(c) : undefined;
+  const tails = [
+    ...(C ? [`${P}[\\s,]+${C}(?:[\\s,]+[\\p{L} .'-]{2,40})?`, `${C}[\\s,]+${P}(?:[\\s,]+[\\p{L} .'-]{2,40})?`] : []),
+    P,
+  ];
+  for (const tail of tails) {
+    const cut: string = s.replace(new RegExp(`[\\s,]+${tail}\\s*$`, 'iu'), '').trim();
+    if (cut !== s && cut) return cut;
+  }
+  return s;
+}
 
 /**
  * Client entreprise : raison sociale, SIRET ou SIREN connus — même définition pour les mentions de

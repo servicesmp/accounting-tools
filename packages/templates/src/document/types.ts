@@ -271,6 +271,8 @@ export interface ViewRow {
 
 export interface ViewParty {
   readonly name: string;
+  /** Vendeur : nom commercial imprimé sous la raison sociale, s'il en diffère (BT-28). */
+  readonly tradeName?: string;
   /** Lignes d'adresse (rue, complément). */
   readonly street: readonly string[];
   /** « 69002 Lyon, FR » */

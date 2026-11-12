@@ -618,6 +618,7 @@ export class DocumentPdfRenderer {
       const lines = [...p.street, p.cityLine].filter(Boolean);
       let h = normalLH(9) + 4 + 4 + normalLH(12);
       if (p.contact && p !== v.seller) h += 4 + this.paraHeight(p.contact, inner, { size: 11 });
+      if (p.tradeName) h += 4 + this.paraHeight(p.tradeName, inner, { size: 11 });
       for (const l of lines) h += 4 + this.paraHeight(l, inner, { size: 11 });
       if (p.vat) h += 4 + 4 + normalLH(10);
       // SIRET du vendeur : mention obligatoire, imprimé comme celui du client (12/11).
@@ -638,6 +639,8 @@ export class DocumentPdfRenderer {
       y += normalLH(9) + 4 + 4;
       this.text(p.name, cx, y, { size: 12, bold: true, color: C.ink });
       y += normalLH(12);
+      // Vendeur : nom commercial sous la raison sociale (12/11).
+      if (p.tradeName) { y += 4; y += this.para(p.tradeName, cx, y, inner, { size: 11, color: C.slate600 }); }
       // Client entreprise : « À l'attention de … » sous la raison sociale.
       if (buyer && p.contact) { y += 4; y += this.para(p.contact, cx, y, inner, { size: 11, color: C.slate600 }); }
       for (const l of [...p.street, p.cityLine].filter(Boolean)) { y += 4; y += this.para(l, cx, y, inner, { size: 11 }); }
@@ -674,6 +677,7 @@ export class DocumentPdfRenderer {
       let y = top;
       this.text(heading, x, y, lab); y += 8 * 1.55 + 6;
       this.text(p.name, x, y, { ...base, bold: true }); y += 10.5 * 1.55;
+      if (p.tradeName) y += this.para(p.tradeName, x, y, colW, { ...base, color: C.gray });
       if (buyer && p.contact) y += this.para(p.contact, x, y, colW, base);
       y += this.para(p.oneLineNoCountry, x, y, colW, base);
       if (p.vat) { this.text(p.vat, x, y, { ...base, color: C.gray }); y += 10.5 * 1.55; }
